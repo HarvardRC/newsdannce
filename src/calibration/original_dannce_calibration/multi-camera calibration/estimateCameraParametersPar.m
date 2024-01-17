@@ -220,34 +220,35 @@ if nargin > 0
 end
 
 [imagePoints, worldPoints, imageSize, worldUnits, cameraModel, calibrationParams] = ...
-    parseInputs(varargin{:});
+        parseInputs(varargin{:});
 calibrationParams.shouldComputeErrors = (nargout >= 3);
 
 if size(imagePoints, 4) == 1 % single camera
     [cameraParams, imagesUsed, estimationErrors] = calibrateOneCamera(imagePoints, ...
-        worldPoints, imageSize, cameraModel, worldUnits, calibrationParams);
+            worldPoints, imageSize, cameraModel, worldUnits, calibrationParams);
 else % 2-camera stereo
     [cameraParams, imagesUsed, estimationErrors] = calibrateTwoCameras(imagePoints,...
-        worldPoints, imageSize, cameraModel, worldUnits, calibrationParams);
+            worldPoints, imageSize, cameraModel, worldUnits, calibrationParams);
 end
 
 %--------------------------------------------------------------------------
 function [imagePoints, worldPoints, imageSize, worldUnits, cameraModel, calibrationParams] = ...
-    parseInputs(varargin)
+        parseInputs(varargin)
+
 parser = inputParser;
 parser.addRequired('imagePoints', @checkImagePoints);
 parser.addRequired('worldPoints', @checkWorldPoints);
 parser.addParameter('WorldUnits', 'mm', @checkWorldUnits);
 parser.addParameter('EstimateSkew', false, @checkEstimateSkew);
 parser.addParameter('EstimateTangentialDistortion', false, ...
-    @checkEstimateTangentialDistortion);
+        @checkEstimateTangentialDistortion);
 parser.addParameter('NumRadialDistortionCoefficients', 2, ...
-    @checkNumRadialDistortionCoefficients);
+        @checkNumRadialDistortionCoefficients);
 parser.addParameter('InitialIntrinsicMatrix', [], @checkInitialIntrinsicMatrix);
 parser.addParameter('InitialRadialDistortion', [], @checkInitialRadialDistortion);
 parser.addParameter('ShowProgressBar', false, @checkShowProgressBar);
-parser.addParameter('ImageSize', zeros(0,2),...
-                    @vision.internal.calibration.CameraParametersImpl.checkImageSize);
+parser.addParameter('ImageSize', zeros(0, 2), ...
+        @vision.internal.calibration.CameraParametersImpl.checkImageSize);
 
 parser.parse(varargin{:});
 
@@ -262,7 +263,7 @@ imageSize = parser.Results.ImageSize;
 worldUnits  = parser.Results.WorldUnits;
 cameraModel.EstimateSkew = parser.Results.EstimateSkew;
 cameraModel.EstimateTangentialDistortion = ...
-    parser.Results.EstimateTangentialDistortion;
+        parser.Results.EstimateTangentialDistortion;
 initIntrinsics = double(parser.Results.InitialIntrinsicMatrix);
 initRadial = double(parser.Results.InitialRadialDistortion);
 
@@ -271,13 +272,13 @@ if ~isempty(initRadial) && ...
     cameraModel.NumRadialDistortionCoefficients = numel(initRadial);
 else
     cameraModel.NumRadialDistortionCoefficients = ...
-        parser.Results.NumRadialDistortionCoefficients;
+            parser.Results.NumRadialDistortionCoefficients;
 end
 
 if ~isempty(initRadial) && ...
         cameraModel.NumRadialDistortionCoefficients ~= numel(initRadial)
     error(message('vision:calibrate:numRadialCoeffsDoesntMatch', ...
-        'InitialRadialDistortion', 'NumRadialDistortionCoefficients'));
+            'InitialRadialDistortion', 'NumRadialDistortionCoefficients'));
 end
 calibrationParams.initIntrinsics  = initIntrinsics;
 calibrationParams.initRadial      = initRadial;
@@ -299,37 +300,37 @@ validateattributes(worldUnits, {'char'}, {'vector'}, mfilename, 'worldUnits');
 %--------------------------------------------------------------------------
 function checkEstimateSkew(esitmateSkew)
 validateattributes(esitmateSkew, {'logical'}, {'scalar'}, ...
-    mfilename, 'EstimateSkew');
+        mfilename, 'EstimateSkew');
 
 %--------------------------------------------------------------------------
 function checkEstimateTangentialDistortion(estimateTangential)
 validateattributes(estimateTangential, {'logical'}, {'scalar'}, mfilename, ...
-    'EstimateTangentialDistortion');
+        'EstimateTangentialDistortion');
 
 %--------------------------------------------------------------------------
 function checkNumRadialDistortionCoefficients(numRadialCoeffs)
 validateattributes(numRadialCoeffs, {'numeric'}, ...
-   {'scalar', 'integer', '>=', 2, '<=', 3}, ...
-   mfilename, 'NumRadialDistortionCoefficients');
+        {'scalar', 'integer', '>=', 2, '<=', 3}, ...
+        mfilename, 'NumRadialDistortionCoefficients');
 
 %--------------------------------------------------------------------------
 function checkInitialIntrinsicMatrix(K)
 if ~isempty(K)
     validateattributes(K, {'single', 'double'}, ...
-        {'real', 'nonsparse', 'finite', 'size', [3 3]}, ...
-        mfilename, 'InitialIntrisicMatrix');
+            {'real', 'nonsparse', 'finite', 'size', [3 3]}, ...
+            mfilename, 'InitialIntrisicMatrix');
 end
 
 %--------------------------------------------------------------------------
 function checkInitialRadialDistortion(P)
 if ~isempty(P)
-    validateattributes(P, {'single', 'double'},...
-        {'real', 'nonsparse', 'finite', 'vector'},...
-        mfilename, 'InitialRadialDistortion');
+    validateattributes(P, {'single', 'double'}, ...
+            {'real', 'nonsparse', 'finite', 'vector'}, ...
+            mfilename, 'InitialRadialDistortion');
     
     if numel(P) ~= 2
         validateattributes(P, {'single', 'double'}, {'numel', 3}, ...
-            mfilename, 'InitialRadialDistortion');
+                mfilename, 'InitialRadialDistortion');
     end
 end
 
@@ -339,15 +340,15 @@ vision.internal.inputValidation.validateLogical(showProgressBar, 'ShowProgressBa
 
 %--------------------------------------------------------------------------
 function [cameraParams, imagesUsed, errors] = calibrateOneCamera(imagePoints, ...
-    worldPoints, imageSize, cameraModel, worldUnits, calibrationParams)
+        worldPoints, imageSize, cameraModel, worldUnits, calibrationParams)
 
 %progressBar = vision.internal.calibration.createSingleCameraProgressBar(calibrationParams.showProgressBar);
 
 % compute the initial "guess" of intrinisc and extrinsic camera parameters
 % in closed form ignoring distortion
-[cameraParams, imagesUsed] = computeInitialParameterEstimate(...
-    worldPoints, imagePoints, imageSize, cameraModel, worldUnits, ...
-    calibrationParams.initIntrinsics, calibrationParams.initRadial);
+[cameraParams, imagesUsed] = computeInitialParameterEstimate( ...
+        worldPoints, imagePoints, imageSize, cameraModel, worldUnits, ...
+        calibrationParams.initIntrinsics, calibrationParams.initRadial);
 imagePoints = imagePoints(:, :, imagesUsed);
 
 %progressBar.update();
@@ -358,7 +359,7 @@ errors = refine(cameraParams, imagePoints, calibrationParams.shouldComputeErrors
 %progressBar.update();
 %progressBar.delete();
 %--------------------------------------------------------------------------
-function [iniltialParams, validIdx] = computeInitialParameterEstimate(...
+function [iniltialParams, validIdx] = computeInitialParameterEstimate( ...
     worldPoints, imagePoints, imageSize, cameraModel, worldUnits, initIntrinsics, initRadial)
 % Solve for the camera intriniscs and extrinsics in closed form ignoring
 % distortion.
@@ -368,8 +369,8 @@ function [iniltialParams, validIdx] = computeInitialParameterEstimate(...
 if isempty(initIntrinsics)
     if ~isempty(imageSize)
         % assume zero skew and centered principal point for initial guess
-        cx = (imageSize(2)-1)/2;
-        cy = (imageSize(1)-1)/2;
+        cx = (imageSize(2) - 1) / 2;
+        cy = (imageSize(1) - 1) / 2;
         [fx, fy] = vision.internal.calibration.computeFocalLength(H, cx, cy);
         A = vision.internal.calibration.constructIntrinsicMatrix(fx, fy, cx, cy, 0);
         if ~isreal(A)
@@ -393,21 +394,22 @@ else
     radialCoeffs = initRadial;
 end
 
-iniltialParams = cameraParameters('IntrinsicMatrix', A', ...
-    'RotationVectors', rvecs, ...
-    'TranslationVectors', tvecs, 'WorldPoints', worldPoints, ...
-    'WorldUnits', worldUnits, 'EstimateSkew', cameraModel.EstimateSkew,...
-    'NumRadialDistortionCoefficients', cameraModel.NumRadialDistortionCoefficients,...
-    'EstimateTangentialDistortion', cameraModel.EstimateTangentialDistortion,...
-    'RadialDistortion', radialCoeffs, 'ImageSize', imageSize);
+iniltialParams = cameraParameters(...
+        'IntrinsicMatrix', A', ...
+        'RotationVectors', rvecs, ...
+        'TranslationVectors', tvecs, 'WorldPoints', worldPoints, ...
+        'WorldUnits', worldUnits, 'EstimateSkew', cameraModel.EstimateSkew,...
+        'NumRadialDistortionCoefficients', cameraModel.NumRadialDistortionCoefficients,...
+        'EstimateTangentialDistortion', cameraModel.EstimateTangentialDistortion,...
+        'RadialDistortion', radialCoeffs, 'ImageSize', imageSize);
 
 %--------------------------------------------------------------------------
 function H = computeHomography(imagePoints, worldPoints)
 % Compute projective transformation from worldPoints to imagePoints
 
 H = fitgeotrans(worldPoints, imagePoints, 'projective');
-H = (H.T)';
-H = H / H(3,3);
+H = (H . T)';
+H = H / H(3, 3);
 
 
 %--------------------------------------------------------------------------
@@ -420,20 +422,23 @@ w2 = warning('Error', 'images:maketform:conditionNumberofAIsHigh'); %#ok
 numImages = size(points, 3);
 validIdx = true(numImages, 1);
 homographies = zeros(3, 3, numImages);
-parfor i = 1:numImages
+
+% parallel for loop
+parfor i = 1 : numImages
     try    
         homographies(:, :, i) = ...
-            computeHomography(double(points(:, :, i)), worldPoints);
+                computeHomography(double(points(:, :, i)), worldPoints);
     catch 
         validIdx(i) = false;
     end
 end
+
 warning(w1);
 warning(w2);
 homographies = homographies(:, :, validIdx);
 if ~all(validIdx)
     warning(message('vision:calibrate:invalidHomographies', ...
-        numImages - size(homographies, 3), numImages));
+            numImages - size(homographies, 3), numImages));
 end
 
 if size(homographies, 3) < 2
@@ -460,8 +465,13 @@ V(2:2:end, :) = Veven;
 
 %--------------------------------------------------------------------------
 function v = computeLittleV(H, i, j)
-    v = [H(i,1)*H(j,1), H(i,1)*H(j,2)+H(i,2)*H(j,1), H(i,2)*H(j,2),...
-         H(i,3)*H(j,1)+H(i,1)*H(j,3), H(i,3)*H(j,2)+H(i,2)*H(j,3), H(i,3)*H(j,3)];
+    v = [ ...
+            H(i, 1) * H(j, 1), ...
+            H(i, 1) * H(j, 2) + H(i, 2) * H(j, 1), ...
+            H(i, 2) * H(j, 2), ...
+            H(i, 3) * H(j, 1) + H(i, 1) * H(j, 3), ...
+            H(i, 3) * H(j, 2) + H(i, 2) * H(j, 3), H(i, 3) * H(j, 3) ...
+        ];
 
 %--------------------------------------------------------------------------     
 function B = computeB(V)
@@ -477,12 +487,12 @@ B = [b(1), b(2), b(4); b(2), b(3), b(5); b(4), b(5), b(6)];
 function A = computeIntrinsics(B)
 % Compute the intrinsic matrix
 
-cy = (B(1,2)*B(1,3) - B(1,1)*B(2,3)) / (B(1,1)*B(2,2)-B(1,2)^2);
-lambda = B(3,3) - (B(1,3)^2 + cy * (B(1,2)*B(1,3) - B(1,1)*B(2,3))) / B(1,1);
-fx = sqrt(lambda / B(1,1));
-fy = sqrt(lambda * B(1,1) / (B(1,1) * B(2,2) - B(1,2)^2));
-skew = -B(1,2) * fx^2 * fy / lambda;
-cx = skew * cy / fx - B(1,3) * fx^2 / lambda;
+cy = (B(1, 2) * B(1, 3) - B(1, 1) * B(2, 3)) / (B(1, 1) * B(2, 2) - B(1, 2)^2);
+lambda = B(3,3) - (B(1, 3)^2 + cy * (B(1, 2) * B(1, 3) - B(1, 1) * B(2, 3))) / B(1, 1);
+fx = sqrt(lambda / B(1, 1));
+fy = sqrt(lambda * B(1, 1) / (B(1, 1) * B(2, 2) - B(1, 2) ^ 2));
+skew = -B(1,2) * fx ^ 2 * fy / lambda;
+cx = skew * cy / fx - B(1, 3) * fx ^ 2 / lambda;
 A = vision.internal.calibration.constructIntrinsicMatrix(fx, fy, cx, cy, skew);
 if ~isreal(A)
     error(message('vision:calibrate:complexCameraMatrix'));
@@ -490,14 +500,14 @@ end
 
 %--------------------------------------------------------------------------
 function [rotationVectors, translationVectors] = ...
-    computeExtrinsics(A, homographies)
-% Compute translation and rotation vectors for all images
+        computeExtrinsics(A, homographies)
 
+% Compute translation and rotation vectors for all images
 numImages = size(homographies, 3);
 rotationVectors = zeros(3, numImages);
 translationVectors = zeros(3, numImages); 
 Ainv = inv(A);
-parfor i = 1:numImages
+parfor i = 1 : numImages
     H = homographies(:, :, i);
     h1 = H(:, 1);
     h2 = H(:, 2);
@@ -508,7 +518,7 @@ parfor i = 1:numImages
     r1 = lambda * Ainv * h1; %#ok
     r2 = lambda * Ainv * h2; %#ok
     r3 = cross(r1, r2);
-    R = [r1,r2,r3];
+    R = [r1, r2, r3];
     
     rotationVectors(:, i) = vision.internal.calibration.rodriguesMatrixToVector(R);
     
@@ -522,7 +532,7 @@ translationVectors = translationVectors';
 
 %--------------------------------------------------------------------------
 function [stereoParams, pairsUsed, errors] = calibrateTwoCameras(imagePoints,...
-    worldPoints, imageSize, cameraModel, worldUnits, calibrationParams)
+        worldPoints, imageSize, cameraModel, worldUnits, calibrationParams)
 
 imagePoints1 = imagePoints(:, :, :, 1);
 imagePoints2 = imagePoints(:, :, :, 2);
@@ -535,30 +545,30 @@ calibrationParams.showProgressBar = false;
 shouldComputeErrors = calibrationParams.shouldComputeErrors;
 calibrationParams.shouldComputeErrors = false;
 [cameraParameters1, imagesUsed1] = calibrateOneCamera(imagePoints1, ...
-    worldPoints, imageSize, cameraModel, worldUnits, calibrationParams);
+        worldPoints, imageSize, cameraModel, worldUnits, calibrationParams);
 
 %progressBar.update();
 
 [cameraParameters2, imagesUsed2] = calibrateOneCamera(imagePoints2, ...
-    worldPoints, imageSize, cameraModel, worldUnits, calibrationParams);
+        worldPoints, imageSize, cameraModel, worldUnits, calibrationParams);
 
 %progressBar.update();
 
 % Account for possible mismatched pairs
 pairsUsed = imagesUsed1 & imagesUsed2;
-cameraParameters1 = vision.internal.calibration.removeUnusedExtrinsics(...
-    cameraParameters1, pairsUsed, imagesUsed1);
-cameraParameters2 = vision.internal.calibration.removeUnusedExtrinsics(...
-    cameraParameters2, pairsUsed, imagesUsed2);
+cameraParameters1 = vision.internal.calibration.removeUnusedExtrinsics( ...
+        cameraParameters1, pairsUsed, imagesUsed1);
+cameraParameters2 = vision.internal.calibration.removeUnusedExtrinsics( ...
+        cameraParameters2, pairsUsed, imagesUsed2);
 
 % Compute the initial estimate of translation and rotation of camera 2
-[R, t] = vision.internal.calibration.estimateInitialTranslationAndRotation(...
-    cameraParameters1, cameraParameters2);
+[R, t] = vision.internal.calibration.estimateInitialTranslationAndRotation( ...
+        cameraParameters1, cameraParameters2);
 
 stereoParams = stereoParameters(cameraParameters1, cameraParameters2, R, t);
 
 errors = refine(stereoParams, imagePoints1(:, :, pairsUsed), ...
-    imagePoints2(:, :, pairsUsed), shouldComputeErrors);
+        imagePoints2(:, :, pairsUsed), shouldComputeErrors);
 
 %progressBar.update();
 %delete(progressBar);
