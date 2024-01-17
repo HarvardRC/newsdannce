@@ -159,21 +159,21 @@ else
     coder.internal.errorIf(ischar(I), 'vision:calibrate:codegenFileNamesNotSupported');
     coder.internal.errorIf(isstring(I), 'vision:calibrate:codegenFileNamesNotSupported');
     coder.internal.errorIf(iscell(I), 'vision:calibrate:codegenFileNamesNotSupported');
-    coder.internal.errorIf(isnumeric(I) && size(I, 4) > 1,...
-        'vision:calibrate:codegenMultipleImagesNotSupported');
+    coder.internal.errorIf(isnumeric(I) && size(I, 4) > 1, ...
+            'vision:calibrate:codegenMultipleImagesNotSupported');
     [images2, showProgressBar,minCornerMetric] = parseInputsCodegen(varargin{:});
 end
 
 if isempty(images2) 
     % single camera
     [imagePoints, boardSize, imageIdx, userCanceledTmp] = detectMono(I, ...
-        showProgressBar, minCornerMetric);
+            showProgressBar, minCornerMetric);
 else
     % 2-camera stereo 
     images1 = I;
     checkStereoImages(images1, images2);
     [imagePoints, boardSize, imageIdx, userCanceledTmp] = detectStereo(images1, ...
-        images2, showProgressBar, minCornerMetric);
+            images2, showProgressBar, minCornerMetric);
 end
 
 checkThatBoardIsAsymmetric(boardSize);
@@ -204,9 +204,9 @@ if isempty(varargin) || isSecondArgumentNameValuePair
 else
     image2 = varargin{1};
     if numel(varargin) > 1
-        args = varargin(2:end);
+        args = varargin(2 : end);
     else
-        args = {}; 
+        args = {};
     end
 end
 
@@ -214,7 +214,7 @@ end
 parser = inputParser;
 parser.addParameter('ShowProgressBar', false, @checkShowProgressBar);
 parser.addParameter('MinCornerMetric', 0.15, @checkMinCornerMetric);
-parser.parse(args{:}); 
+parser.parse(args{:});
 showProgressBar = parser.Results.ShowProgressBar;
 minCornerMetric = parser.Results.MinCornerMetric;
 
@@ -239,7 +239,7 @@ else
     if numel(varargin) > 1
         args = varargin(2:end);
     else
-        args = {}; 
+        args = {};
     end
 end
 
@@ -255,8 +255,8 @@ if ~isempty(args)
     optarg = eml_parse_parameter_inputs(params, popt, args{:});
     minCornerMetric = eml_get_parameter_value(optarg.MinCornerMetric, 0.15, args{:});
         
-    % MinCornerMetric    
-    checkMinCornerMetric(minCornerMetric);        
+    % MinCornerMetric
+    checkMinCornerMetric(minCornerMetric);
 else
     minCornerMetric = 0.15;
 end
@@ -272,7 +272,7 @@ if iscell(I)
     fileNames = I;
     checkFileNames(fileNames);    
     [points, boardSize, imageIdx, userCanceledTmp] = ...
-        detectCheckerboardFiles(fileNames, showProgressBar, minCornerMetric);
+            detectCheckerboardFiles(fileNames, showProgressBar, minCornerMetric);
     if showProgressBar
         userCanceled = userCanceledTmp;
     end
@@ -290,7 +290,7 @@ elseif ndims(I) > 3
         detectCheckerboardStack(I, showProgressBar, minCornerMetric);
     if showProgressBar
         userCanceled = userCanceledTmp;
-    end    
+    end
 else
     % detect in a single image
     checkImage(I);
@@ -327,7 +327,7 @@ else
     
     % detect the checkerboards in the combined set
     [points, boardSize, imageIdx, userCanceled] = detectMono(images, ...
-        showProgressBar, minCornerMetric);
+            showProgressBar, minCornerMetric);
     
     if userCanceled
         points = zeros(0, 2);
@@ -362,8 +362,8 @@ leftRightIdx = ones(numImages, 1);
 leftRightIdx(end/2+1:end) = 2;
 
 % find the pairs where the checkerboard was detected in both images
-imagesUsedLeft  = imageIdx(1:end/2);
-imagesUsedRight = imageIdx(end/2+1:end);
+imagesUsedLeft  = imageIdx(1 : end / 2);
+imagesUsedRight = imageIdx(end / 2 + 1 : end);
 commonImagesIdx = imagesUsedLeft & imagesUsedRight;
 commonImagesIdxFull = [commonImagesIdx; commonImagesIdx];
 
@@ -383,13 +383,13 @@ imageIdx = commonImagesIdx;
 
 %--------------------------------------------------------------------------
 function tf = checkShowProgressBar(showProgressBar)
-validateattributes(showProgressBar, {'logical', 'numeric'},...
+validateattributes(showProgressBar, {'logical', 'numeric'}, ...
     {'scalar'}, mfilename, 'ShowProgressBar'); 
 tf = true;
 
 %--------------------------------------------------------------------------
 function tf = checkMinCornerMetric(value)
-validateattributes(value, {'single', 'double'},...
+validateattributes(value, {'single', 'double'} ,...
     {'scalar', 'real', 'nonnegative', 'finite'}, mfilename, 'MinCornerMetric');
 tf = true;
 
@@ -399,18 +399,18 @@ vision.internal.inputValidation.validateImage(I, 'I');
 
 %--------------------------------------------------------------------------
 function checkImageStack(images)
-validClasses = {'double', 'single', 'uint8', 'int16', 'uint16'}; 
-validateattributes(images, validClasses,...
-    {'nonempty', 'real', 'nonsparse'},...
-    mfilename, 'images'); 
-coder.internal.errorIf(size(images, 3) ~= 1 && size(images, 3) ~= 3,...
-    'vision:dims:imageNot2DorRGB');
+validClasses = {'double', 'single', 'uint8', 'int16', 'uint16'};
+validateattributes(images, validClasses, ...
+        {'nonempty', 'real', 'nonsparse'}, ...
+        mfilename, 'images'); 
+coder.internal.errorIf(size(images, 3) ~= 1 && size(images, 3) ~= 3, ...
+        'vision:dims:imageNot2DorRGB');
 
 %--------------------------------------------------------------------------
 function checkFileNames(fileNames)
 validateattributes(fileNames, {'cell'}, {'nonempty', 'vector'}, mfilename, ...
-    'imageFileNames'); 
-for i = 1:numel(fileNames)
+        'imageFileNames'); 
+for i = 1 : numel(fileNames)
     checkFileName(fileNames{i}); 
 end
 
@@ -420,7 +420,7 @@ validateattributes(fileName, {'char'}, {'nonempty'}, mfilename, ...
     'elements of imageFileNames'); 
 
 try %#ok<EMTC>
-    state = warning('off','imageio:tifftagsread:badTagValueDivisionByZero');
+    state = warning('off', 'imageio:tifftagsread:badTagValueDivisionByZero');
     imfinfo(fileName);
 catch e
     warning(state);
@@ -430,19 +430,19 @@ warning(state);
 
 %--------------------------------------------------------------------------
 function checkStereoImages(images1, images2)
-coder.internal.errorIf(strcmp(class(images1), class(images2)) == 0,...
-    'vision:calibrate:stereoImagesMustBeSameClass');
+coder.internal.errorIf(strcmp(class(images1), class(images2)) == 0, ...
+        'vision:calibrate:stereoImagesMustBeSameClass');
 
-coder.internal.errorIf(~ischar(images1) && any(size(images1) ~= size(images2)),...
-    'vision:calibrate:stereoImagesMustBeSameSize');
+coder.internal.errorIf(~ischar(images1) && any(size(images1) ~= size(images2)), ...
+        'vision:calibrate:stereoImagesMustBeSameSize');
 
 %--------------------------------------------------------------------------
 function checkThatBoardIsAsymmetric(boardSize)
 % ideally, a board should be asymmetric: one dimension should be even, and
 % the other should be odd.
 if isempty(coder.target)
-    if ~all(boardSize == 0) && (~xor(mod(boardSize(1), 2), mod(boardSize(2), 2))...
-            || boardSize(1) == boardSize(2))
+    if ~all(boardSize == 0) && (~xor(mod(boardSize(1), 2), mod(boardSize(2), 2)) ...
+                || boardSize(1) == boardSize(2))
         s = warning('query', 'backtrace');
         warning off backtrace;
         warning(message('vision:calibrate:boardShouldBeAsymmetric'));
@@ -462,7 +462,7 @@ if showProgressBar
     waitBar = ...
         vision.internal.calibration.checkerboard.DetectionProgressBar(numImages);
 end
-for i = 1:numImages
+for i = 1 : numImages
     if showProgressBar && waitBar.Canceled
             points = [];
             boardSize = [0 0];
@@ -472,7 +472,7 @@ for i = 1:numImages
     end
 
     im = imread(fileNames{i}); 
-    [boardPoints{i}, boardSizes(i,:)] = detectCheckerboardInOneImage(im, minCornerMetric);     
+    [boardPoints{i}, boardSizes(i, :)] = detectCheckerboardInOneImage(im, minCornerMetric);     
     if showProgressBar
         waitBar.update();
     end    
@@ -482,7 +482,7 @@ end
 %--------------------------------------------------------------------------
 % Detect checkerboards in a stack of images
 function [points, boardSize, imageIdx, userCanceled] = ...
-    detectCheckerboardStack(images, showProgressBar, minCornerMetric)
+        detectCheckerboardStack(images, showProgressBar, minCornerMetric)
 numImages = size(images, 4);
 boardPoints = cell(1, numImages);
 boardSizes = zeros(numImages, 2);
@@ -491,7 +491,7 @@ userCanceled = false;
 %     waitBar = ...
 %         vision.internal.calibration.checkerboard.DetectionProgressBar(numImages);
 % end
-parfor i = 1:numImages
+parfor i = 1 : numImages
 %     if showProgressBar && waitBar.Canceled
 %             points = [];
 %             boardSize = [0 0];
@@ -500,7 +500,7 @@ parfor i = 1:numImages
 %             return;
 %     end    
     im = images(:, :, :, i);
-    [boardPoints{i}, boardSizes(i,:)] = detectCheckerboardInOneImage(im, minCornerMetric); 
+    [boardPoints{i}, boardSizes(i, :)] = detectCheckerboardInOneImage(im, minCornerMetric); 
 %     if showProgressBar
 %         waitBar.update();
 %     end        
@@ -510,14 +510,14 @@ end
 %--------------------------------------------------------------------------
 % Determine which board size is the most common in the set
 function [points, boardSize, imageIdx] = chooseValidBoards(boardPoints, boardSizes)
-uniqueBoardIds = 2.^boardSizes(:, 1) .* 3.^boardSizes(:, 2);
+uniqueBoardIds = 2 .^ boardSizes(:, 1) .* 3 .^ boardSizes(:, 2);
 
 % Eliminate images where no board was detected.
 % The unique board id in this case is 2^0 + 3^0 = 1.
 % Replace all 1's by a sequence of 1:n * 1e10, which will be different from
 % all other numbers which are only multiples of 2 and 3.
 zeroIdx = (uniqueBoardIds == 1);
-uniqueBoardIds(zeroIdx) = (1:sum(zeroIdx)) * 5;
+uniqueBoardIds(zeroIdx) = (1 : sum(zeroIdx)) * 5;
 
 % Find the most common value among unique board ids.
 [~, ~, modes] = mode(uniqueBoardIds);
@@ -542,12 +542,11 @@ I = im2single(Igray);
 % bandwidth to smooth the image
 sigma = 2;
 
-[points, boardSize] = vision.internal.calibration.checkerboard.detectCheckerboard(...
-    I, sigma, minCornerMetric);
+[points, boardSize] = vision.internal.calibration.checkerboard.detectCheckerboard( ...
+        I, sigma, minCornerMetric);
 
 if isempty(points)
     sigma = 4;
-    [points, boardSize] = vision.internal.calibration.checkerboard.detectCheckerboard(...
-        I, sigma, minCornerMetric);
+    [points, boardSize] = vision.internal.calibration.checkerboard.detectCheckerboard( ...
+            I, sigma, minCornerMetric);
 end
-
