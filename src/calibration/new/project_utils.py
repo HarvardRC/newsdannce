@@ -6,6 +6,9 @@ import re
 from dataclasses import dataclass
 from functools import reduce
 from glob import iglob
+from scipy.io import savemat
+from src.calibration.new.calibration_data import CalibrationData
+
 
 INTRINSICS_IMAGE_EXTENSIONS = [".tiff", ".tif", ".jpeg", ".jpg", ".png"]
 """Possible file extensions for intrinsics calibration images"""
@@ -314,3 +317,36 @@ def get_intrinsics_image_paths(intrinsics_dir, camera_names):
     # group matches by camera_idx and camera_name
     matches_grouped.sort(key=lambda x: x["camera_name"])
     return matches_grouped
+
+
+def write_calibration_params(
+    calibration_data: CalibrationData, output_dir: str
+) -> None:
+    """Each calibration file contains the following information in a matlab struct:
+    - K [3x3 double] (camera intrinsic transformation matrix)
+    - RDistort [1x2 double] (camera rotational lens distortion)
+    - TDistort [1x2 double] (camera translational lens distortion)
+    - r [3x3 double] (camera pose position)
+    - t [1x3 double] (camera pose translation
+    """
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    for idx, camera_param in enumerate(calibration_data.camera_params):
+        camera_name = f"cam{idx+1}"
+        filename = os.path.join(output_dir, f"hires_{camera_name}_params.mat")
+
+        mdict = {
+            "K": camera_param.camera_matrix.T,
+            "RDistort": camera_param.r_distort,
+            "TDistort": camera_param.t_distort,
+            "r": camera_param.rotation_matrix,
+            "t": camera_param.translation_vector.reshape((1, 3)),
+        }
+
+        savemat(
+            file_name=filename,
+            mdict=mdict,
+        )
+
+        print(f"Saved calibration data to filename: {filename}")

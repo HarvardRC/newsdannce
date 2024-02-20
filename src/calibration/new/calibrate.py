@@ -1,60 +1,20 @@
 ## intro module for new calibration script
-import numpy as np
 import argparse
-from src.calibration.new.project_utils import get_calibration_paths
+from src.calibration.new.project_utils import (
+    get_calibration_paths,
+    write_calibration_params,
+)
 from src.calibration.new.intrinsics import calibrate_intrinsics
 from src.calibration.new.extrinsics import calibrate_extrinsics
 from src.calibration.new.utils import get_video_stats, get_chessboard_coordinates
-from dataclasses import dataclass, asdict
+from src.calibration.new.calibration_data import CalibrationData, CameraParams
+from dataclasses import asdict
 import time
 
 
 # reasonable max no. of images for a single camera
 MAX_IMAGES_ACCEPTED = 400
 MIN_IMAGES_ACCEPTED = 10
-
-
-@dataclass(frozen=True)
-class CameraParams:
-    r_distort: np.ndarray
-    t_distort: np.ndarray
-    camera_matrix: np.ndarray
-    rotation_matrix: np.ndarray
-    translation_vector: np.ndarray
-
-
-@dataclass(frozen=True)
-class CalibrationData:
-    """
-    Complete calibration data container.
-    Includes camera params (intrinsic & extrinsics), as well as metadata about the calibration process
-    """
-
-    camera_params: list[CameraParams]
-    """Raw camera parameters"""
-
-    # --- METADATA ---
-    n_cameras: int
-    """Number of cameras. E.g. 6"""
-    camera_names: list[str]
-    """Human-readible camera names e.g. \"Camera1\". The name's index in list corresponds to camera idx"""
-    project_dir: str
-    """Base directory of the DANNCE proejct"""
-    calibration_generated_time: float
-    """Timestamp the calibration was generated"""
-    chessboard_square_size_mm: float
-    """Chessboard square size in mm"""
-    chessboard_rows: float
-    """Chessboard # of rows of *internal* verticies"""
-    chessboard_cols: float
-    """Chessboard # of columns of *internal* verticies"""
-
-    def __repr__(self):
-        time_fmt = "%Y-%m-%d %H:%M:%S %Z"
-        time_str = time.strftime(
-            time_fmt, time.localtime(self.calibration_generated_time)
-        )
-        return f"CalibrationData <\n  n_cameras= {self.n_cameras}\n  camera_names= {self.camera_names}\n  project_dir= {self.project_dir}\n  time= {time_str}\n>"
 
 
 def main():
@@ -86,6 +46,13 @@ def main():
         required=True,
         help="Length of a single chessboard pattern square in mm (e.g. 23)",
     )
+    parser.add_argument(
+        "-o",
+        "--output-dir",
+        required=False,
+        default=None,
+        help="Output directory to create hires_cam#_params.mat files. If not provided, will print calibration params to the console.",
+    )
 
     args = parser.parse_args()
 
@@ -93,6 +60,7 @@ def main():
     cols = args.cols
     square_size_mm = args.square_size_mm
     project_dir = args.project_dir
+    output_dir = args.output_dir
 
     calibration_paths = get_calibration_paths(project_dir=project_dir)
 
@@ -112,6 +80,7 @@ def main():
     print("Running calibration on all cameras")
     for camera_idx, camera_files_single in enumerate(calibration_paths.camera_files):
         camera_name = f"Camera{camera_idx + 1}"
+
         ##### INTRINSICS #####
         print(f"{camera_name}: Intrinsics")
         intrinsics = calibrate_intrinsics(
@@ -122,7 +91,6 @@ def main():
             image_width=video_info.width,
             image_height=video_info.height,
         )
-        print(f"Intrinsics results: {intrinsics}")
 
         ##### EXTRINSICS #####
         print(f"{camera_name}: Extrinsics")
@@ -154,24 +122,17 @@ def main():
         chessboard_square_size_mm=square_size_mm,
     )
 
-    print(calibration_data)
-    return
+    ##NOTE: opencv spatial coordinate system upper left pixel center at (0,0)
+    # matlab spaital cordinate systemm pixel cener at 1,1.
+    # opencv -> matlab add 1 to both x and y vaues of converted principal point
 
+    if output_dir:
+        write_calibration_params(
+            calibration_data=calibration_data, output_dir=output_dir
+        )
+    else:
+        print(calibration_data)
 
-#     parser.add_argument(
-#         "-i",
-#         "--image-folder",
-#         required=True,
-#         help=f"Folder containing calibration images. Expects between {MIN_IMAGES_ACCEPTED} and {MAX_IMAGES_ACCEPTED} .tiff files",
-#     )
-
-#     parser.add_argument(
-#         "-o", "--output", required=True, help="Output file for calibration values"
-#     )
-
-#     args = parser.parse_args()
-
-#     print(args)
 
 if __name__ == "__main__":
     main()
