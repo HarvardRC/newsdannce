@@ -26,19 +26,29 @@ def calibrate_extrinsics(
     image_height: int,
 ):
     # load distorted image from video frame
-
-    distorted_img = get_first_frame_video(video_path=video_path)
+    img = get_first_frame_video(video_path=video_path)
 
     # convert from r,t distort to single dist matrix (k1, k2, p1, p2)
     dist_coeffs = np.hstack((intrinsics.r_distort, intrinsics.t_distort))
-    undistorted_img = cv2.undistort(
-        src=distorted_img, cameraMatrix=intrinsics.camera_matrix, distCoeffs=dist_coeffs
+
+    ## undistorting not necessary for solvePnP
+
+    # find corner positions
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    success, corner_coords = cv2.findChessboardCorners(gray, (cols, rows), None)
+
+    if success is False:
+        raise Exception("Unable to calibrte extrinsics")
+
+    # solve for camera position using solvePnp instead of camera calibration function
+    # ransac version fo solvePNP makes it more stable with possible outlier points
+    success, rvec, tvec, inliers = cv2.solvePnPRansac(
+        objectPoints=object_points,
+        imagePoints=corner_coords,
+        cameraMatrix=intrinsics.camera_matrix,
+        distCoeffs=dist_coeffs,
     )
 
-    # undistort frame using intrinsics
+    rotation_matrix, jac = cv2.Rodrigues(rvec)
 
-    #
-
-    return ExtrinsicsParams(
-        rotation_matrix=np.zeros((3, 3)), translation_vector=np.zeros((3,))
-    )
+    return ExtrinsicsParams(rotation_matrix=rotation_matrix, translation_vector=tvec)

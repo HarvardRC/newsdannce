@@ -15,7 +15,7 @@ class VideoFileStats:
     n_channels: int
 
     def __repr__(self) -> str:
-        return f"VideoInfo <\n  n_frames: {self.n_frames}\n  (width, height): ({self.width}, {self.height})"
+        return f"VideoInfo <\n  n_frames: {self.n_frames}\n  (width, height): ({self.width}, {self.height})\n>"
 
 
 def get_video_stats(video_path: str):

@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import numpy as np
 import cv2
 import time
+import json
 
 show_img = False
 
@@ -19,7 +20,8 @@ class IntrinsicsParams:
     t_distort: np.ndarray
 
     def __repr__(self) -> str:
-        return f"camera_matrix={self.camera_matrix}, r_distort={self.r_distort}, t_distort={self.t_distort}"
+        dist = np.hstack((self.r_distort, self.t_distort))
+        return f"camera_matrix={json.dumps(self.camera_matrix.tolist())}\ndist={json.dumps(dist.tolist())}\nr_distort={self.r_distort}, t_distort={self.t_distort}"
 
 
 def load_images(image_paths, image_width, image_height) -> np.ndarray:
