@@ -6,11 +6,11 @@ from src.calibration.new.project_utils import (
 )
 from src.calibration.new.intrinsics import calibrate_intrinsics
 from src.calibration.new.extrinsics import calibrate_extrinsics
-from calibration.new.video_utils import get_video_stats, get_chessboard_coordinates
+from src.calibration.new.video_utils import get_video_stats, get_chessboard_coordinates
 from src.calibration.new.calibration_data import CalibrationData, CameraParams
 from dataclasses import asdict
 import time
-from functools import reduce
+
 
 # reasonable max no. of images for a single camera
 MAX_IMAGES_ACCEPTED = 400
