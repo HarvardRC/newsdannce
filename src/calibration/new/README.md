@@ -10,12 +10,22 @@ Goals:
 - easy to set up
 - well documented 
 
-How to run pytest:
+## Calibration GUI
 
-python -m pytest src/calibration/new
+First make sure the proper conda environemtn is activated
 
-Example usage:
+E.g. `conda activate dannce-dev`
 
+Launch with `python -m src.calibration.new.gui`
+
+
+## Calibration CLI
+
+You can run the calibration pipeline directly as a python module (argparse)
 ```
 python -m src.calibration.new.calibrate -p "~/olveczky/dannce_data/setupCal11_010324" -r 6 -c 9 -s 23 -o "~/olveczky/dannce_data/setupCal11_010324/calibration_export"
 ```
+
+## Pytest (WIP)
+
+`python -m pytest src/calibration/new`
