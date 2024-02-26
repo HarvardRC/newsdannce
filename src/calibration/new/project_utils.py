@@ -78,8 +78,18 @@ def get_calibration_paths(project_dir: str):
         /videos
             ...
     """
-    extrinsics_dir = get_extrinsics_dir(project_dir=project_dir)
+    try:
+        extrinsics_dir = get_extrinsics_dir(project_dir=project_dir)
+    except BaseException:
+        raise Exception("Unable to locate extrinsics directory in project folder")
+
     intrinsics_dir = get_intrinsics_dir(project_dir=project_dir)
+
+    try:
+        extrinsics_dir = get_extrinsics_dir(project_dir=project_dir)
+    except BaseException:
+        raise Exception("Unable to locate intrinsics directory in project folder")
+
     camera_names = get_camera_names(extrinsics_dir=extrinsics_dir)
     extrinsics_video_paths = get_extrinsics_video_paths(
         extrinsics_dir=extrinsics_dir, camera_names=camera_names
