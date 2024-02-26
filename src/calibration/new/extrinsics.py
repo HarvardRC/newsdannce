@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import numpy as np
 from src.calibration.new.intrinsics import IntrinsicsParams
-from src.calibration.new.utils import get_first_frame_video
+from calibration.new.video_utils import get_first_frame_video
 import cv2
 
 
