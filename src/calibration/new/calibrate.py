@@ -11,7 +11,6 @@ from src.calibration.new.calibration_data import CalibrationData, CameraParams
 from dataclasses import asdict
 import time
 
-
 # reasonable max no. of images for a single camera
 MAX_IMAGES_ACCEPTED = 400
 MIN_IMAGES_ACCEPTED = 10
@@ -23,12 +22,11 @@ def do_calibrate(
     rows: int,
     cols: int,
     square_size_mm: float,
-    intrinsics_dir,
+    intrinsics_dir: str = None,
     on_progress=None,
+    save_rpe=False,
+    convert_to_matlab=True,
 ) -> None:
-    print(
-        f"projet_dir: {project_dir}, output_dir: {output_dir}, rows: {rows}, cols: {cols}, square_size_mm: {square_size_mm}, on_progress (bool): {on_progress is not None}"
-    )
     calibration_paths = get_calibration_paths(project_dir=project_dir)
 
     # generate chessboard object points
@@ -42,16 +40,15 @@ def do_calibrate(
 
     sample_video_path = calibration_paths.camera_files[0].extrinsics_video_path
     video_info = get_video_stats(sample_video_path)
-    print("Video Info: ", video_info)
 
     print("Running calibration on all cameras")
     n_cameras = len(calibration_paths.camera_files)
 
     for camera_idx, camera_files_single in enumerate(calibration_paths.camera_files):
         camera_name = f"Camera{camera_idx + 1}"
+        print(camera_name)
 
         ##### INTRINSICS #####
-        print(f"{camera_name}: Intrinsics")
         intrinsics = calibrate_intrinsics(
             image_paths=camera_files_single.intrinsics_image_paths,
             rows=rows,
@@ -62,7 +59,6 @@ def do_calibrate(
         )
 
         ##### EXTRINSICS #####
-        print(f"{camera_name}: Extrinsics")
         extrinsics = calibrate_extrinsics(
             video_path=camera_files_single.extrinsics_video_path,
             rows=rows,
@@ -104,7 +100,7 @@ def do_calibrate(
             calibration_data=calibration_data, output_dir=output_dir
         )
     else:
-        print(calibration_data)
+        return calibration_data
 
 
 def parse_and_calibrate():

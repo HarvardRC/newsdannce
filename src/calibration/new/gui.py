@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
     QDoubleSpinBox,
 )
 import sys
+from pathlib import Path
 
 from .calibrate import do_calibrate
 
@@ -149,10 +150,6 @@ class CalibrationWindow(QMainWindow):
                 "Unsupported calibration index: pick_method.currentIndex. Check UI file."
             )
 
-        print(
-            f"PROJECT {project_dir}, INTRINSICS {intrinsics_dir}, OUTPUT {output_dir}, intr. enabl {intrinsics_enabled}"
-        )
-        print("METHOD OPTs", method_options)
         self.progress_bar.setVisible(True)
         self.calibrateInThread(
             project_dir=project_dir,
@@ -163,8 +160,12 @@ class CalibrationWindow(QMainWindow):
 
     @Slot(int)
     def reportProgress(self, pct: int):
-        print(f"PROGRESS REPORT: pct={pct}")
         self.progress_bar.setValue(pct)
+
+    @Slot(None)
+    def handleCalibrateFinished(self):
+        print("Calibration done, exiting!")
+        QApplication.quit()
 
     def calibrateInThread(self, **arg_dict):
         if hasattr(self, "thread1"):
@@ -177,6 +178,7 @@ class CalibrationWindow(QMainWindow):
         self.worker.finished.connect(self.worker.deleteLater)
         self.thread1.finished.connect(self.thread1.deleteLater)
         self.worker.progress.connect(self.reportProgress)
+        self.worker.finished.connect(self.handleCalibrateFinished)
         self.thread1.start()
 
     def handleBrowseDirPartial(self, target_edit, name):
@@ -185,9 +187,11 @@ class CalibrationWindow(QMainWindow):
         @Slot(None)
         def _handleBrowseDir():
             folder_path = QFileDialog.getExistingDirectory(
-                self, f"Select {name} Folder"
+                self,
+                f"Select {name} Folder",
+                # Open the user's home directory by default. This should work on mac/windows.
+                str(Path.home()),
             )
-            print(folder_path)
             target_edit.setText(folder_path)
 
         return _handleBrowseDir

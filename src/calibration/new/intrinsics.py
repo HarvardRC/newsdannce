@@ -3,6 +3,7 @@ import numpy as np
 import cv2
 import time
 import json
+from typing import Optional
 
 show_img = False
 
@@ -18,6 +19,7 @@ class IntrinsicsParams:
     camera_matrix: np.ndarray
     r_distort: np.ndarray
     t_distort: np.ndarray
+    # reprojection_error: Optional[np.ndarray] = None
 
     def __repr__(self) -> str:
         dist = np.hstack((self.r_distort, self.t_distort))
@@ -79,10 +81,14 @@ def calibrate_intrinsics(
     reproject_err, camera_matrix, dist, r_vecs, t_vecs = cv2.calibrateCamera(
         objpoints, imgpoints, gray.shape[::-1], None, None, flags=cv2.CALIB_FIX_K3
     )
+    print(reproject_err)
 
     r_distort = dist[0, 0:2]
     t_distort = dist[0, 2:4]
 
     return IntrinsicsParams(
-        camera_matrix=camera_matrix, r_distort=r_distort, t_distort=t_distort
+        camera_matrix=camera_matrix,
+        r_distort=r_distort,
+        t_distort=t_distort,
+        # rpe=reproject_err,
     )
