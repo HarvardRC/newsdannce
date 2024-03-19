@@ -1,6 +1,6 @@
 # Common Utils across dannce functions E.g. dealing with DANNCE file structure, etc.
 # specifically for dannce project file paths
-
+import numpy as np
 import os
 import re
 from dataclasses import dataclass
@@ -339,15 +339,20 @@ def write_calibration_params(
     - r [3x3 double] (camera pose position)
     - t [1x3 double] (camera pose translation
     """
-
     os.makedirs(output_dir, exist_ok=True)
 
     for idx, camera_param in enumerate(calibration_data.camera_params):
         camera_name = f"cam{idx+1}"
         filename = os.path.join(output_dir, f"hires_{camera_name}_params.mat")
 
+        # convert to matlab intrinsics format:
+        k_matlab = camera_param.camera_matrix.copy()
+        # this means add 1 to fx, fy because matlab image origin is (1, 1)
+        k_matlab[0, 2] += 1
+        k_matlab[1, 2] += 1
+
         mdict = {
-            "K": camera_param.camera_matrix.T,
+            "K": k_matlab,
             "RDistort": camera_param.r_distort,
             "TDistort": camera_param.t_distort,
             "r": camera_param.rotation_matrix,
