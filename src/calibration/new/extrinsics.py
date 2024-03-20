@@ -5,7 +5,7 @@ from src.calibration.new.video_utils import get_first_frame_video
 import cv2
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class ExtrinsicsParams:
     """Camera extrinsics parameters:
     - rotation_matrix: 3x3 rotation transformation matrix - np.ndarray, Size=(3,3). AKA "r"

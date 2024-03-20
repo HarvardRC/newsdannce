@@ -25,7 +25,8 @@ def do_calibrate(
     intrinsics_dir: str = None,
     on_progress=None,
     save_rpe=False,
-    convert_to_matlab=True,
+    matlab_intrinsics=True,
+    verbose=False,
 ) -> None:
     calibration_paths = get_calibration_paths(project_dir=project_dir)
 
@@ -73,7 +74,13 @@ def do_calibrate(
             pct = round(100 * (camera_idx + 1) / n_cameras)
             on_progress(pct)
 
-        camera_params = CameraParams(**asdict(intrinsics), **asdict(extrinsics))
+        camera_params = CameraParams(
+            camera_matrix=intrinsics.camera_matrix,
+            r_distort=intrinsics.r_distort,
+            t_distort=intrinsics.t_distort,
+            rotation_matrix=extrinsics.rotation_matrix,
+            translation_vector=extrinsics.translation_vector,
+        )
         all_camera_params.append(camera_params)
 
     now = time.time()
@@ -91,13 +98,11 @@ def do_calibrate(
         chessboard_square_size_mm=square_size_mm,
     )
 
-    ##NOTE: opencv spatial coordinate system upper left pixel center at (0,0)
-    # matlab spaital cordinate systemm pixel cener at 1,1.
-    # opencv -> matlab add 1 to both x and y vaues of converted principal point
-
     if output_dir:
         write_calibration_params(
-            calibration_data=calibration_data, output_dir=output_dir
+            calibration_data=calibration_data,
+            output_dir=output_dir,
+            matlab_intrinsics=matlab_intrinsics,
         )
     else:
         return calibration_data
@@ -139,6 +144,21 @@ def parse_and_calibrate():
         default=None,
         help="Output directory to create hires_cam#_params.mat files. If not provided, will print calibration params to the console.",
     )
+    parser.add_argument(
+        "--matlab-intrinsics",
+        required=False,
+        default=False,
+        action="store_true",
+        help="If provided, save intrinsics in matlab format (vs opencv). This means adjusting for matlab (1,1) origin from (0,0)",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        required=False,
+        default=False,
+        action="store_true",
+        help="Additional logging output (useful for debugging)",
+    )
 
     args = parser.parse_args()
 
@@ -147,6 +167,18 @@ def parse_and_calibrate():
     square_size_mm = args.square_size_mm
     project_dir = args.project_dir
     output_dir = args.output_dir
+    matlab_intrinsics = args.matlab_intrinsics
+    verbose = args.verbose
+
+    # print all input args
+    if verbose:
+        print("VERBOSE PRINTING ENABLED\n----------\nARGUMENTS:")
+        print(f"(ROWS, COLS): ({rows}, {cols})")
+        print(f"SQUARE SIZE (mm): {square_size_mm}")
+        print(f"BASE PROJECT DIR: {project_dir}")
+        print(f"PARAM OUTPUT DIR: {output_dir}")
+        print(f"CONVERT INTRINSICS TO MATLAB?: {matlab_intrinsics}")
+        print("-----")
 
     do_calibrate(
         project_dir=project_dir,
@@ -154,6 +186,8 @@ def parse_and_calibrate():
         rows=rows,
         cols=cols,
         square_size_mm=square_size_mm,
+        matlab_intrinsics=matlab_intrinsics,
+        verbose=args.verbose,
     )
 
 
