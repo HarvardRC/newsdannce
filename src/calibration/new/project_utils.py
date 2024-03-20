@@ -16,7 +16,7 @@ FILENAME_CHARACTER_CLASS = r"[\w\-\. ]"
 """Regex character class representing valid filenames"""
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class CameraFilesSingle:
     """Keep track of camera name and paths to extrinsics calibration video & intrinsics calibration images"""
 
@@ -26,7 +26,7 @@ class CameraFilesSingle:
     n_images_intrinsics: int
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class CalibrationPathsData:
     """Keeps track of calibration file paths for all cameras"""
 
@@ -330,7 +330,7 @@ def get_intrinsics_image_paths(intrinsics_dir, camera_names):
 
 
 def write_calibration_params(
-    calibration_data: CalibrationData, output_dir: str
+    calibration_data: CalibrationData, output_dir: str, matlab_intrinsics: bool = False
 ) -> None:
     """Each calibration file contains the following information in a matlab struct:
     - K [3x3 double] (camera intrinsic transformation matrix)
@@ -338,6 +338,9 @@ def write_calibration_params(
     - TDistort [1x2 double] (camera translational lens distortion)
     - r [3x3 double] (camera pose position)
     - t [1x3 double] (camera pose translation
+
+    ARGS:
+    matlab_intrinsics: if true, convert the intrinsics matrix to matlab format
     """
     os.makedirs(output_dir, exist_ok=True)
 
@@ -345,14 +348,15 @@ def write_calibration_params(
         camera_name = f"cam{idx+1}"
         filename = os.path.join(output_dir, f"hires_{camera_name}_params.mat")
 
-        # convert to matlab intrinsics format:
-        k_matlab = camera_param.camera_matrix.copy()
-        # this means add 1 to fx, fy because matlab image origin is (1, 1)
-        k_matlab[0, 2] += 1
-        k_matlab[1, 2] += 1
+        k_modified = camera_param.camera_matrix.copy()
+        if matlab_intrinsics:
+            # convert to matlab intrinsics format:
+            # this means add 1 to fx, fy because matlab image origin is (1, 1)
+            k_modified[0, 2] += 1
+            k_modified[1, 2] += 1
 
         mdict = {
-            "K": k_matlab,
+            "K": k_modified,
             "RDistort": camera_param.r_distort,
             "TDistort": camera_param.t_distort,
             "r": camera_param.rotation_matrix,

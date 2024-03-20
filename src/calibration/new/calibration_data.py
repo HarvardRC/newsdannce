@@ -5,7 +5,7 @@ import numpy as np
 import time
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class CameraParams:
     r_distort: np.ndarray
     t_distort: np.ndarray
@@ -14,7 +14,7 @@ class CameraParams:
     translation_vector: np.ndarray
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class CalibrationData:
     """
     Complete calibration data container.
