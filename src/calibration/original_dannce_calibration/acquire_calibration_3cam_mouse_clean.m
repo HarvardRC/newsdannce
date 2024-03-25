@@ -32,7 +32,7 @@ for kk = 1 : numcams
     logfile_names{kk} = strcat(parentpath, filesep, logfile_tag, num2str(kk), '.avi');
 end
 
-for kk = 1  :numcams
+for kk = 1 : numcams
     if hires == 1
         vid{kk} = videoinput('pointgrey', kk, 'F7_YUV422_1328x1048_Mode0');
     else
