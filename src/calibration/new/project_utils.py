@@ -40,7 +40,7 @@ class CalibrationPathsData:
 
 
 # example: project_dir='/Users/caxon/olveczky/dannce_data/setupCal11_010324'
-def get_calibration_paths(project_dir: str):
+def get_calibration_paths(project_dir: str, skip_intrinsics: bool):
     """
     Given a project directory, return a list of:
     - n_cameras
@@ -83,32 +83,35 @@ def get_calibration_paths(project_dir: str):
     except BaseException:
         raise Exception("Unable to locate extrinsics directory in project folder")
 
-    intrinsics_dir = get_intrinsics_dir(project_dir=project_dir)
-
-    try:
-        extrinsics_dir = get_extrinsics_dir(project_dir=project_dir)
-    except BaseException:
-        raise Exception("Unable to locate intrinsics directory in project folder")
-
     camera_names = get_camera_names(extrinsics_dir=extrinsics_dir)
     extrinsics_video_paths = get_extrinsics_video_paths(
         extrinsics_dir=extrinsics_dir, camera_names=camera_names
     )
-    intrinsics_image_paths = get_intrinsics_image_paths(
-        intrinsics_dir=intrinsics_dir, camera_names=camera_names
-    )
-
     extrinsics_simplified = list(map(lambda x: x["full_path"], extrinsics_video_paths))
-    intrinsics_simplified = list(map(lambda x: x["full_paths"], intrinsics_image_paths))
+
+    if not skip_intrinsics:
+        try:
+            intrinsics_dir = get_intrinsics_dir(project_dir=project_dir)
+        except BaseException:
+            raise Exception("Unable to locate intrinsics directory in project folder")
+
+        intrinsics_image_paths = get_intrinsics_image_paths(
+            intrinsics_dir=intrinsics_dir, camera_names=camera_names
+        )
+        intrinsics_simplified = list(
+            map(lambda x: x["full_paths"], intrinsics_image_paths)
+        )
+    else:
+        # fake intrinsic files -- not used anyways
+        intrinsics_dir = "NONE"
+        intrinsics_simplified = [[] for _ in range(len(camera_names))]
 
     # double check that # of cameras is consistent
-    if not (
-        len(camera_names) == len(extrinsics_video_paths) == len(intrinsics_image_paths)
-    ):
-        raise Exception(
-            "Number of cameras is not consistent across intrinsics and extrinsics calibration data folders."
-            + f" Extrinsics={len(extrinsics_video_paths)} and Intrinsics={len(intrinsics_image_paths)}"
-        )
+    # if not (len(camera_names) == len(extrinsics_video_paths)):
+    #     raise Exception(
+    #         "Number of cameras is not consistent across intrinsics and extrinsics calibration data folders."
+    #         + f" Extrinsics={len(extrinsics_video_paths)} and Intrinsics={len(intrinsics_image_paths)}"
+    #     )
 
     n_cameras = len(camera_names)
 

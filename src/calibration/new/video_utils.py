@@ -36,6 +36,23 @@ def get_video_stats(video_path: str):
     return stats
 
 
+def load_image(image_path) -> np.ndarray:
+    this_img = cv2.imread(image_path)
+    return this_img
+
+
+def load_images(image_paths, image_width, image_height) -> np.ndarray:
+    n_images = len(image_paths)
+    # intitialize np array
+    raw_images = np.zeros((n_images, image_height, image_width, 3), dtype=np.uint8)
+
+    print(f"Loading {n_images} into memory. May take a few seconds")
+    for idx, img_filepath in enumerate(image_paths):
+        this_img = cv2.imread(img_filepath)
+        raw_images[idx] = this_img
+    return raw_images
+
+
 def get_first_frame_video(video_path: str):
     """Returns a cv2 image from the first frame of a video, specified by path"""
     vcap = cv2.VideoCapture(video_path)
@@ -107,6 +124,7 @@ def imshow(img, scale=1):
 
 
 def imshow_cv2(img, timeout=5000):
+    print("DOPEß")
     cv2.imshow("img", img)
     cv2.waitKey(timeout)
     cv2.destroyAllWindows()

@@ -4,12 +4,13 @@ from src.calibration.new.project_utils import (
     get_calibration_paths,
     write_calibration_params,
 )
-from src.calibration.new.intrinsics import calibrate_intrinsics
+from src.calibration.new.intrinsics import calibrate_intrinsics, IntrinsicsParams
 from src.calibration.new.extrinsics import calibrate_extrinsics
 from src.calibration.new.video_utils import get_video_stats, get_chessboard_coordinates
 from src.calibration.new.calibration_data import CalibrationData, CameraParams
 from dataclasses import asdict
 import time
+import os
 
 # reasonable max no. of images for a single camera
 MAX_IMAGES_ACCEPTED = 400
@@ -28,7 +29,9 @@ def do_calibrate(
     matlab_intrinsics=True,
     verbose=False,
 ) -> None:
-    calibration_paths = get_calibration_paths(project_dir=project_dir)
+    calibration_paths = get_calibration_paths(
+        project_dir=project_dir, skip_intrinsics=bool(intrinsics_dir)
+    )
 
     # generate chessboard object points
     object_points = get_chessboard_coordinates(
@@ -49,15 +52,23 @@ def do_calibrate(
         camera_name = f"Camera{camera_idx + 1}"
         print(camera_name)
 
-        ##### INTRINSICS #####
-        intrinsics = calibrate_intrinsics(
-            image_paths=camera_files_single.intrinsics_image_paths,
-            rows=rows,
-            cols=cols,
-            object_points=object_points,
-            image_width=video_info.width,
-            image_height=video_info.height,
-        )
+        if intrinsics_dir is None:
+            ##### INTRINSICS #####
+            intrinsics = calibrate_intrinsics(
+                image_paths=camera_files_single.intrinsics_image_paths,
+                rows=rows,
+                cols=cols,
+                object_points=object_points,
+                image_width=video_info.width,
+                image_height=video_info.height,
+                camera_idx=camera_idx,
+            )
+        else:
+            # load intrinsics from existing hires file
+            intrinsics = IntrinsicsParams.load_from_mat_file(
+                os.path.join(intrinsics_dir, f"hires_cam{camera_idx+1}_params.mat"),
+                cvt_matlab_to_cv2=matlab_intrinsics,
+            )
 
         ##### EXTRINSICS #####
         extrinsics = calibrate_extrinsics(
@@ -68,6 +79,7 @@ def do_calibrate(
             image_width=video_info.width,
             image_height=video_info.height,
             intrinsics=intrinsics,
+            camera_idx=camera_idx,
         )
 
         if on_progress:
@@ -145,6 +157,12 @@ def parse_and_calibrate():
         help="Output directory to create hires_cam#_params.mat files. If not provided, will print calibration params to the console.",
     )
     parser.add_argument(
+        "--intrinsics-dir",
+        required=False,
+        default=None,
+        help="If specified, load intrinsics from hires_camX.mat files instead of computing them directly",
+    )
+    parser.add_argument(
         "--matlab-intrinsics",
         required=False,
         default=False,
@@ -168,16 +186,18 @@ def parse_and_calibrate():
     project_dir = args.project_dir
     output_dir = args.output_dir
     matlab_intrinsics = args.matlab_intrinsics
+    intrinsics_dir = args.intrinsics_dir
     verbose = args.verbose
 
     # print all input args
     if verbose:
         print("VERBOSE PRINTING ENABLED\n----------\nARGUMENTS:")
-        print(f"(ROWS, COLS): ({rows}, {cols})")
+        print(f"CHESSBOARD (ROWS, COLS): ({rows}, {cols})")
         print(f"SQUARE SIZE (mm): {square_size_mm}")
         print(f"BASE PROJECT DIR: {project_dir}")
         print(f"PARAM OUTPUT DIR: {output_dir}")
         print(f"CONVERT INTRINSICS TO MATLAB?: {matlab_intrinsics}")
+        print(f"INTRINSICS DIR?: {intrinsics_dir}")
         print("-----")
 
     do_calibrate(
@@ -188,6 +208,7 @@ def parse_and_calibrate():
         square_size_mm=square_size_mm,
         matlab_intrinsics=matlab_intrinsics,
         verbose=args.verbose,
+        intrinsics_dir=intrinsics_dir,
     )
 
 
