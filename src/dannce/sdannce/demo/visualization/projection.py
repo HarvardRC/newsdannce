@@ -2,6 +2,7 @@ import numpy as np
 import scipy.io as sio
 import mat73
 
+
 # helper functions
 def project_to_2d(
     pts: np.ndarray, K: np.ndarray, R: np.ndarray, t: np.ndarray
@@ -19,6 +20,7 @@ def project_to_2d(
     projPts[:, :2] = projPts[:, :2] / projPts[:, 2:]
 
     return projPts
+
 
 def distortPoints(points, intrinsicMatrix, radialDistortion, tangentialDistortion):
     """Distort points according to camera parameters.
@@ -40,7 +42,7 @@ def distortPoints(points, intrinsicMatrix, radialDistortion, tangentialDistortio
     xNorm = (centeredPoints[:, 0] - skew * yNorm) / fx
 
     # compute radial distortion
-    r2 = xNorm ** 2 + yNorm ** 2
+    r2 = xNorm**2 + yNorm**2
     r4 = r2 * r2
     r6 = r2 * r4
 
@@ -55,8 +57,8 @@ def distortPoints(points, intrinsicMatrix, radialDistortion, tangentialDistortio
     # compute tangential distortion
     p = tangentialDistortion
     xyProduct = xNorm * yNorm
-    dxTangential = 2 * p[0] * xyProduct + p[1] * (r2 + 2 * xNorm ** 2)
-    dyTangential = p[0] * (r2 + 2 * yNorm ** 2) + 2 * p[1] * xyProduct
+    dxTangential = 2 * p[0] * xyProduct + p[1] * (r2 + 2 * xNorm**2)
+    dyTangential = p[0] * (r2 + 2 * yNorm**2) + 2 * p[1] * xyProduct
 
     # apply the distortion to the points
     normalizedPoints = np.stack((xNorm, yNorm)).T
@@ -77,22 +79,23 @@ def distortPoints(points, intrinsicMatrix, radialDistortion, tangentialDistortio
 
     return distortedPoints
 
+
 def load_cameras(path):
     mat73_flag = False
     # breakpoint()
     try:
-        d = sio.loadmat(path)    
+        d = sio.loadmat(path)
         # camnames = [cam[0][0] for cam in d['camnames']]
-        camnames = [cam[0] for cam in d['camnames'][0]]
+        camnames = [cam[0] for cam in d["camnames"][0]]
     except:
         d = mat73.loadmat(path)
-        camnames = [name[0] for name in d["camnames"]] 
+        camnames = [name[0] for name in d["camnames"]]
         mat73_flag = True
-    fns = ['K', 'RDistort', 'TDistort', 'r', 't']
+    fns = ["K", "RDistort", "TDistort", "r", "t"]
 
     # breakpoint()
     # camnames = [cam[0] for cam in d['camnames'][0]]
-    cam_params = d['params']
+    cam_params = d["params"]
     cameras = {}
     for i, camname in enumerate(camnames):
         cameras[camname] = {}
@@ -154,6 +157,7 @@ def load_sync(path):
         d["data_sampleID"] = d["data_sampleID"].astype(int)
     return dataset
 
+
 def load_labels(path):
     """Load labelData from Label3D file.
 
@@ -168,6 +172,7 @@ def load_labels(path):
         d["data_frame"] = d["data_frame"].astype(int)
         d["data_sampleID"] = d["data_sampleID"].astype(int)
     return dataset
+
 
 def load_com(path):
     """Load COM from .mat file.

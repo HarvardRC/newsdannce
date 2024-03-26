@@ -19,6 +19,7 @@ from multi_gpu import build_params_from_config_and_batch
 import subprocess
 import time
 
+
 class GridHandler:
     def __init__(
         self,
@@ -96,34 +97,37 @@ class GridHandler:
                 print(batch_param)
             print("Command issued: ", cmd)
         if not self.test:
-            if isinstance(cmd, list): 
+            if isinstance(cmd, list):
                 for i in range(len(cmd)):
                     os.environ["SLURM_ARRAY_TASK_ID"] = str(i)
                     os.system(cmd[i])
                     time.sleep(0.05)
             elif isinstance(cmd, str):
                 os.system(cmd)
-    
+
     def get_parent_job_id(self):
         """Return the job id in the last row of squeue -u <user> slurm command.
-            The assumption here is that the last line of the squeue command would
-            be the job_id of the parent sbatch job from which the array of jobs has
-            to be called. This job_id will be used while iterating over the number 
-            of jobs to set customized output file names.
+        The assumption here is that the last line of the squeue command would
+        be the job_id of the parent sbatch job from which the array of jobs has
+        to be called. This job_id will be used while iterating over the number
+        of jobs to set customized output file names.
         """
-        
+
         get_user_cmd = "whoami"
-        get_user_process = subprocess.Popen(get_user_cmd.split(), stdout=subprocess.PIPE)
+        get_user_process = subprocess.Popen(
+            get_user_cmd.split(), stdout=subprocess.PIPE
+        )
         slurm_uname = get_user_process.communicate()[0].decode("utf-8").rstrip()
 
-        get_queue_cmd = "squeue -u "+slurm_uname
-        get_queue_process = subprocess.Popen(get_queue_cmd.split(), stdout=subprocess.PIPE)
-        queue = get_queue_process.communicate()[0].decode("utf-8").split('\n')
+        get_queue_cmd = "squeue -u " + slurm_uname
+        get_queue_process = subprocess.Popen(
+            get_queue_cmd.split(), stdout=subprocess.PIPE
+        )
+        queue = get_queue_process.communicate()[0].decode("utf-8").split("\n")
         current_job_row = queue[-2].strip()
-        job_id = current_job_row.split(' ')[0]
+        job_id = current_job_row.split(" ")[0]
 
         return job_id, slurm_uname
-
 
     def submit_dannce_train_grid(self) -> Tuple[List, Text]:
         """Submit dannce grid search.

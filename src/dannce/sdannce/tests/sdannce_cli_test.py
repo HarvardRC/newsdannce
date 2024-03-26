@@ -33,7 +33,15 @@ class TestComTrain(unittest.TestCase):
         test_main(args)
 
     def test_com_train_mono(self):
-        args = ["dannce", "train", "com", TEST_COM_CONFIG, "--mono=True", "--epochs=2", "--com-train-dir=./COM/train_mono_test"]
+        args = [
+            "dannce",
+            "train",
+            "com",
+            TEST_COM_CONFIG,
+            "--mono=True",
+            "--epochs=2",
+            "--com-train-dir=./COM/train_mono_test",
+        ]
         test_main(args)
 
 
@@ -124,6 +132,7 @@ class TestDannceTrain(unittest.TestCase):
             "--use-npy=True",
         ]
         test_main(args)
+
 
 class TestDanncePredict(unittest.TestCase):
     def setUp(self):

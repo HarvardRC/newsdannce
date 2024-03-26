@@ -173,7 +173,6 @@ class LoadVideoFrame:
     """
 
     def __init__(self, _N_VIDEO_FRAMES, vidreaders, camnames, predict_flag):
-
         self._N_VIDEO_FRAMES = _N_VIDEO_FRAMES
         self.vidreaders = vidreaders
         self.camnames = camnames
@@ -237,7 +236,7 @@ class LoadVideoFrame:
             time.sleep(0.25)
 
             # Close previously opened and unneeded videos by their camera name
-            # Assumes the camera names do not contain underscores other than the expid. 
+            # Assumes the camera names do not contain underscores other than the expid.
             # previous_camera_name = "_".join(camname.split("_")[1:])
             previous_camera_name = camname.split("_")[-1]
             for key, value in self.currvideo.items():
