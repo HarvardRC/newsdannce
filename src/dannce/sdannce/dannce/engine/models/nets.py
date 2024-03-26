@@ -4,30 +4,38 @@ from dannce.engine.models.blocks import *
 from dannce.engine.data.ops import spatial_softmax, expected_value_3d
 
 
-_SDANNCE_ENCDEC = [[(None, 64), (64, 128), (128, 256), (256, 512)], [(512, 256), (256, 128), (128, 64)]]
-_SDANNCE_ENCDEC_COMPRESSED = [[(None, 32), (32, 64), (64, 128), (128, 256)], [(256, 128), (128, 64), (64, 32)]]
+_SDANNCE_ENCDEC = [
+    [(None, 64), (64, 128), (128, 256), (256, 512)],
+    [(512, 256), (256, 128), (128, 64)],
+]
+_SDANNCE_ENCDEC_COMPRESSED = [
+    [(None, 32), (32, 64), (64, 128), (128, 256)],
+    [(256, 128), (128, 64), (64, 32)],
+]
 
 
 class EncDec3D(nn.Module):
     """
     ENCODER-DECODER backbone for 3D volumetric inputs
     Args:
-        in_channels (int): 
-        normalization (str): 
+        in_channels (int):
+        normalization (str):
         input_shape (int)
         residual (bool)
-        norm_upsampling (bool) 
+        norm_upsampling (bool)
         ret_enc_feat (bool)
         channel_compressed (bool)
     """
-    def __init__(self, 
-        in_channels, 
-        normalization, 
-        input_shape, 
+
+    def __init__(
+        self,
+        in_channels,
+        normalization,
+        input_shape,
         residual=False,
         norm_upsampling=False,
         ret_enc_feat=False,
-        channel_compressed=True
+        channel_compressed=True,
     ):
         super().__init__()
 
@@ -35,23 +43,77 @@ class EncDec3D(nn.Module):
 
         conv_block = Res3DBlock if residual else Basic3DBlock
         deconv_block = Upsample3DBlock if norm_upsampling else BasicUpSample3DBlock
-        chan_configs = _SDANNCE_ENCDEC_COMPRESSED if channel_compressed else _SDANNCE_ENCDEC
+        chan_configs = (
+            _SDANNCE_ENCDEC_COMPRESSED if channel_compressed else _SDANNCE_ENCDEC
+        )
 
-        self.encoder_res1 = conv_block(in_channels, chan_configs[0][0][1], normalization, [input_shape]*3)
+        self.encoder_res1 = conv_block(
+            in_channels, chan_configs[0][0][1], normalization, [input_shape] * 3
+        )
         self.encoder_pool1 = Pool3DBlock(2)
-        self.encoder_res2 = conv_block(chan_configs[0][1][0], chan_configs[0][1][1], normalization, [input_shape//2]*3)
+        self.encoder_res2 = conv_block(
+            chan_configs[0][1][0],
+            chan_configs[0][1][1],
+            normalization,
+            [input_shape // 2] * 3,
+        )
         self.encoder_pool2 = Pool3DBlock(2)
-        self.encoder_res3 = conv_block(chan_configs[0][2][0], chan_configs[0][2][1], normalization, [input_shape//4]*3)
+        self.encoder_res3 = conv_block(
+            chan_configs[0][2][0],
+            chan_configs[0][2][1],
+            normalization,
+            [input_shape // 4] * 3,
+        )
         self.encoder_pool3 = Pool3DBlock(2)
-        self.encoder_res4 = conv_block(chan_configs[0][3][0], chan_configs[0][3][1], normalization, [input_shape//8]*3)
+        self.encoder_res4 = conv_block(
+            chan_configs[0][3][0],
+            chan_configs[0][3][1],
+            normalization,
+            [input_shape // 8] * 3,
+        )
 
-        self.decoder_res3 = conv_block(chan_configs[1][0][0], chan_configs[1][0][1], normalization, [input_shape//4]*3)
-        self.decoder_upsample3 = deconv_block(chan_configs[1][0][0], chan_configs[1][0][1], 2, 2, normalization, [input_shape//4]*3)
-        self.decoder_res2 = conv_block(chan_configs[1][1][0], chan_configs[1][1][1], normalization, [input_shape//2]*3)
-        self.decoder_upsample2 = deconv_block(chan_configs[1][1][0], chan_configs[1][1][1], 2, 2, normalization, [input_shape//2]*3)
-        self.decoder_res1 = conv_block(chan_configs[1][2][0], chan_configs[1][2][1], normalization, [input_shape]*3)
-        self.decoder_upsample1 = deconv_block(chan_configs[1][2][0], chan_configs[1][2][1], 2, 2, normalization, [input_shape]*3)
-
+        self.decoder_res3 = conv_block(
+            chan_configs[1][0][0],
+            chan_configs[1][0][1],
+            normalization,
+            [input_shape // 4] * 3,
+        )
+        self.decoder_upsample3 = deconv_block(
+            chan_configs[1][0][0],
+            chan_configs[1][0][1],
+            2,
+            2,
+            normalization,
+            [input_shape // 4] * 3,
+        )
+        self.decoder_res2 = conv_block(
+            chan_configs[1][1][0],
+            chan_configs[1][1][1],
+            normalization,
+            [input_shape // 2] * 3,
+        )
+        self.decoder_upsample2 = deconv_block(
+            chan_configs[1][1][0],
+            chan_configs[1][1][1],
+            2,
+            2,
+            normalization,
+            [input_shape // 2] * 3,
+        )
+        self.decoder_res1 = conv_block(
+            chan_configs[1][2][0],
+            chan_configs[1][2][1],
+            normalization,
+            [input_shape] * 3,
+        )
+        self.decoder_upsample1 = deconv_block(
+            chan_configs[1][2][0],
+            chan_configs[1][2][1],
+            2,
+            2,
+            normalization,
+            [input_shape] * 3,
+        )
 
     def forward(self, x):
         skips, dec_feats = [], []
@@ -61,7 +123,7 @@ class EncDec3D(nn.Module):
         skips.append(skip_x1)
         x = self.encoder_pool1(x)
 
-        x = self.encoder_res2(x)    
+        x = self.encoder_res2(x)
         skip_x2 = x
         skips.append(skip_x2)
         x = self.encoder_pool2(x)
@@ -72,7 +134,7 @@ class EncDec3D(nn.Module):
         x = self.encoder_pool3(x)
 
         x = self.encoder_res4(x)
-        
+
         # decoder with skip connections
         x = self.decoder_upsample3(x)
         x = self.decoder_res3(torch.cat([x, skip_x3], dim=1))
@@ -92,29 +154,38 @@ class EncDec3D(nn.Module):
 
 class DANNCE(nn.Module):
     def __init__(
-        self, 
-        input_channels, 
-        output_channels, 
-        input_shape, 
-        norm_method='layer', 
-        residual=False, 
+        self,
+        input_channels,
+        output_channels,
+        input_shape,
+        norm_method="layer",
+        residual=False,
         norm_upsampling=False,
         return_inter_features=False,
         compressed=False,
-        ret_enc_feat=False
+        ret_enc_feat=False,
     ):
         super().__init__()
 
         self.compressed = compressed
-        self.encoder_decoder = EncDec3D(input_channels, norm_method, input_shape, residual, norm_upsampling, ret_enc_feat, channel_compressed=compressed)
+        self.encoder_decoder = EncDec3D(
+            input_channels,
+            norm_method,
+            input_shape,
+            residual,
+            norm_upsampling,
+            ret_enc_feat,
+            channel_compressed=compressed,
+        )
         output_chan = 32 if compressed else 64
-        self.output_layer = nn.Conv3d(output_chan, output_channels, kernel_size=1, stride=1, padding=0)
+        self.output_layer = nn.Conv3d(
+            output_chan, output_channels, kernel_size=1, stride=1, padding=0
+        )
 
         self.n_joints = output_channels
 
         self.return_inter_features = return_inter_features
         self._initialize_weights()
-
 
     def forward(self, volumes, grid_centers):
         """
@@ -149,10 +220,20 @@ class DANNCE(nn.Module):
 
 
 class COMNet(nn.Module):
-    def __init__(self, input_channels, output_channels, input_shape, n_layers=4, hidden_dims=[32, 64, 128, 256, 512], norm_method="layer"):
+    def __init__(
+        self,
+        input_channels,
+        output_channels,
+        input_shape,
+        n_layers=4,
+        hidden_dims=[32, 64, 128, 256, 512],
+        norm_method="layer",
+    ):
         super().__init__()
 
-        assert n_layers == len(hidden_dims)-1, "Hidden dimensions do not match with the number of layers."
+        assert (
+            n_layers == len(hidden_dims) - 1
+        ), "Hidden dimensions do not match with the number of layers."
         conv_block = Basic2DBlock
         deconv_block = BasicUpSample2DBlock
 
@@ -160,7 +241,9 @@ class COMNet(nn.Module):
         self._compute_input_dims(input_shape)
 
         # construct layers
-        self.encoder_res1 = conv_block(input_channels, 32, norm_method, self.input_dims[0])
+        self.encoder_res1 = conv_block(
+            input_channels, 32, norm_method, self.input_dims[0]
+        )
         self.encoder_pool1 = Pool2DBlock(2)
         self.encoder_res2 = conv_block(32, 64, norm_method, self.input_dims[1])
         self.encoder_pool2 = Pool2DBlock(2)
@@ -171,18 +254,29 @@ class COMNet(nn.Module):
         self.encoder_res5 = conv_block(256, 512, norm_method, self.input_dims[4])
 
         self.decoder_res4 = conv_block(512, 256, norm_method, self.input_dims[3])
-        self.decoder_upsample4 = deconv_block(512, 256, 2, 2, norm_method, self.input_dims[3])
+        self.decoder_upsample4 = deconv_block(
+            512, 256, 2, 2, norm_method, self.input_dims[3]
+        )
         self.decoder_res3 = conv_block(256, 128, norm_method, self.input_dims[2])
-        self.decoder_upsample3 = deconv_block(256, 128, 2, 2, norm_method, self.input_dims[2])
+        self.decoder_upsample3 = deconv_block(
+            256, 128, 2, 2, norm_method, self.input_dims[2]
+        )
         self.decoder_res2 = conv_block(128, 64, norm_method, self.input_dims[1])
-        self.decoder_upsample2 = deconv_block(128, 64, 2, 2, norm_method, self.input_dims[1])
+        self.decoder_upsample2 = deconv_block(
+            128, 64, 2, 2, norm_method, self.input_dims[1]
+        )
         self.decoder_res1 = conv_block(64, 32, norm_method, self.input_dims[0])
-        self.decoder_upsample1 = deconv_block(64, 32, 2, 2, norm_method, self.input_dims[0])
+        self.decoder_upsample1 = deconv_block(
+            64, 32, 2, 2, norm_method, self.input_dims[0]
+        )
 
         self.output_layer = nn.Conv2d(32, output_channels, 1, 1, 0)
-     
+
     def _compute_input_dims(self, input_shape):
-        self.input_dims = [(input_shape[0] // (2**i), input_shape[1] // (2**i)) for i in range(self.n_layers+1)]
+        self.input_dims = [
+            (input_shape[0] // (2**i), input_shape[1] // (2**i))
+            for i in range(self.n_layers + 1)
+        ]
 
     def forward(self, x):
         # encoder
@@ -190,8 +284,8 @@ class COMNet(nn.Module):
         skip_x1 = x
         x = self.encoder_pool1(x)
 
-        x = self.encoder_res2(x)    
-        skip_x2 = x    
+        x = self.encoder_res2(x)
+        skip_x2 = x
         x = self.encoder_pool2(x)
 
         x = self.encoder_res3(x)
@@ -203,7 +297,7 @@ class COMNet(nn.Module):
         x = self.encoder_pool4(x)
 
         x = self.encoder_res5(x)
-        
+
         # decoder with skip connections
         x = self.decoder_upsample4(x)
         x = self.decoder_res4(torch.cat([x, skip_x4], dim=1))
@@ -236,13 +330,18 @@ def initialize_model(params, n_cams, device):
         "norm_method": params["norm_method"],
         "input_shape": params["nvox"],
         "return_inter_features": params.get("use_features", False),
-        "ret_enc_feat": ret_enc_feat 
+        "ret_enc_feat": ret_enc_feat,
     }
 
     if params["net_type"] == "dannce":
         model_params = {**model_params, "residual": False, "norm_upsampling": False}
     elif params["net_type"] == "compressed_dannce":
-        model_params = {**model_params, "residual": False, "norm_upsampling": False, "compressed": True}
+        model_params = {
+            **model_params,
+            "residual": False,
+            "norm_upsampling": False,
+            "compressed": True,
+        }
     elif params["net_type"] == "semi-v2v":
         model_params = {**model_params, "residual": False, "norm_upsampling": True}
     elif params["net_type"] == "v2v":
@@ -257,7 +356,7 @@ def initialize_model(params, n_cams, device):
     # model = model.to(device)
     if params["multi_gpu_train"]:
         model = nn.parallel.DataParallel(model, device_ids=params["gpu_id"])
-    
+
     model.to(device)
 
     return model
@@ -276,21 +375,26 @@ def initialize_train(params, n_cams, device, logger):
         optimizer = torch.optim.Adam(model_params, lr=params["lr"], eps=1e-7)
 
     elif params["train_mode"] == "finetune":
-        logger.info("*** Finetuning from {}. ***".format(params["dannce_finetune_weights"]))
+        logger.info(
+            "*** Finetuning from {}. ***".format(params["dannce_finetune_weights"])
+        )
         checkpoints = torch.load(params["dannce_finetune_weights"])
         model = initialize_model(params, n_cams, device)
 
         state_dict = checkpoints["state_dict"]
 
-        ckpt_input_num = state_dict["encoder_decoder.encoder_res1.block.0.weight"].shape[1]
+        ckpt_input_num = state_dict[
+            "encoder_decoder.encoder_res1.block.0.weight"
+        ].shape[1]
 
         # check for input & output dimension mismatch
-        if ckpt_input_num != n_cams*params["chan_num"]:
+        if ckpt_input_num != n_cams * params["chan_num"]:
             state_dict.pop("encoder_decoder.encoder_res1.block.0.weight", None)
             state_dict.pop("encoder_decoder.encoder_res1.block.0.bias", None)
             logger.warning(
                 "Current input dimension ({}) mismatch with checkpoint ({}): re-initialize weights.".format(
-                    n_cams*params["chan_num"], ckpt_input_num,
+                    n_cams * params["chan_num"],
+                    ckpt_input_num,
                 )
             )
 
@@ -306,37 +410,47 @@ def initialize_train(params, n_cams, device, logger):
 
         # load checkpoints
         model.load_state_dict(state_dict, strict=False)
- 
+
         model_params = [p for p in model.parameters() if p.requires_grad]
         optimizer = torch.optim.Adam(model_params, lr=params["lr"], eps=1e-7)
-    
+
     elif params["train_mode"] == "continued":
-        logger.info("*** Resume training from {}. ***".format(params["dannce_finetune_weights"]))
+        logger.info(
+            "*** Resume training from {}. ***".format(params["dannce_finetune_weights"])
+        )
         checkpoints = torch.load(params["dannce_finetune_weights"])
-        
+
         # ensure the same architecture
         model = initialize_model(checkpoints["params"], n_cams, device)
         model.load_state_dict(checkpoints["state_dict"], strict=True)
 
         model_params = [p for p in model.parameters() if p.requires_grad]
-        
+
         optimizer = torch.optim.Adam(model_params)
         optimizer.load_state_dict(checkpoints["optimizer"])
 
         # specify the start epoch
         params["start_epoch"] = checkpoints["epoch"]
-    
+
     lr_scheduler = None
     if params["lr_scheduler"] is not None:
-        lr_scheduler_class = getattr(torch.optim.lr_scheduler, params["lr_scheduler"]["type"])
-        lr_scheduler = lr_scheduler_class(optimizer=optimizer, **params["lr_scheduler"]["args"], verbose=True)
-        logger.info("Using learning rate scheduler: {}".format(params["lr_scheduler"]["type"]))
-    
+        lr_scheduler_class = getattr(
+            torch.optim.lr_scheduler, params["lr_scheduler"]["type"]
+        )
+        lr_scheduler = lr_scheduler_class(
+            optimizer=optimizer, **params["lr_scheduler"]["args"], verbose=True
+        )
+        logger.info(
+            "Using learning rate scheduler: {}".format(params["lr_scheduler"]["type"])
+        )
+
     return model, optimizer, lr_scheduler
 
 
 def initialize_com_model(params, device):
-    model = COMNet(params["chan_num"], params["n_channels_out"], params["input_shape"]).to(device)
+    model = COMNet(
+        params["chan_num"], params["n_channels_out"], params["input_shape"]
+    ).to(device)
     return model
 
 
@@ -348,7 +462,9 @@ def initialize_com_train(params, device, logger):
         optimizer = torch.optim.Adam(model_params, lr=params["lr"], eps=1e-7)
 
     elif params["train_mode"] == "finetune":
-        logger.info("*** Finetuning from {}. ***".format(params["com_finetune_weights"]))
+        logger.info(
+            "*** Finetuning from {}. ***".format(params["com_finetune_weights"])
+        )
         checkpoints = torch.load(params["com_finetune_weights"])
         model = initialize_com_model(params, device)
 
@@ -363,44 +479,59 @@ def initialize_com_train(params, device, logger):
 
         model_params = [p for p in model.parameters() if p.requires_grad]
         optimizer = torch.optim.Adam(model_params, lr=params["lr"], eps=1e-7)
-    
+
     elif params["train_mode"] == "continued":
-        logger.info("*** Resume training from {}. ***".format(params["dannce_finetune_weights"]))
+        logger.info(
+            "*** Resume training from {}. ***".format(params["dannce_finetune_weights"])
+        )
         checkpoints = torch.load(params["dannce_finetune_weights"])
-        
+
         # ensure the same architecture
         model = initialize_com_model(checkpoints["params"], device)
         model.load_state_dict(checkpoints["state_dict"], strict=True)
 
         model_params = [p for p in model.parameters() if p.requires_grad]
-        
+
         optimizer = torch.optim.Adam(model_params)
         optimizer.load_state_dict(checkpoints["optimizer"])
 
         # specify the start epoch
         params["start_epoch"] = checkpoints["epoch"]
-    
+
     lr_scheduler = None
     if params["lr_scheduler"] is not None:
-        lr_scheduler_class = getattr(torch.optim.lr_scheduler, params["lr_scheduler"]["type"])
-        lr_scheduler = lr_scheduler_class(optimizer=optimizer, **params["lr_scheduler"]["args"], verbose=True)
+        lr_scheduler_class = getattr(
+            torch.optim.lr_scheduler, params["lr_scheduler"]["type"]
+        )
+        lr_scheduler = lr_scheduler_class(
+            optimizer=optimizer, **params["lr_scheduler"]["args"], verbose=True
+        )
         logger.info("Using learning rate scheduler.")
-    
-    return model, optimizer, lr_scheduler 
+
+    return model, optimizer, lr_scheduler
+
 
 if __name__ == "__main__":
     model_params = {
         "input_channels": 18,
         "output_channels": 23,
-        "norm_method": 'batch',
-        "input_shape": 80
+        "norm_method": "batch",
+        "input_shape": 80,
     }
     model_params = {**model_params, "residual": False, "norm_upsampling": False}
     model = DANNCE(**model_params)
 
-    input_shape = [128, 80, 8] # encoder-decoder downsamples for 3 times which force input dimension to be divisble by 2**3 = 8
+    input_shape = [
+        128,
+        80,
+        8,
+    ]  # encoder-decoder downsamples for 3 times which force input dimension to be divisble by 2**3 = 8
     inputs = torch.randn(1, 18, *input_shape)
-    (x_coord, y_coord, z_coord) = torch.meshgrid(torch.arange(input_shape[0]), torch.arange(input_shape[1]), torch.arange(input_shape[2]))
+    (x_coord, y_coord, z_coord) = torch.meshgrid(
+        torch.arange(input_shape[0]),
+        torch.arange(input_shape[1]),
+        torch.arange(input_shape[2]),
+    )
     grid_centers = torch.stack((x_coord, y_coord, z_coord), axis=0).unsqueeze(0)
     grid_centers = grid_centers.reshape(*grid_centers.shape[:2], -1)
 

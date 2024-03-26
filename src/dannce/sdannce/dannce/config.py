@@ -34,7 +34,9 @@ def grab_predict_label3d_file(defaultdir="", index=0):
 
     if len(label3d_files) == 0:
         raise Exception("Did not find any *dannce.mat file in {}".format(def_ep))
-    logger.info("Using the following *dannce.mat files: {}".format(label3d_files[index]))
+    logger.info(
+        "Using the following *dannce.mat files: {}".format(label3d_files[index])
+    )
     return label3d_files[index]
 
 
@@ -60,7 +62,6 @@ def infer_params(params, dannce_net, prediction):
     if any([".mp4" in file for file in video_files]) or any(
         [".avi" in file for file in video_files]
     ):
-
         print_and_set(params, "vid_dir_flag", True)
     else:
         print_and_set(params, "vid_dir_flag", False)
@@ -390,7 +391,9 @@ def adjust_loss_params(params):
 
         # by default, the maximum batch size should be >= temporal seq len
         if params["batch_size"] < temp_n:
-            logger.warning("Batch size < temporal seq size; reducing temporal chunk size.")
+            logger.warning(
+                "Batch size < temporal seq size; reducing temporal chunk size."
+            )
             params["temporal_chunk_size"] = params["batch_size"]
             params["loss"]["TemporalLoss"]["temporal_chunk_size"] = params["batch_size"]
 
@@ -417,9 +420,11 @@ def adjust_loss_params(params):
         # adjust batch size to the number of unique samples
         # populate with augmented samples on the fly during training
         params["batch_size"] = n_samples_unique
-    
+
     if "BoneLengthLoss" in params["loss"]:
-        params["loss"]["BoneLengthLoss"]["body_profile"] = params.get("skeleton", "rat23")
+        params["loss"]["BoneLengthLoss"]["body_profile"] = params.get(
+            "skeleton", "rat23"
+        )
 
     return params
 
@@ -466,7 +471,9 @@ def setup_train(params):
                 params["n_views"]
             )
         )
-        logger.warning("To disable n_rand_views augmentation, set it to None in the config.")
+        logger.warning(
+            "To disable n_rand_views augmentation, set it to None in the config."
+        )
         params["n_rand_views"] = params["n_views"]
         params["rand_view_replace"] = True
 

@@ -49,7 +49,7 @@ def dannce_train(params: Dict):
         shared_args_train,
         shared_args_valid,
         logger,
-        **spec_args
+        **spec_args,
     )
 
     # Build network
@@ -95,7 +95,7 @@ def dannce_predict(params: Dict):
             camnames,
             partition,
         ) = make_dataset_inference(params, valid_params)
-        
+
     logger.info("Initializing Network...")
     model = initialize_model(params, len(camnames[0]), device)
 
@@ -167,7 +167,7 @@ def sdannce_train(params: Dict):
         shared_args_train,
         shared_args_valid,
         logger,
-        **spec_args
+        **spec_args,
     )
 
     # Build network

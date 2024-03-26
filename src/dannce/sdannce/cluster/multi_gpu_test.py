@@ -47,7 +47,15 @@ class MultiGpuTest(absltest.TestCase):
         self.assertTrue(len(batch_params) == 20)
 
     def test_dannce_inference_submission(self):
-        with patch("sys.argv", ["dannce-inference", MULTI_INSTANCE_CONFIG_PATH, MULTI_INSTANCE_CONFIG_PATH, "--test=True"]):
+        with patch(
+            "sys.argv",
+            [
+                "dannce-inference",
+                MULTI_INSTANCE_CONFIG_PATH,
+                MULTI_INSTANCE_CONFIG_PATH,
+                "--test=True",
+            ],
+        ):
             multi_gpu.submit_inference()
 
     def test_com_predict_batch_params(self):

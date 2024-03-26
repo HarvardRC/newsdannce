@@ -309,11 +309,7 @@ def add_dannce_shared_args(
     Returns:
         argparse.ArgumentParser: Parser with added arguments.
     """
-    parser.add_argument(
-        "--net-type",
-        dest="net_type",
-        help="Net types can be:\n"
-    )
+    parser.add_argument("--net-type", dest="net_type", help="Net types can be:\n")
     parser.add_argument(
         "--com-fromlabels",
         dest="com_fromlabels",
@@ -410,8 +406,8 @@ def add_dannce_shared_args(
         dest="train_mode",
         help="Training modes can be:\n"
         "new: initializes and trains a network from scratch\n"
-        "finetune: loads in pre-trained weights and fine-tuned from there\n"
-)
+        "finetune: loads in pre-trained weights and fine-tuned from there\n",
+    )
     parser.add_argument(
         "--dannce-finetune-weights",
         dest="dannce_finetune_weights",

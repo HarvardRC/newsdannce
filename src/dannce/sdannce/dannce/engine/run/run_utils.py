@@ -17,6 +17,7 @@ from dannce.config import _DEFAULT_SEG_MODEL
 from tqdm import tqdm
 from loguru import logger
 
+
 def set_random_seed(seed: int):
     """
     Fix numpy and torch random seed generation.
@@ -102,7 +103,8 @@ def make_folder(key: Text, params: Dict):
             os.makedirs(params[key])
     else:
         raise ValueError(key + " must be defined.")
-    
+
+
 def experiment_setup(params, mode):
     assert mode in ["dannce_train", "dannce_predict", "com_train", "com_predict"]
 
@@ -111,10 +113,12 @@ def experiment_setup(params, mode):
 
     # setup logger
     # logger = setup_logging(params[f"{mode}_dir"], f"stats_{mode}.log")
-    logger.add(f"stats_{mode}.log", format="{time:YYYY-MM-DD HH:mm} | {level} | {message}")
+    logger.add(
+        f"stats_{mode}.log", format="{time:YYYY-MM-DD HH:mm} | {level} | {message}"
+    )
     # deploy GPU devices
     device = set_device(params, logger)
-    
+
     # fix random seed if specified
     if params["random_seed"] is not None:
         set_random_seed(params["random_seed"])
@@ -172,10 +176,8 @@ def make_dataset(
         labeled_samples = list(set(samples) - set(unlabeled_samples))
         n_unlabeled = len(unlabeled_samples)
         n_labeled = len(labeled_samples)
-        logger.info(
-        "***LABELED: UNLABELED = {}:{}".format(n_labeled, n_unlabeled)
-        )
-        
+        logger.info("***LABELED: UNLABELED = {}:{}".format(n_labeled, n_unlabeled))
+
     if params["unlabeled_fraction"] != None:
         partition = processing.reselect_training(
             partition, datadict_3d, params["unlabeled_fraction"], logger
@@ -191,7 +193,7 @@ def make_dataset(
         partition_names = ["train_sampleIDs", "valid_sampleIDs"]
         for i, (k, v) in enumerate(pairs.items()):
             samps = []
-            for (vol1, vol2) in v:
+            for vol1, vol2 in v:
                 anchor1, anchor2 = com3d_dict[vol1], com3d_dict[vol2]
                 pose3d1, pose3d2 = datadict_3d[vol1], datadict_3d[vol2]
                 anchor1, anchor2 = anchor1[:, np.newaxis], anchor2[:, np.newaxis]
@@ -552,11 +554,14 @@ def make_rat7m(
 
 def sample_COM_augmentation(
     comaug_params,
-    datadict, datadict_3d, com3d_dict, partition,
+    datadict,
+    datadict_3d,
+    com3d_dict,
+    partition,
 ):
-    perturb_radius = comaug_params.get('perturb_radius', 20)
+    perturb_radius = comaug_params.get("perturb_radius", 20)
     aug_iters = comaug_params.get("aug_iters", 2)
-    
+
     train_samples = list(partition["train_sampleIDs"])
     valid_samples = list(partition["valid_sampleIDs"])
     train_samples_new = []
@@ -566,13 +571,15 @@ def sample_COM_augmentation(
             # Only augment training samples
             if sample not in train_samples:
                 continue
-            
+
             # Only augment labeled samples
             if np.isnan(datadict_3d[sample]).all():
                 continue
 
             com3d_new = deepcopy(com3d_dict[sample])
-            com_aug = perturb_radius * 2 * np.random.rand(len(com3d_new)) - perturb_radius
+            com_aug = (
+                perturb_radius * 2 * np.random.rand(len(com3d_new)) - perturb_radius
+            )
             com3d_new += com_aug
             # Embed the used COM augmentation in sampleID?
             # sample_new = sample+"-aug{}".format('_'.join(str(coord) for coord in com_aug))
@@ -795,7 +802,7 @@ def _make_data_mem(
         if params["social_training"]
         else generator.DataGenerator_3Dconv
     )
-    
+
     # Populate with COM augmented samples if needed
     if params["COM_augmentation"] is not None:
         (
@@ -1397,7 +1404,9 @@ def _convert_pair_to_label3d(
                 :, data.columns.str.contains("centerOfmass_an2")
             ].to_numpy()
 
-            frames = np.arange(len(good))[
+            frames = np.arange(
+                len(good)
+            )[
                 good
             ]  # some videos do not have complete sets of frames, remove last second for avoiding issues
             frames = frames[frames < (len(good) - 120)]
