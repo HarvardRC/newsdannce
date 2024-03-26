@@ -7,10 +7,10 @@ import argparse
 import ast
 from scipy.io import savemat
 from dannce.engine.data.io import load_sync, load_com
-from dannce import (
-    _param_defaults_shared,
-    _param_defaults_dannce,
-    _param_defaults_com,
+from dannce.param_defaults import (
+    param_defaults_shared,
+    param_defaults_dannce,
+    param_defaults_com,
 )
 import scipy.io as spio
 from typing import Dict, List, Text
@@ -662,14 +662,14 @@ def build_params_from_config_and_batch(
     for key, value in batch_param.items():
         params[key] = value
     if dannce_net:
-        for key, value in _param_defaults_dannce.items():
+        for key, value in param_defaults_dannce.items():
             if key not in params:
                 params[key] = value
     else:
-        for key, value in _param_defaults_com.items():
+        for key, value in param_defaults_com.items():
             if key not in params:
                 params[key] = value
-    for key, value in _param_defaults_shared.items():
+    for key, value in param_defaults_shared.items():
         if key not in params:
             params[key] = value
 

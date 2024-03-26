@@ -8,11 +8,12 @@ from dannce.interface import (
     sdannce_train,
 )
 from dannce.config import check_config, infer_params, build_params
-from dannce import (
-    _param_defaults_dannce,
-    _param_defaults_shared,
-    _param_defaults_com,
+from dannce.param_defaults import (
+    param_defaults_dannce,
+    param_defaults_com,
+    param_defaults_shared,
 )
+
 import os
 import sys
 import ast
@@ -758,9 +759,9 @@ def combine(base_params: Dict, clargs: argparse.Namespace, dannce_net: bool) -> 
         Dict: Parameters dictionary.
     """
     if dannce_net:
-        alldefaults = {**_param_defaults_shared, **_param_defaults_dannce}
+        alldefaults = {**param_defaults_shared, **param_defaults_dannce}
     else:
-        alldefaults = {**_param_defaults_shared, **_param_defaults_com}
+        alldefaults = {**param_defaults_shared, **param_defaults_com}
 
     # Logic ---
     # load defaults from parser if they are not already in config
@@ -838,9 +839,9 @@ def get_parser():
         "sdannce", help="Merge SDANNCE predictions."
     )
 
-    com_defaults = {**_param_defaults_shared, **_param_defaults_com}
-    dannce_defaults = {**_param_defaults_shared, **_param_defaults_dannce}
-    sdannce_defaults = {**_param_defaults_shared, **_param_defaults_dannce}
+    com_defaults = {**param_defaults_shared, **param_defaults_com}
+    dannce_defaults = {**param_defaults_shared, **param_defaults_dannce}
+    sdannce_defaults = {**param_defaults_shared, **param_defaults_dannce}
     # Set default values for each mode
     train_com_parser.set_defaults(**com_defaults)
     train_dannce_parser.set_defaults(**dannce_defaults)

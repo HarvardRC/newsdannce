@@ -7,10 +7,10 @@ from typing import Dict, Text
 import warnings
 
 from dannce.engine.data import io
-from dannce import (
-    _param_defaults_dannce,
-    _param_defaults_shared,
-    _param_defaults_com,
+from dannce.param_defaults import (
+    param_defaults_dannce,
+    param_defaults_shared,
+    param_defaults_com,
 )
 from loguru import logger
 
@@ -332,9 +332,9 @@ def check_unrecognized_params(params: Dict):
     # Check if key in any of the defaults
     invalid_keys = []
     for key in params:
-        in_com = key in _param_defaults_com
-        in_dannce = key in _param_defaults_dannce
-        in_shared = key in _param_defaults_shared
+        in_com = key in param_defaults_com
+        in_dannce = key in param_defaults_dannce
+        in_shared = key in param_defaults_shared
         if not (in_com or in_dannce or in_shared):
             invalid_keys.append(key)
 
