@@ -2,7 +2,9 @@
 High-level wrapper functions for interface
 """
 import numpy as np
-import os, random
+import os
+
+import random
 import pandas as pd
 import json
 from copy import deepcopy
@@ -88,10 +90,10 @@ def set_lr_scheduler(params, optimizer, logger):
 
 
 def make_folder(key: Text, params: Dict):
-    """Make the prediction or training directories.
+    """Create a directory specified in params.
 
     Args:
-        key (Text): Folder descriptor.
+        key (Text): Entry in params corresponing to folder (e.g. "dannce_train_dir").
         params (Dict): Parameters dictionary.
 
     Raises:

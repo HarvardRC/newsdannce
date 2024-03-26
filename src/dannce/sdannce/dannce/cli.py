@@ -1,4 +1,16 @@
 """Entrypoints for dannce training and prediction."""
+import argparse
+import ast
+import os
+import subprocess
+import sys
+from typing import Dict, Text
+
+import yaml
+from cluster.multi_gpu import MultiGpuHandler
+from loguru import logger
+
+from dannce.config import build_params, check_config, infer_params
 from dannce.interface import (
     com_predict,
     com_train,
@@ -7,22 +19,11 @@ from dannce.interface import (
     sdannce_predict,
     sdannce_train,
 )
-from dannce.config import check_config, infer_params, build_params
 from dannce.param_defaults import (
-    param_defaults_dannce,
     param_defaults_com,
+    param_defaults_dannce,
     param_defaults_shared,
 )
-
-import os
-import sys
-import ast
-import argparse
-import yaml
-from loguru import logger
-from typing import Dict, Text
-import subprocess
-from cluster.multi_gpu import MultiGpuHandler
 
 
 def load_params(param_path: Text) -> Dict:
@@ -778,7 +779,7 @@ def combine(base_params: Dict, clargs: argparse.Namespace, dannce_net: bool) -> 
     return base_params
 
 
-def get_parser():
+def parse_cli_args():
     # Create the main parser
     parser = argparse.ArgumentParser()
 
@@ -894,7 +895,8 @@ def get_parser():
 
 def main():
     """Entry point for the command line interface."""
-    args = get_parser()
+    # create the parser for all dannce commands & parse
+    args = parse_cli_args()
 
     # Handle slurm submission for multi-gpu prediction
     if args.command == "predict-multi-gpu":
@@ -935,6 +937,7 @@ def main():
         dannce_net=(args.mode == "dannce") | (args.mode == "sdannce"),
         prediction=(args.command == "predict"),
     )
+
     if args.command == "train":
         if args.mode == "dannce":
             dannce_train(params)
@@ -943,6 +946,7 @@ def main():
         elif args.mode == "com":
             com_train(params)
         return
+
     elif args.command == "predict":
         if args.mode == "dannce":
             dannce_predict(params)
