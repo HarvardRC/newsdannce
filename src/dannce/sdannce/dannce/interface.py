@@ -1,19 +1,32 @@
 """Handle training and prediction for DANNCE and COM networks."""
 import os
 from typing import Dict
+
+import numpy as np
 import psutil
 import torch
 
 import dannce.config as config
-import dannce.engine.run.inference as inference
 import dannce.engine.models.posegcn.nets as sdanncenets
+import dannce.engine.run.inference as inference
+from dannce.engine.data import dataset, processing
 from dannce.engine.models.nets import (
-    initialize_train,
-    initialize_model,
     initialize_com_train,
+    initialize_model,
+    initialize_train,
 )
-from dannce.engine.trainer import *
-from dannce.engine.run.run_utils import *
+
+# from dannce.engine.run.run_utils import *
+from dannce.engine.run.run_utils import (
+    experiment_setup,
+    make_dataset_inference,
+    set_dataset,
+    set_lr_scheduler,
+    set_optimizer,
+    make_data_com,
+    make_dataset_com_inference,
+)
+from dannce.engine.trainer import COMTrainer, DannceTrainer, GCNTrainer
 
 # from loguru import logger
 
@@ -59,8 +72,7 @@ def dannce_train(params: Dict):
     logger.success("Ready for training!\n")
 
     # set up trainer
-    trainer_class = DannceTrainer
-    trainer = trainer_class(
+    trainer = DannceTrainer(
         params=params,
         model=model,
         train_dataloader=train_dataloader,
@@ -296,15 +308,14 @@ def com_train(params: Dict):
         params, train_params, valid_params, logger
     )
 
-    # Build network
+    # Set up neural network
     logger.info("Initializing Network...")
     model, optimizer, lr_scheduler = initialize_com_train(params, device, logger)
     logger.info(model)
     logger.success("Ready for training!\n")
 
     # set up trainer
-    trainer_class = COMTrainer
-    trainer = trainer_class(
+    trainer = COMTrainer(
         params=params,
         model=model,
         train_dataloader=train_dataloader,
