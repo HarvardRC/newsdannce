@@ -1,14 +1,14 @@
 import os
 import random
+import warnings
+
 import cv2
 import numpy as np
-from dannce.engine.data import processing
-import warnings
 import scipy.io as sio
-
 import torch
-import torchvision.transforms.functional as TF
 import torchvision.transforms as transforms
+import torchvision.transforms.functional as TF
+from dannce.engine.data import processing
 
 MISSING_KEYPOINTS_MSG = (
     "If mirror augmentation is used, the right_keypoints indices and left_keypoints "
@@ -31,8 +31,8 @@ class PoseDatasetFromMem(torch.utils.data.Dataset):
         expval (bool): If True, crafts input for an AVG network
         hue_val (float): Hue augmentation range (-hue_val, hue_val), as fraction of raw image hue range
         indexes (np.ndarray): Sample indices used for batch generation
-        labels (Dict): Label dictionary
-        list_IDs (List): List of sampleIDs
+        labels (dict): Label dictionary
+        list_IDs (list): List of sampleIDs
         nvox (int): Number of voxels in each grid dimension
         random (bool): If True, shuffles camera order for each batch
         rotation (bool): If True, applies rotation augmentation in 90 degree increments
@@ -46,14 +46,46 @@ class PoseDatasetFromMem(torch.utils.data.Dataset):
         temporal_chunk_list (np.ndarray, optional): If not None, contains chunked sampleIDs -- useful when loading in temporally contiguous samples
     """
 
+    # type annotations for type hinting
+    augment_brightness: bool
+    mirror_augmentation: bool
+    augment_continuous_rotation: bool
+    augment_hue: bool
+    bright_val: float
+    chan_num: int
+    data: np.ndarray
+    expval: bool
+    hue_val: float
+    indices: np.ndarray
+    labels: dict
+    list_IDs: list
+    nvox: int
+    random: bool
+    rotation: bool
+    rotation_val: float
+    shuffle: bool
+    var_reg: bool
+    xgrid: np.ndarray
+    n_rand_views: int
+    replace: bool
+    aux_labels: np.ndarray
+    temporal_chunk_list: np.ndarray | None
+    right_keypoints: np.ndarray | None
+    left_keypoints: np.ndarray | None
+    heatmap_reg: bool
+    heatmap_reg_coeff: float
+    occlusion: bool
+    pairs: dict
+    temporal_chunk_size: int
+
     def __init__(
         self,
         list_IDs,
         data,
         labels,
-        rotation=True,
-        random=True,
-        chan_num=3,
+        rotation: bool = True,
+        random: bool = True,
+        chan_num: int = 3,
         shuffle=True,
         expval=False,
         xgrid=None,
@@ -149,7 +181,7 @@ class PoseDatasetFromMem(torch.utils.data.Dataset):
             index (int): Frame index
 
         Returns:
-            Tuple[np.ndarray, np.ndarray]: One batch of data
+            tuple[np.ndarray, np.ndarray]: One batch of data
                 X (np.ndarray): Input volume
                 y (np.ndarray): Target
         """
@@ -240,7 +272,9 @@ class PoseDatasetFromMem(torch.utils.data.Dataset):
             return X, y_3d, aux
         return X, y_3d
 
-    def random_continuous_rotation(self, X, y_3d, max_delta=5):
+    def random_continuous_rotation(
+        self, X: np.ndarray, y_3d: np.ndarray, max_delta: int = 5
+    ):
         """Rotates X and y_3d a random amount around z-axis.
 
         Args:
@@ -267,7 +301,7 @@ class PoseDatasetFromMem(torch.utils.data.Dataset):
 
         return X, y_3d
 
-    def visualize(self, original, augmented):
+    def visualize(self, original: np.ndarray, augmented: np.ndarray):
         """Plots example image after augmentation
 
         Args:
@@ -276,7 +310,7 @@ class PoseDatasetFromMem(torch.utils.data.Dataset):
         """
         import matplotlib.pyplot as plt
 
-        fig = plt.figure()
+        _fig = plt.figure()
         plt.subplot(1, 2, 1)
         plt.title("Original image")
         plt.imshow(original)
@@ -287,7 +321,13 @@ class PoseDatasetFromMem(torch.utils.data.Dataset):
         plt.show()
         input("Press Enter to continue...")
 
-    def do_augmentation(self, X, X_grid, y_3d, aux=None):
+    def do_augmentation(
+        self,
+        X: np.ndarray,
+        X_grid: np.ndarray,
+        y_3d: np.ndarray,
+        aux: np.ndarray | None = None,
+    ):
         """Applies augmentation
 
         Args:
@@ -403,7 +443,7 @@ class PoseDatasetFromMem(torch.utils.data.Dataset):
 
         return X, X_grid, y_3d, aux
 
-    def do_random(self, X):
+    def do_random(self, X: np.ndarray):
         """Randomly re-order camera views
 
         Args:
@@ -433,7 +473,7 @@ class PoseDatasetFromMem(torch.utils.data.Dataset):
 
         return X
 
-    def get_max_gt_ind(self, X_grid, y_3d):
+    def get_max_gt_ind(self, X_grid: np.ndarray, y_3d: np.ndarray):
         """Uses the gt label position to find the index of the voxel corresponding to it.
         Used for heatmap regularization.
         """
@@ -446,7 +486,13 @@ class PoseDatasetFromMem(torch.utils.data.Dataset):
         inds = np.unravel_index(inds, (grid_d, grid_d, grid_d))
         return np.stack(inds, axis=1)
 
-    def _convert_numpy_to_tensor(self, X, X_grid, y_3d, aux):
+    def _convert_numpy_to_tensor(
+        self,
+        X: np.ndarray,
+        X_grid: np.ndarray,
+        y_3d: np.ndarray,
+        aux: np.ndarray | None,
+    ):
         if X_grid is not None:
             X_grid = torch.from_numpy(X_grid)
         if aux is not None:
@@ -459,15 +505,15 @@ class PoseDatasetFromMem(torch.utils.data.Dataset):
             aux,
         )
 
-    def __data_generation(self, list_IDs_temp):
+    def __data_generation(self, list_IDs_temp: list[str]):
         """
         X : (chunk_size, *dim, n_channels)
 
         Args:
-            list_IDs_temp (List): List of experiment Ids
+            list_IDs_temp (list): List of experiment Ids
 
         Returns:
-            Tuple: Chunked training samples
+            tuple: Chunked training samples
                 X: Input volumes
                 y_3d: Targets
         Raises:
@@ -532,11 +578,11 @@ class PoseDatasetNPY(PoseDatasetFromMem):
     batch_size (int): Batch size
     bright_val (float): Brightness augmentation range (-bright_val, bright_val), as fraction of raw image brightness
     chan_num (int): Number of input channels
-    labels_3d (Dict): training targets
+    labels_3d (dict): training targets
     expval (bool): If True, crafts input for an AVG network
     hue_val (float): Hue augmentation range (-hue_val, hue_val), as fraction of raw image hue range
     indexes (np.ndarray): Sample indices used for batch generation
-    list_IDs (List): List of sampleIDs
+    list_IDs (list): List of sampleIDs
     nvox (int): Number of voxels in each grid dimension
     random (bool): If True, shuffles camera order for each batch
     rotation (bool): If True, applies rotation augmentation in 90 degree increments
@@ -545,13 +591,13 @@ class PoseDatasetNPY(PoseDatasetFromMem):
     var_reg (bool): If True, returns input used for variance regularization
     n_rand_views (int): Number of reviews to sample randomly from the full set
     replace (bool): If True, samples n_rand_views with replacement
-    imdir (Text): Name of image volume npy subfolder
-    griddir (Text): Name of grid volumw npy subfolder
+    imdir (str): Name of image volume npy subfolder
+    griddir (str): Name of grid volumw npy subfolder
     mono (bool): If True, return monochrome image volumes
     sigma (float): For MAX network, size of target Gaussian (mm)
     cam1 (bool): If True, prepares input for training a single camea network
     prefeat (bool): If True, prepares input for a network performing volume feature extraction before fusion
-    npydir (Dict): path to each npy volume folder for each recording (i.e. experiment)
+    npydir (dict): path to each npy volume folder for each recording (i.e. experiment)
     """
 
     def __init__(
@@ -560,8 +606,8 @@ class PoseDatasetNPY(PoseDatasetFromMem):
         labels_3d,
         npydir,
         # batch_size,
-        imdir="image_volumes",
-        griddir="grid_volumes",
+        imdir: str = "image_volumes",
+        griddir: str = "grid_volumes",
         aux=False,
         auxdir="visual_hulls",
         prefeat=False,
@@ -573,12 +619,12 @@ class PoseDatasetNPY(PoseDatasetFromMem):
         """Generates 3d conv data from npy files.
 
         Args:
-            list_IDs (List): List of sampleIDs
-            labels_3d (Dict): training targets
-            npydir (Dict): path to each npy volume folder for each recording (i.e. experiment)
+            list_IDs (list): List of sampleIDs
+            labels_3d (dict): training targets
+            npydir (dict): path to each npy volume folder for each recording (i.e. experiment)
             batch_size (int): Batch size
-            imdir (Text, optional): Name of image volume npy subfolder
-            griddir (Text, optional): Name of grid volumw npy subfolder
+            imdir (str, optional): Name of image volume npy subfolder
+            griddir (str, optional): Name of grid volumw npy subfolder
             mono (bool, optional): If True, return monochrome image volumes
             cam1 (bool, optional): If True, prepares input for training a single camea network
             prefeat (bool, optional): If True, prepares input for a network performing volume feature extraction before fusion
@@ -606,7 +652,7 @@ class PoseDatasetNPY(PoseDatasetFromMem):
             index (int): Frame index
 
         Returns:
-            Tuple[np.ndarray, np.ndarray]: One batch of data
+            tuple[np.ndarray, np.ndarray]: One batch of data
                 X (np.ndarray): Input volume
                 y (np.ndarray): Target
         """
@@ -652,7 +698,9 @@ class PoseDatasetNPY(PoseDatasetFromMem):
 
         return X
 
-    def _save_3d_targets(self, listIDs, y_3d, savedir="debug_MAX_target"):
+    def _save_3d_targets(
+        self, listIDs: list[str], y_3d: np.ndarray, savedir: str = "debug_MAX_target"
+    ):
         import imageio
 
         if not os.path.exists(savedir):
@@ -665,7 +713,9 @@ class PoseDatasetNPY(PoseDatasetFromMem):
                 of = os.path.join(savedir, f"{listIDs[i]}_{j}.tif")
                 imageio.mimwrite(of, np.transpose(im, [2, 0, 1]))
 
-    def _save_3d_inputs(self, listIDs, X, savedir="debug_MAX_input"):
+    def _save_3d_inputs(
+        self, listIDs: list[str], X: np.ndarray, savedir: str = "debug_MAX_input"
+    ):
         import imageio
 
         if not os.path.exists(savedir):
@@ -688,15 +738,15 @@ class PoseDatasetNPY(PoseDatasetFromMem):
                 )
                 imageio.mimwrite(of, np.transpose(im, [2, 0, 1, 3]))
 
-    def __data_generation(self, list_IDs_temp):
+    def __data_generation(self, list_IDs_temp: list[str]):
         """Generate data containing batch_size samples.
         X : (n_samples, *dim, n_channels)
 
         Args:
-            list_IDs_temp (List): List of experiment Ids
+            list_IDs_temp (list): List of experiment Ids
 
         Returns:
-            Tuple: Batch_size training samples
+            tuple: Batch_size training samples
                 X: Input volumes
                 y_3d or y_3d_max: Targets
         Raises:
@@ -710,7 +760,7 @@ class PoseDatasetNPY(PoseDatasetFromMem):
         X_grid = []
         aux = []
 
-        for i, ID in enumerate(list_IDs_temp):
+        for ID in list_IDs_temp:
             # Need to look up the experiment ID to get the correct directory
             IDkey = ID.split("_")
             eID = int(IDkey[0])
@@ -909,13 +959,13 @@ class COMDatasetFromMem(torch.utils.data.Dataset):
 
         return X, y_2d
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int):
         list_IDs_temp = [self.list_IDs[index]]
         X, y = self.__data_generation(list_IDs_temp)
 
         return X, y
 
-    def __data_generation(self, list_IDs_temp):
+    def __data_generation(self, list_IDs_temp: list[str]):
         """Generate data containing batch_size samples."""
         # Initialization
 
@@ -1003,7 +1053,7 @@ class MultiViewImageDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.cameras)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int):
         X = processing.preprocess_3d(self.images[idx])
         X_grid = self.grids[idx]
         y_3d = self.labels_3d[idx]
@@ -1016,18 +1066,18 @@ class ImageDataset(torch.utils.data.Dataset):
     def __init__(
         self,
         num_joints,
-        imdir=None,
-        labeldir=None,
+        imdir: str = None,
+        labeldir: str = None,
         images=None,
         labels=None,
         grids=None,
         labels_3d=None,
         cameras=None,
-        return_Gaussian=True,
+        return_Gaussian: bool = True,
         sigma=2,
         image_size=[256, 256],
         heatmap_size=[64, 64],
-        train=True,
+        train: bool = True,
     ):
         super(ImageDataset, self).__init__()
         self.images = images
@@ -1066,7 +1116,7 @@ class ImageDataset(torch.utils.data.Dataset):
             return self.images.shape[0]
         return len(self.imlist)
 
-    def _vis_heatmap(self, im, target):
+    def _vis_heatmap(self, im: torch.Tensor, target: torch.Tensor):
         import matplotlib
         import matplotlib.pyplot as plt
 
@@ -1084,7 +1134,7 @@ class ImageDataset(torch.utils.data.Dataset):
         plt.show(block=True)
         input("Press Enter to continue...")
 
-    def _generate_Gaussian_target(self, labels):
+    def _generate_Gaussian_target(self, labels: np.ndarray):
         (x_coord, y_coord) = np.meshgrid(
             np.arange(self.heatmap_size[1]), np.arange(self.heatmap_size[0])
         )
@@ -1160,7 +1210,7 @@ class ImageDataset(torch.utils.data.Dataset):
             ]
         )
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int):
         if self.read_frommem:
             im = self.images[idx].clone()
             targets = self.labels[idx]
@@ -1317,9 +1367,10 @@ class RAT7MSeqDataset(torch.utils.data.Dataset):
         return np.stack(mocap, axis=2)  # [N_FRAMES, 3, N_JOINTS]
 
     @classmethod
-    def vis_seq(self, seq, savepath, vidname):
+    def vis_seq(self, seq, savepath: str, vidname: str):
         import matplotlib
 
+        # disable GUI for matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
         from matplotlib.animation import FFMpegWriter
@@ -1444,7 +1495,7 @@ class RAT7MImageDataset(torch.utils.data.Dataset):
 
         self.cameras = cameras
 
-    def _crop_im(self, im, com, labels):
+    def _crop_im(self, im: np.ndarray, com: np.ndarray, labels: np.ndarray):
         im, cropdim = processing.cropcom(im, com, size=self.dim_crop[0])
         labels[0, :] -= cropdim[2]
         labels[1, :] -= cropdim[0]
@@ -1462,7 +1513,7 @@ class RAT7MImageDataset(torch.utils.data.Dataset):
             ]
         )
 
-    def _vis_heatmap(self, im, target, kpts2d):
+    def _vis_heatmap(self, im: torch.Tensor, target: torch.Tensor, kpts2d):
         import matplotlib
         import matplotlib.pyplot as plt
 
@@ -1480,7 +1531,7 @@ class RAT7MImageDataset(torch.utils.data.Dataset):
         plt.show(block=True)
         input("Press Enter to continue...")
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int):
         impath = os.path.join(self.root, self.impaths[idx])
         im = cv2.imread(impath)
         im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
@@ -1598,7 +1649,7 @@ class RAT7MNPYDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.vol_paths)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int):
         X = np.load(self.vol_paths[idx], allow_pickle=True).astype("float32")
         X_grid = np.load(self.grid_paths[idx], allow_pickle=True)
 

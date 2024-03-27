@@ -1,27 +1,27 @@
-import numpy as np
-import sys
-import pickle
-import os
-import yaml
 import argparse
 import ast
-from scipy.io import savemat
-from dannce.engine.data.io import load_sync, load_com
-from dannce.param_defaults import (
-    param_defaults_shared,
-    param_defaults_dannce,
-    param_defaults_com,
-)
-import scipy.io as spio
-from typing import Dict, List, Text
+import os
+import pickle
 import subprocess
+import sys
+
+import numpy as np
+import scipy.io as spio
+import yaml
+from dannce.engine.data.io import load_com, load_sync
+from dannce.param_defaults import (
+    param_defaults_com,
+    param_defaults_dannce,
+    param_defaults_shared,
+)
+from scipy.io import savemat
 
 DANNCE_BASE_NAME = "save_data_AVG"
 COM_BASE_NAME = "com3d"
 MAX_N_RETRIES = 3
 
 
-def submit_slurm(cmd: Text):
+def submit_slurm(cmd: str):
     result = subprocess.run(
         cmd,
         shell=True,
@@ -45,7 +45,7 @@ def wait_for_job(job_id):
         subprocess.run(["scontrol", "wait", "jobid", str(job_id)])
 
 
-def loadmat(filename: Text) -> Dict:
+def loadmat(filename: str) -> dict:
     """Wrapper to spio loadmat.
 
     This function should be called instead of direct spio.loadmat
@@ -54,19 +54,19 @@ def loadmat(filename: Text) -> Dict:
     which are still mat-objects
 
     Returns:
-        Dict: Matlab file contents
+        dict: Matlab file contents
     """
     data = spio.loadmat(filename, struct_as_record=False, squeeze_me=True)
     return _check_keys(data)
 
 
-def _check_keys(dict: Dict) -> Dict:
+def _check_keys(dict: dict) -> dict:
     """Checks if entries in dictionary are mat-objects.
 
     If yes, todict is called to change them to nested dictionaries
 
     Returns:
-        Dict: Matlab file contents
+        dict: Matlab file contents
     """
     for key in dict:
         if isinstance(dict[key], spio.matlab.mio5_params.mat_struct):
@@ -88,14 +88,14 @@ def _todict(matobj):
     return dict
 
 
-def load_params(param_path: Text) -> Dict:
+def load_params(param_path: str) -> dict:
     """Load a params file
 
     Args:
-        param_path (Text): Path to parameters file
+        param_path (str): Path to parameters file
 
     Returns:
-        Dict: Parameters dictionary
+        dict: Parameters dictionary
     """
     with open(param_path, "rb") as file:
         params = yaml.safe_load(file)
@@ -105,27 +105,27 @@ def load_params(param_path: Text) -> Dict:
 class MultiGpuHandler:
     def __init__(
         self,
-        config: Text,
+        config: str,
         n_samples_per_gpu: int = 5000,
         only_unfinished: bool = False,
-        predict_path: Text = None,
-        com_file: Text = None,
+        predict_path: str = None,
+        com_file: str = None,
         # batch_param_file="_batch_params.p",
         verbose: bool = True,
         test: bool = False,
-        dannce_file: Text = None,
+        dannce_file: str = None,
     ):
         """Initialize multi-gpu handler
 
         Args:
-            config (Text): Path to base configuration .yaml file
+            config (str): Path to base configuration .yaml file
             n_samples_per_gpu (int, optional): Number of samples to evaluate for each job. Defaults to 5000.
             only_unfinished (bool, optional): If True, only evaluate unfinished jobs. Defaults to False.
-            predict_path (Text, optional): Path to prediction folder. Defaults to None.
-            com_file (Text, optional): Path to com file. Defaults to None.
+            predict_path (str, optional): Path to prediction folder. Defaults to None.
+            com_file (str, optional): Path to com file. Defaults to None.
             verbose (bool, optional): If True, print out job details. Defaults to True.
             test (bool, optional): If True, only print system commands, but do not run them. Defaults to False.
-            dannce_file (Text, optional): Path to *dannce.mat file. Defaults to None.
+            dannce_file (str, optional): Path to *dannce.mat file. Defaults to None.
         """
         self.config = config
         self.n_samples_per_gpu = n_samples_per_gpu
@@ -140,37 +140,37 @@ class MultiGpuHandler:
         else:
             self.dannce_file = dannce_file
 
-    def save_batch_params(self, batch_params: List):
+    def save_batch_params(self, batch_params: list):
         """Save the batch_param dictionary to the batch_param file.
 
         Args:
-            batch_params (List): List of batch parameters.
+            batch_params (list): list of batch parameters.
         """
         out_dict = {"batch_params": batch_params}
         with open(self.batch_param_file, "wb") as file:
             pickle.dump(out_dict, file)
 
-    def load_batch_params(self) -> List:
+    def load_batch_params(self) -> list:
         """Load the batch parameters
 
         Returns:
-            List: batch parameters
+            list: batch parameters
         """
         with open(self.batch_param_file, "rb") as file:
             in_dict = pickle.load(file)
         return in_dict["batch_params"]
 
-    def load_dannce_file(self, path: Text = ".") -> Text:
+    def load_dannce_file(self, path: str = ".") -> str:
         """Return the path to the first dannce.mat file in a project folder.
 
         Args:
-            path (Text, optional): Path to folder in which to search for dannce file. Defaults to ".".
+            path (str, optional): Path to folder in which to search for dannce file. Defaults to ".".
 
         Raises:
             FileNotFoundError: If no dannce.mat file is found.
 
         Returns:
-            Text: Name of dannce.mat file
+            str: Name of dannce.mat file
         """
         files = os.listdir(path)
         dannce_file = [f for f in files if "dannce.mat" in f]
@@ -200,11 +200,11 @@ class MultiGpuHandler:
             raise ValueError("com_file must be a .pickle or .mat file")
         return n_com_samples
 
-    def get_n_samples(self, dannce_file: Text, use_com=False) -> int:
+    def get_n_samples(self, dannce_file: str, use_com=False) -> int:
         """Get the number of samples in a project
 
         Args:
-            dannce_file (Text): Path to dannce.mat file containing sync and com for current project.
+            dannce_file (str): Path to dannce.mat file containing sync and com for current project.
             use_com (bool, optional): If True, get n_samples from the com file. Defaults to False.
 
         Returns:
@@ -217,11 +217,11 @@ class MultiGpuHandler:
             n_samples = np.min([com_samples, n_samples])
         return n_samples
 
-    def _n_samples_from_com(self, dannce_file: Text) -> int:
+    def _n_samples_from_com(self, dannce_file: str) -> int:
         """Get the number of samples from com estimates
 
         Args:
-            dannce_file (Text): Path to dannce file
+            dannce_file (str): Path to dannce file
 
         Raises:
             KeyError: dannce.mat file needs com field or com_file needs to be specified in io.yaml.
@@ -242,17 +242,17 @@ class MultiGpuHandler:
                     params = load_params("io.yaml")
                     self.com_file = params["com_file"]
                     com_samples = self.load_com_length_from_file()
-                except:
+                except Exception:
                     raise KeyError(
                         "dannce.mat file needs com field or com_file needs to be specified in io.yaml."
                     )
         return com_samples
 
-    def _n_samples_from_sync(self, dannce_file: Text) -> int:
+    def _n_samples_from_sync(self, dannce_file: str) -> int:
         """Get the number of samples from the sync field of a dannce.mat file.
 
         Args:
-            dannce_file (Text): Path to dannce.mat file
+            dannce_file (str): Path to dannce.mat file
 
         Returns:
             int: Number of samples
@@ -263,7 +263,7 @@ class MultiGpuHandler:
             n_samples = len(sync[0]["data_frame"][0])
         return n_samples
 
-    def generate_batch_params_com(self, n_samples: int) -> List:
+    def generate_batch_params_com(self, n_samples: int) -> list:
         """Generate batch parameters list for com inference
 
         Args:
@@ -273,7 +273,7 @@ class MultiGpuHandler:
             ValueError: If predict_path or com_predict_dir are not specified.
 
         Returns:
-            List: Batch parameters list of dictionaries.
+            list: Batch parameters list of dictionaries.
         """
         start_samples = np.arange(0, n_samples, self.n_samples_per_gpu, dtype=np.int)
         max_samples = start_samples + self.n_samples_per_gpu
@@ -307,7 +307,7 @@ class MultiGpuHandler:
                         del batch_params[i]
         return batch_params
 
-    def generate_batch_params_dannce(self, n_samples: int) -> List:
+    def generate_batch_params_dannce(self, n_samples: int) -> list:
         """Generate batch parameters list for dannce inference
 
         Args:
@@ -317,7 +317,7 @@ class MultiGpuHandler:
             ValueError: If predict_path or com_predict_dir are not specified.
 
         Returns:
-            List: Batch parameters list of dictionaries.
+            list: Batch parameters list of dictionaries.
         """
         start_samples = np.arange(0, n_samples, self.n_samples_per_gpu, dtype=np.int)
         max_samples = start_samples + self.n_samples_per_gpu
@@ -359,14 +359,14 @@ class MultiGpuHandler:
                 batch_params = self.remove_finished_batches(batch_params)
         return batch_params
 
-    def remove_finished_batches_multi_instance(self, batch_params: List) -> List:
+    def remove_finished_batches_multi_instance(self, batch_params: list) -> list:
         """Remove finished batches from parameters list.
 
         Args:
-            batch_params (List): Batch parameters list.
+            batch_params (list): Batch parameters list.
 
         Returns:
-            (List): Updated batch parameters list.
+            (list): Updated batch parameters list.
         """
         dannce_predict_dirs = [param["dannce_predict_dir"] for param in batch_params]
         dannce_predict_dirs = list(set(dannce_predict_dirs))
@@ -395,14 +395,14 @@ class MultiGpuHandler:
                         del batch_params[i]
         return batch_params
 
-    def remove_finished_batches(self, batch_params: List) -> List:
+    def remove_finished_batches(self, batch_params: list) -> list:
         """Remove finished batches from parameters list.
 
         Args:
-            batch_params (List): Batch parameters list.
+            batch_params (list): Batch parameters list.
 
         Returns:
-            (List): Updated batch parameters list.
+            (list): Updated batch parameters list.
         """
         if self.predict_path is None:
             params = load_params("io.yaml")
@@ -431,11 +431,11 @@ class MultiGpuHandler:
                     del batch_params[i]
         return batch_params
 
-    def submit_jobs(self, batch_params: List, cmd: str):
+    def submit_jobs(self, batch_params: list, cmd: str):
         """Print out description of command and issue system command
 
         Args:
-            batch_params (List): Batch parameters list
+            batch_params (list): Batch parameters list
             cmd (str): System command
         """
         if self.verbose:
@@ -643,17 +643,17 @@ class MultiGpuHandler:
 
 
 def build_params_from_config_and_batch(
-    config: Text, batch_param: Dict, dannce_net: bool = True
-) -> Dict:
+    config: str, batch_param: dict, dannce_net: bool = True
+) -> dict:
     """Build parameters from configuration file and batch parameters
 
     Args:
-        config (Text): Path to base config .yaml file.
-        batch_param (Dict): batch parameters dictionary
+        config (str): Path to base config .yaml file.
+        batch_param (dict): batch parameters dictionary
         dannce_net (bool, optional): If True, treat with defaults for dannce nets. Defaults to True.
 
     Returns:
-        Dict: Parameters dictionary
+        dict: Parameters dictionary
     """
     from dannce.config import build_params, infer_params
 

@@ -1,23 +1,23 @@
+import argparse
 import os
+
+import imageio
+import matplotlib
 import numpy as np
 import scipy.io as sio
-import imageio
 import tqdm
-import argparse
-from projection import *
-from dannce.engine.skeletons.utils import load_body_profile
-
-import matplotlib
+from projection import distortPoints, load_cameras, project_to_2d
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.animation import FFMpegWriter
 
 
-def main(args):
+def main(args: argparse.Namespace):
     EXP_ROOT = args.root
     EXP = args.pred
     DATA_FILE = args.datafile
+    # NOTE: datafile_start is unused
     datafile_start = 0  # int(DATA_FILE.split('com3d')[-1].split('.mat')[0])
     # try:
     #     datafile_start = int(datafile_start)
@@ -30,6 +30,7 @@ def main(args):
     CAMERAS = ["Camera{}".format(int(i)) for i in args.cameras.split(",")]
     N_ANIMALS = args.n_animals
     MARKER_COLOR = ["blue", "red"]
+    # NOTE: COLOR is unused
     COLOR = ["yellow", "white"]
 
     vid_path = os.path.join(EXP_ROOT, "videos")

@@ -68,7 +68,7 @@ class PoseGCN(nn.Module):
         self.gconv_input = []
         try:
             self.compressed = self.pose_generator.compressed
-        except:
+        except Exception:
             self.compressed = self.pose_generator.posenet.compressed
 
         # in multi-scale features extracted from decoder layers

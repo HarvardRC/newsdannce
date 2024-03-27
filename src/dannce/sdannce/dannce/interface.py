@@ -1,6 +1,5 @@
 """Handle training and prediction for DANNCE and COM networks."""
 import os
-from typing import Dict
 
 import numpy as np
 import psutil
@@ -15,29 +14,25 @@ from dannce.engine.models.nets import (
     initialize_model,
     initialize_train,
 )
-
-# from dannce.engine.run.run_utils import *
 from dannce.engine.run.run_utils import (
     experiment_setup,
+    make_data_com,
+    make_dataset_com_inference,
     make_dataset_inference,
     set_dataset,
     set_lr_scheduler,
     set_optimizer,
-    make_data_com,
-    make_dataset_com_inference,
 )
 from dannce.engine.trainer import COMTrainer, DannceTrainer, GCNTrainer
-
-# from loguru import logger
 
 process = psutil.Process(os.getpid())
 
 
-def dannce_train(params: Dict):
+def dannce_train(params: dict):
     """Train DANNCE network.
 
     Args:
-        params (Dict): Parameters dictionary.
+        params (dict): Parameters dictionary.
 
     Raises:
         Exception: Error if training mode is invalid.
@@ -87,11 +82,11 @@ def dannce_train(params: Dict):
     trainer.train()
 
 
-def dannce_predict(params: Dict):
+def dannce_predict(params: dict):
     """Predict with DANNCE network
 
     Args:
-        params (Dict): Paremeters dictionary.
+        params (dict): Paremeters dictionary.
     """
     logger, device = experiment_setup(params, "dannce_predict")
     params, valid_params = config.setup_predict(params)
@@ -147,11 +142,11 @@ def dannce_predict(params: Dict):
     inference.save_results(params, save_data)
 
 
-def sdannce_train(params: Dict):
+def sdannce_train(params: dict):
     """Train SDANNCE network.
 
     Args:
-        params (Dict): Parameters dictionary.
+        params (dict): Parameters dictionary.
 
     Raises:
         Exception: Error if training mode is invalid.
@@ -228,11 +223,11 @@ def sdannce_train(params: Dict):
     trainer.train()
 
 
-def sdannce_predict(params):
+def sdannce_predict(params: dict):
     """Predict with SDANNCE network
 
     Args:
-        params (Dict): Paremeters dictionary.
+        params (dict): Paremeters dictionary.
     """
     logger, device = experiment_setup(params, "dannce_predict")
 
@@ -244,7 +239,7 @@ def sdannce_predict(params):
         custom_model_params = torch.load(params["dannce_predict_model"])["params"][
             "graph_cfg"
         ]
-    except:
+    except Exception:
         custom_model_params = torch.load(params["dannce_predict_model"])["params"][
             "custom_model"
         ]
@@ -297,10 +292,10 @@ def sdannce_predict(params):
     )
 
 
-def com_train(params: Dict):
+def com_train(params: dict):
     """Train COM network
     Args:
-        params (Dict): Parameters dictionary.
+        params (dict): Parameters dictionary.
     """
     logger, device = experiment_setup(params, "com_train")
     params, train_params, valid_params = config.setup_com_train(params)
@@ -329,7 +324,7 @@ def com_train(params: Dict):
     trainer.train()
 
 
-def com_predict(params):
+def com_predict(params: dict):
     logger, device = experiment_setup(params, "com_predict")
     params, predict_params = config.setup_com_predict(params)
     (
@@ -348,16 +343,16 @@ def com_predict(params):
 
     # do frame-wise inference
     save_data = {}
-    endIdx = (
-        np.min(
+
+    if params["max_num_samples"] != "max":
+        endIdx = np.min(
             [
                 params["start_sample"] + params["max_num_samples"],
                 len(predict_generator),
             ]
         )
-        if params["max_num_samples"] != "max"
-        else len(predict_generator)
-    )
+    else:
+        endIdx = len(predict_generator)
 
     save_data = inference.infer_com(
         params["start_sample"],
@@ -372,11 +367,11 @@ def com_predict(params):
         device,
     )
 
-    filename = (
-        "com3d"
-        if params["max_num_samples"] == "max"
-        else "com3d%d" % (params["start_sample"])
-    )
+    if params["max_num_samples"] == "max":
+        filename = "com3d"
+    else:
+        filename = f"com3d{params['start_sample']}"
+
     processing.save_COM_checkpoint(
         save_data,
         params["com_predict_dir"],

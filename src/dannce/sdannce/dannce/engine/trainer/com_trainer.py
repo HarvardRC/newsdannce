@@ -1,8 +1,9 @@
-import torch
-import csv, os
-from tqdm import tqdm
+import csv
+import os
 
+import torch
 from dannce.engine.trainer.dannce_trainer import DannceTrainer
+from tqdm import tqdm
 
 
 class COMTrainer(DannceTrainer):
@@ -57,7 +58,7 @@ class COMTrainer(DannceTrainer):
 
             self._save_checkpoint(epoch)
 
-    def _train_epoch(self, epoch):
+    def _train_epoch(self, epoch: int):
         self.model.train()
 
         # with torch.autograd.set_detect_anomaly(False):
@@ -96,7 +97,7 @@ class COMTrainer(DannceTrainer):
         )
         return {**epoch_loss_dict, **epoch_metric_dict}
 
-    def _valid_epoch(self, epoch):
+    def _valid_epoch(self, epoch: int):
         self.model.eval()
 
         epoch_loss_dict = {}

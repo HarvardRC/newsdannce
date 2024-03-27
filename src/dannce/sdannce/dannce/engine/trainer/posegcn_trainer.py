@@ -1,11 +1,9 @@
+import dannce.engine.models.loss as custom_losses
 import torch
-import os, csv
-from tqdm import tqdm
-
+from dannce.engine.run.inference import form_batch
 from dannce.engine.trainer.dannce_trainer import DannceTrainer
 from dannce.engine.trainer.train_utils import prepare_batch
-import dannce.engine.models.loss as custom_losses
-from dannce.engine.run.inference import form_batch
+from tqdm import tqdm
 
 
 class GCNTrainer(DannceTrainer):
@@ -27,7 +25,7 @@ class GCNTrainer(DannceTrainer):
             self._del_loss_attr(["L1Loss"])
             self.loss.loss_fcns.pop("L1Loss")
 
-    def _forward(self, epoch, batch, train=True):
+    def _forward(self, epoch: int, batch, train: bool = True):
         volumes, grid_centers, keypoints_3d_gt, aux = prepare_batch(batch, self.device)
 
         # debugging features
@@ -153,7 +151,7 @@ class GCNTrainer(DannceTrainer):
 
         return metric_dict
 
-    def _train_epoch(self, epoch):
+    def _train_epoch(self, epoch: int):
         self.model.train()
 
         epoch_loss_dict, epoch_metric_dict = {}, {}
@@ -215,7 +213,7 @@ class GCNTrainer(DannceTrainer):
         )
         return {**epoch_loss_dict, **epoch_metric_dict}
 
-    def _valid_epoch(self, epoch):
+    def _valid_epoch(self, epoch: int):
         self.model.eval()
 
         epoch_loss_dict = {}

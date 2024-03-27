@@ -1,23 +1,19 @@
 """
 High-level wrapper functions for interface
 """
-import numpy as np
-import os
-
-import random
-import pandas as pd
 import json
+import os
+import random
 from copy import deepcopy
-from typing import Dict, Text
+
+import numpy as np
+import pandas as pd
 import torch
-
-from dannce.engine.run.logger import setup_logging
-from dannce.engine.data import serve_data_DANNCE, dataset, generator, processing
-from dannce.engine.models.segmentation import get_instance_segmentation_model
 from dannce.config import _DEFAULT_SEG_MODEL
-
+from dannce.engine.data import dataset, generator, processing, serve_data_DANNCE
+from dannce.engine.models.segmentation import get_instance_segmentation_model
+from loguru import Logger, logger
 from tqdm import tqdm
-from loguru import logger
 
 
 def set_random_seed(seed: int):
@@ -32,7 +28,7 @@ def set_random_seed(seed: int):
     torch.backends.cudnn.deterministic = True
 
 
-def set_device(params, logger):
+def set_device(params: dict, logger: Logger):
     """
     Set GPU for torch
     """
@@ -54,7 +50,8 @@ def set_device(params, logger):
     return device
 
 
-def set_dataset(params):
+# TODO: why is "spec_args" undefined?
+def set_dataset(params: dict):
     if params["dataset"] == "rat7m":
         dataset_preparer = make_rat7m
     elif params["dataset"] == "rat7m+pair":
@@ -68,13 +65,13 @@ def set_dataset(params):
     return dataset_preparer
 
 
-def set_optimizer(params, model):
+def set_optimizer(params: dict, model):
     model_params = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.Adam(model_params, lr=params["lr"], eps=1e-7)
     return optimizer
 
 
-def set_lr_scheduler(params, optimizer, logger):
+def set_lr_scheduler(params: dict, optimizer, logger: Logger):
     lr_scheduler = None
     if params["lr_scheduler"] is not None:
         lr_scheduler_class = getattr(
@@ -89,12 +86,12 @@ def set_lr_scheduler(params, optimizer, logger):
     return lr_scheduler
 
 
-def make_folder(key: Text, params: Dict):
+def make_folder(key: str, params: dict):
     """Create a directory specified in params.
 
     Args:
-        key (Text): Entry in params corresponing to folder (e.g. "dannce_train_dir").
-        params (Dict): Parameters dictionary.
+        key (str): Entry in params corresponing to folder (e.g. "dannce_train_dir").
+        params (dict): Parameters dictionary.
 
     Raises:
         ValueError: Error if key is not defined.
@@ -107,7 +104,7 @@ def make_folder(key: Text, params: Dict):
         raise ValueError(key + " must be defined.")
 
 
-def experiment_setup(params, mode):
+def experiment_setup(params: dict, mode):
     assert mode in ["dannce_train", "dannce_predict", "com_train", "com_predict"]
 
     # Make the training directory if it does not exist.
@@ -130,7 +127,12 @@ def experiment_setup(params, mode):
 
 
 def make_dataset(
-    params, base_params, shared_args, shared_args_train, shared_args_valid, logger
+    params: dict,
+    base_params: dict,
+    shared_args,
+    shared_args_train,
+    shared_args_valid,
+    logger: Logger,
 ):
     # load in experiments from config file
     exps = params["exp"]
@@ -302,7 +304,7 @@ def make_dataset(
     return train_dataloader, valid_dataloader, params["n_views"]  # len(camnames[0])
 
 
-def _convert_rat7m_to_label3d(annot_dict, all_exps):
+def _convert_rat7m_to_label3d(annot_dict: dict, all_exps):
     camnames = annot_dict["camera_names"]
 
     samples = []
@@ -366,17 +368,17 @@ def _convert_rat7m_to_label3d(annot_dict, all_exps):
 
 
 def make_rat7m(
-    params,
-    base_params,
+    params: dict,
+    base_params: dict,
     shared_args,
     shared_args_train,
     shared_args_valid,
-    logger,
+    logger: Logger,
     root="/media/mynewdrive/datasets/rat7m",
     annot="final_annotations_w_correct_clusterIDs.pkl",
     viddir="videos_concat",
-    merge_pair=False,
-    merge_label3d=False,
+    merge_pair: bool = False,
+    merge_label3d: bool = False,
 ):
     # load annotations from disk
     annot_dict = np.load(os.path.join(root, annot), allow_pickle=True)
@@ -396,6 +398,7 @@ def make_rat7m(
         camnames,
         cameras,
     ) = _convert_rat7m_to_label3d(annot_dict, all_exps)
+
     temporal_chunks = {}
 
     # Use the camnames to find the chunks for each video
@@ -777,8 +780,8 @@ def _make_data_npy(
 
 
 def _make_data_mem(
-    params,
-    base_params,
+    params: dict,
+    base_params: dict,
     shared_args,
     shared_args_train,
     shared_args_valid,
@@ -792,7 +795,7 @@ def _make_data_mem(
     pairs,
     tifdirs,
     vids,
-    logger,
+    logger: Logger,
 ):
     """
     Training samples are stored in the memory and deployed on the fly.
@@ -975,7 +978,7 @@ def _make_data_mem(
     return train_generator, valid_generator
 
 
-def get_segmentation_model(params, valid_params, vids):
+def get_segmentation_model(params: dict, valid_params: dict, vids):
     valid_params_sil = deepcopy(valid_params)
     valid_params_sil["vidreaders"] = vids  # vids_sil
 
@@ -996,7 +999,7 @@ def get_segmentation_model(params, valid_params, vids):
     return segmentation_model, valid_params_sil
 
 
-def make_dataset_inference(params, valid_params):
+def make_dataset_inference(params: dict, valid_params: dict):
     # The library is configured to be able to train over multiple animals ("experiments")
     # at once. Because supporting code expects to see an experiment ID# prepended to
     # each of these data keys, we need to add a token experiment ID here.
@@ -1134,13 +1137,14 @@ def make_dataset_inference(params, valid_params):
     return predict_generator, predict_generator_sil, camnames, partition
 
 
-def make_data_com(params, train_params, valid_params, logger):
+def make_data_com(params: dict, train_params: dict, valid_params: dict, logger: Logger):
     if params["com_exp"] is not None:
         exps = params["com_exp"]
     else:
         exps = params["exp"]
 
     num_experiments = len(exps)
+
     (
         samples,
         datadict,
@@ -1154,7 +1158,7 @@ def make_data_com(params, train_params, valid_params, logger):
         params, datadict, num_experiments, camnames, cameras
     )
 
-    # make train/valid splits
+    # make train/valid[ation] splits
     partition = processing.make_data_splits(
         samples, params, params["com_train_dir"], num_experiments
     )
@@ -1297,7 +1301,7 @@ def make_data_com(params, train_params, valid_params, logger):
     return train_dataloader, valid_dataloader
 
 
-def make_dataset_com_inference(params, predict_params):
+def make_dataset_com_inference(params: dict, predict_params: dict):
     (
         samples,
         datadict,
@@ -1358,8 +1362,8 @@ def _convert_pair_to_label3d(
     merge_pair=False,
 ):
     exps = []
-    for exp in tqdm(experiments):
-        sr1, sr2 = exp.split("_")
+    for exp_name in tqdm(experiments):
+        sr1, sr2 = exp_name.split("_")
         filter = (
             metadata["FolderPath"].str.contains(sr1)
             & metadata["FolderPath"].str.contains(sr2)
@@ -1469,16 +1473,16 @@ def _convert_pair_to_label3d(
 
 
 def make_pair(
-    params,
-    base_params,
+    params: dict,
+    base_params: dict,
     shared_args,
     shared_args_train,
     shared_args_valid,
-    logger,
-    root="/media/mynewdrive/datasets/PAIR/PAIR-R24M-Dataset",
+    logger: Logger,
+    root: str = "/media/mynewdrive/datasets/PAIR/PAIR-R24M-Dataset",
     viddir="videos_merged",
-    train=True,
-    merge_pair=False,
+    train: bool = True,
+    merge_pair: bool = False,
 ):
     # fix random seed
     np.random.seed(10241024)
@@ -1563,6 +1567,7 @@ def make_pair(
         n_an1 = len([samp for samp in samples if int(samp.split("_")[0]) == 2 * i])
         n_an2 = len([samp for samp in samples if int(samp.split("_")[0]) == 2 * i + 1])
         print(f"{exp}: animal 1: {n_an1} + animal 2: {n_an2}")
+
     print("Validation: ")
     for i, exp in enumerate(exps_valid):
         n_an1 = len(
@@ -1580,14 +1585,14 @@ def make_pair(
             ]
         )
         print(f"{exp}: animal 1: {n_an1} + animal 2: {n_an2}")
+
     print(
-        "Train: Validation: {}: {}".format(
-            len(partition["train_sampleIDs"]), len(partition["valid_sampleIDs"])
-        )
+        f"Train: Validation: {len(partition['train_sampleIDs'])}: {len(partition['valid_sampleIDs'])}"
     )
 
     vids = {}
     total_chunks = {}
+
     print("** Preparing video readers **")
     for e in tqdm(range(len(exps))):
         for name in camnames:

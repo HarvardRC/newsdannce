@@ -1,7 +1,8 @@
-import torch
-from abc import abstractmethod
-from torch.utils.tensorboard import SummaryWriter
 import os
+from abc import abstractmethod
+
+import torch
+from torch.utils.tensorboard import SummaryWriter
 
 
 class BaseTrainer:
@@ -32,17 +33,21 @@ class BaseTrainer:
         self.writer = SummaryWriter(log_dir=logdir)
 
     @abstractmethod
-    def _train_epoch(self, epoch):
+    def _train_epoch(self, epoch: int):
         raise NotImplementedError
 
     @abstractmethod
-    def _valid_epoch(self, epoch):
+    def _valid_epoch(self, epoch: int):
         raise NotImplementedError
 
+    @abstractmethod
     def train(self):
         """
         Full training logic
         """
+        # this should never be called - probably?
+        raise NotImplementedError
+
         for epoch in range(self.start_epoch, self.epochs + 1):
             train_loss = self._train_epoch(epoch)
             valid_loss, valid_metrics = self._valid_epoch(epoch)
@@ -50,7 +55,7 @@ class BaseTrainer:
             if epoch % self.save_period == 0 or epoch == self.epochs:
                 self._save_checkpoint(epoch)
 
-    def _save_checkpoint(self, epoch, save_best=False):
+    def _save_checkpoint(self, epoch: int, save_best=False):
         """
         Saving checkpoints
         :param epoch: current epoch number
@@ -65,11 +70,10 @@ class BaseTrainer:
         }
 
         if epoch % self.save_period == 0 or epoch == self.epochs:
-            filename = os.path.join(
-                self.checkpoint_dir, "checkpoint-epoch{}.pth".format(epoch)
-            )
-            self.logger.info("Saving checkpoint: {} ...".format(filename))
+            filename = os.path.join(self.checkpoint_dir, f"checkpoint-epoch{epoch}.pth")
+            self.logger.info("Saving checkpoint: {filename} ...")
         else:
+            # NOTE: why is format string missing {}?
             filename = os.path.join(self.checkpoint_dir, "checkpoint.pth".format(epoch))
 
         torch.save(state, filename)

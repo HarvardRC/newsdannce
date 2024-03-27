@@ -1,20 +1,19 @@
 """Handle inference procedures for dannce and com networks.
 """
-import numpy as np
 import os
 import time
+
 import dannce.engine.data.processing as processing
-from dannce.engine.data import ops
-from dannce.config import print_and_set
-from typing import List, Dict, Text, Tuple, Union
-import torch
 import matplotlib
-from dannce.engine.data.processing import savedata_tomat, savedata_expval
+import numpy as np
+import torch
+from dannce.config import print_and_set
+from dannce.engine.data import ops
+from dannce.engine.data.processing import savedata_expval, savedata_tomat
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import imageio
-
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 
@@ -40,14 +39,14 @@ def print_checkpoint(
     return end_time
 
 
-def predict_batch(model, generator, n_frame: int, params: Dict, device) -> np.ndarray:
+def predict_batch(model, generator, n_frame: int, params: dict, device) -> np.ndarray:
     """Predict for a single batch and reformat output.
 
     Args:
         model (Model): interence model
         generator (keras.utils.Sequence): Data generator
         n_frame (int): Frame number
-        params (Dict): Parameters dictionary.
+        params (dict): Parameters dictionary.
 
     No Longer Returned:
         np.ndarray: n_batch x n_cam x h x w x c predictions
@@ -69,7 +68,7 @@ def predict_batch(model, generator, n_frame: int, params: Dict, device) -> np.nd
 
 
 def debug_com(
-    params: Dict,
+    params: dict,
     pred: np.ndarray,
     pred_batch: np.ndarray,
     generator,
@@ -82,7 +81,7 @@ def debug_com(
     """Print useful figures for COM debugging.
 
     Args:
-        params (Dict): Parameters dictionary.
+        params (dict): Parameters dictionary.
         pred (np.ndarray): Reformatted batch predictions.
         pred_batch (np.ndarray): Batch prediction.
         generator (keras.utils.Sequence): DataGenerator
@@ -133,30 +132,30 @@ def extract_multi_instance_single_channel(
     pred: np.ndarray,
     pred_batch: np.ndarray,
     n_cam: int,
-    sample_id: Text,
+    sample_id: str,
     n_frame: int,
     n_batch: int,
-    params: Dict,
-    save_data: Dict,
-    cameras: Dict,
+    params: dict,
+    save_data: dict,
+    cameras: dict,
     generator,
-) -> Dict:
+) -> dict:
     """Extract prediction indices for multi-instance single-channel tracking.
 
     Args:
         pred (np.ndarray): Reformatted batch predictions.
         pred_batch (np.ndarray): Batch prediction.
         n_cam (int): Camera number
-        sample_id (Text): Sample identifier
+        sample_id (str): Sample identifier
         n_frame (int): Frame number
         n_batch (int): Batch number
-        params (Dict): Parameters dictionary.
-        save_data (Dict): Saved data dictionary.
-        cameras (Dict): Camera dictionary
+        params (dict): Parameters dictionary.
+        save_data (dict): Saved data dictionary.
+        cameras (dict): Camera dictionary
         generator (keras.utils.Sequence): DataGenerator
 
     No Longer Returned:
-        (Dict): Updated saved data dictionary.
+        (dict): Updated saved data dictionary.
     """
     pred_max = np.max(np.squeeze(pred[n_cam]))
     ind = (
@@ -221,30 +220,30 @@ def extract_multi_instance_multi_channel(
     pred: np.ndarray,
     pred_batch: np.ndarray,
     n_cam: int,
-    sample_id: Text,
+    sample_id: str,
     n_frame: int,
     n_batch: int,
-    params: Dict,
-    save_data: Dict,
-    cameras: Dict,
+    params: dict,
+    save_data: dict,
+    cameras: dict,
     generator,
-) -> Dict:
+) -> dict:
     """Extract prediction indices for multi-instance multi-channel tracking.
 
     Args:
         pred (np.ndarray): Reformatted batch predictions.
         pred_batch (np.ndarray): Batch prediction.
         n_cam (int): Camera number
-        sample_id (Text): Sample identifier
+        sample_id (str): Sample identifier
         n_frame (int): Frame number
         n_batch (int): Batch number
-        params (Dict): Parameters dictionary.
-        save_data (Dict): Saved data dictionary.
-        cameras (Dict): Camera dictionary
+        params (dict): Parameters dictionary.
+        save_data (dict): Saved data dictionary.
+        cameras (dict): Camera dictionary
         generator (keras.utils.Sequence): DataGenerator
 
     No Longer Returned:
-        (Dict): Updated saved data dictionary.
+        (dict): Updated saved data dictionary.
     """
     save_data[sample_id][params["camnames"][n_cam]] = {
         "COM": np.zeros((params["n_instances"], 2)),
@@ -300,12 +299,12 @@ def extract_single_instance(
     pred: np.ndarray,
     pred_batch: np.ndarray,
     n_cam: int,
-    sample_id: Text,
+    sample_id: str,
     n_frame: int,
     n_batch: int,
-    params: Dict,
-    save_data: Dict,
-    cameras: Dict,
+    params: dict,
+    save_data: dict,
+    cameras: dict,
     generator,
 ):
     """Extract prediction indices for single-instance tracking.
@@ -314,16 +313,16 @@ def extract_single_instance(
         pred (np.ndarray): Reformatted batch predictions.
         pred_batch (np.ndarray): Batch prediction.
         n_cam (int): Camera number
-        sample_id (Text): Sample identifier
+        sample_id (str): Sample identifier
         n_frame (int): Frame number
         n_batch (int): Batch number
-        params (Dict): Parameters dictionary.
-        save_data (Dict): Saved data dictionary.
-        cameras (Dict): Camera dictionary
+        params (dict): Parameters dictionary.
+        save_data (dict): Saved data dictionary.
+        cameras (dict): Camera dictionary
         generator (keras.utils.Sequence): DataGenerator
 
     No Longer Returned:
-        (Dict): Updated saved data dictionary.
+        (dict): Updated saved data dictionary.
     """
     pred_max = np.max(np.squeeze(pred[n_cam]))
     ind = (
@@ -375,19 +374,19 @@ def extract_single_instance(
 
 
 def triangulate_single_instance(
-    n_cams: int, sample_id: Text, params: Dict, camera_mats: Dict, save_data: Dict
-) -> Dict:
+    n_cams: int, sample_id: str, params: dict, camera_mats: dict, save_data: dict
+) -> dict:
     """Triangulate for a single instance.
 
     Args:
         n_cams (int): Numver of cameras
-        sample_id (Text): Sample identifier.
-        params (Dict): Parameters dictionary.
-        camera_mats (Dict): Camera matrices dictioanry.
-        save_data (Dict): Saved data dictionary.
+        sample_id (str): Sample identifier.
+        params (dict): Parameters dictionary.
+        camera_mats (dict): Camera matrices dictioanry.
+        save_data (dict): Saved data dictionary.
 
     No Longer Returned:
-        Dict: Updated saved data dictionary.
+        dict: Updated saved data dictionary.
     """
     # Triangulate for all unique pairs
     for n_cam1 in range(n_cams):
@@ -411,19 +410,19 @@ def triangulate_single_instance(
 
 
 def triangulate_multi_instance_multi_channel(
-    n_cams: int, sample_id: Text, params: Dict, camera_mats: Dict, save_data: Dict
-) -> Dict:
+    n_cams: int, sample_id: str, params: dict, camera_mats: dict, save_data: dict
+) -> dict:
     """Triangulate for multi-instance multi-channel.
 
     Args:
         n_cams (int): Numver of cameras
-        sample_id (Text): Sample identifier.
-        params (Dict): Parameters dictionary.
-        camera_mats (Dict): Camera matrices dictioanry.
-        save_data (Dict): Saved data dictionary.
+        sample_id (str): Sample identifier.
+        params (dict): Parameters dictionary.
+        camera_mats (dict): Camera matrices dictioanry.
+        save_data (dict): Saved data dictionary.
 
     No Longer Returned:
-        Dict: Updated saved data dictionary.
+        dict: Updated saved data dictionary.
     """
     # Triangulate for all unique pairs
     save_data[sample_id]["triangulation"]["instances"] = []
@@ -465,24 +464,24 @@ def triangulate_multi_instance_multi_channel(
 
 def triangulate_multi_instance_single_channel(
     n_cams: int,
-    sample_id: Text,
-    params: Dict,
-    camera_mats: Dict,
-    cameras: Dict,
-    save_data: Dict,
-) -> Dict:
+    sample_id: str,
+    params: dict,
+    camera_mats: dict,
+    cameras: dict,
+    save_data: dict,
+) -> dict:
     """Triangulate for multi-instance single-channel.
 
     Args:
         n_cams (int): Numver of cameras
-        sample_id (Text): Sample identifier.
-        params (Dict): Parameters dictionary.
-        camera_mats (Dict): Camera matrices dictioanry.
-        cameras (Dict): Camera dictionary.
-        save_data (Dict): Saved data dictionary.
+        sample_id (str): Sample identifier.
+        params (dict): Parameters dictionary.
+        camera_mats (dict): Camera matrices dictioanry.
+        cameras (dict): Camera dictionary.
+        save_data (dict): Saved data dictionary.
 
     No Longer Returned:
-        Dict: Updated saved data dictionary.
+        dict: Updated saved data dictionary.
     """
     # Go through the instances, adding the most parsimonious
     # points of the n_instances available points at each camera.
@@ -556,12 +555,12 @@ def infer_com(
     start_ind: int,
     end_ind: int,
     generator,
-    params: Dict,
+    params: dict,
     model,
-    partition: Dict,
-    save_data: Dict,
-    camera_mats: Dict,
-    cameras: Dict,
+    partition: dict,
+    save_data: dict,
+    camera_mats: dict,
+    cameras: dict,
     device,
     sample_save: int = 100,
 ):
@@ -571,12 +570,12 @@ def infer_com(
         start_ind (int): Starting frame index
         end_ind (int): Ending frame index
         generator (keras.utils.Sequence): Keras data generator
-        params (Dict): Parameters dictionary.
+        params (dict): Parameters dictionary.
         model (Model): Inference model.
-        partition (Dict): Partition dictionary
-        save_data (Dict): Saved data dictionary
-        camera_mats (Dict): Camera matrix dictionary
-        cameras (Dict): Camera dictionary.
+        partition (dict): Partition dictionary
+        save_data (dict): Saved data dictionary
+        camera_mats (dict): Camera matrix dictionary
+        cameras (dict): Camera dictionary.
         sample_save (int, optional): Number of samples to use in fps estimation.
     """
     end_time = time.time()
@@ -647,10 +646,10 @@ def infer_com(
 
 def infer_dannce(
     generator,
-    params: Dict,
+    params: dict,
     model,
-    partition: Dict,
-    device: Text,
+    partition: dict,
+    device: str,
     n_chn: int,
     sil_generator=None,
     save_heatmaps=False,
@@ -661,10 +660,10 @@ def infer_dannce(
         start_ind (int): Starting frame index
         end_ind (int): Ending frame index
         generator (keras.utils.Sequence): Keras data generator
-        params (Dict): Parameters dictionary.
+        params (dict): Parameters dictionary.
         model (Model): Inference model.
-        partition (Dict): Partition dictionary
-        device (Text): Gpu device name
+        partition (dict): Partition dictionary
+        device (str): Gpu device name
         n_chn (int): Number of output channels
     """
     n_frames = len(generator)
@@ -822,11 +821,11 @@ def save_inference_checkpoint(params, save_data, num_markers, savename):
 
 def infer_sdannce(
     generator,
-    params: Dict,
-    custom_model_params: Dict,
+    params: dict,
+    custom_model_params: dict,
     model,
-    partition: Dict,
-    device: Text,
+    partition: dict,
+    device: str,
 ):
     n_frames = len(generator)
     bs = params["batch_size"]
@@ -848,6 +847,7 @@ def infer_sdannce(
         params["max_num_samples"] if params["maxbatch"] != "max" else n_frames
     )
 
+    # TODO: why is final_poses undefined?
     pbar = tqdm(range(start_ind, end_ind))
     for idx, i in enumerate(pbar):
         if (i - start_ind) % 1000 == 0 and i != start_ind:
