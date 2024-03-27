@@ -3,7 +3,13 @@ import torch.nn as nn
 
 
 class LayerNormalization(nn.Module):
-    def __init__(self, normal_shape, gamma=True, beta=True, epsilon=1e-3):
+    def __init__(
+        self,
+        normal_shape: int | tuple,
+        gamma: bool = True,
+        beta: bool = True,
+        epsilon: float = 1e-3,
+    ):
         """Layer normalization layer
         See: [Layer Normalization](https://arxiv.org/pdf/1607.06450.pdf)
         :param normal_shape: The shape of the input tensor or the last dimension of the input tensor.
@@ -11,7 +17,7 @@ class LayerNormalization(nn.Module):
         :param beta: Add an offset parameter if it is True.
         :param epsilon: Epsilon for calculating variance.
         """
-        super(LayerNormalization, self).__init__()
+        super().__init__()
         if isinstance(normal_shape, int):
             normal_shape = (normal_shape,)
 
@@ -50,9 +56,4 @@ class LayerNormalization(nn.Module):
         return y
 
     def extra_repr(self):
-        return "normal_shape={}, gamma={}, beta={}, epsilon={}".format(
-            self.normal_shape,
-            self.gamma is not None,
-            self.beta is not None,
-            self.epsilon,
-        )
+        return f"normal_shape={self.normal_shape}, gamma={self.gamma is not None}, beta={self.beta is not None}, epsilon={self.epsilon}"

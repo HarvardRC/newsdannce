@@ -1,6 +1,7 @@
 """
 High-level wrapper functions for interface
 """
+
 import json
 import os
 import random
@@ -45,7 +46,7 @@ def set_device(params: dict, logger: Logger):
     else:
         params["gpu_id"] = [0]
         device = torch.device("cuda")
-    logger.info("***Use {} GPU for training.***".format(params["gpu_id"]))
+    logger.info(f"***Use {params['gpu_id']} GPU for training.***")
     # device = "cuda:0" if torch.cuda.is_available() else "cpu"
     return device
 
@@ -80,9 +81,7 @@ def set_lr_scheduler(params: dict, optimizer, logger: Logger):
         lr_scheduler = lr_scheduler_class(
             optimizer=optimizer, **params["lr_scheduler"]["args"], verbose=True
         )
-        logger.info(
-            "Using learning rate scheduler: {}".format(params["lr_scheduler"]["type"])
-        )
+        logger.info(f"Using learning rate scheduler: {params['lr_scheduler']['type']}")
     return lr_scheduler
 
 
@@ -121,7 +120,7 @@ def experiment_setup(params: dict, mode):
     # fix random seed if specified
     if params["random_seed"] is not None:
         set_random_seed(params["random_seed"])
-        logger.info("***Fix random seed as {}***".format(params["random_seed"]))
+        logger.info(f"***Fix random seed as {params['random_seed']}***")
 
     return logger, device
 
@@ -180,9 +179,9 @@ def make_dataset(
         labeled_samples = list(set(samples) - set(unlabeled_samples))
         n_unlabeled = len(unlabeled_samples)
         n_labeled = len(labeled_samples)
-        logger.info("***LABELED: UNLABELED = {}:{}".format(n_labeled, n_unlabeled))
+        logger.info(f"***LABELED: UNLABELED = {n_labeled}:{n_unlabeled}")
 
-    if params["unlabeled_fraction"] != None:
+    if params["unlabeled_fraction"] is not None:
         partition = processing.reselect_training(
             partition, datadict_3d, params["unlabeled_fraction"], logger
         )
@@ -293,9 +292,7 @@ def make_dataset(
         logger,
     )
     logger.info(
-        "***TRAIN:VALIDATION = {}:{}***".format(
-            len(train_generator), len(valid_generator)
-        )
+        f"***TRAIN:VALIDATION = {len(train_generator)}:{len(valid_generator)}***"
     )
     train_dataloader, valid_dataloader = serve_data_DANNCE.setup_dataloaders(
         train_generator, valid_generator, params
@@ -406,26 +403,36 @@ def make_rat7m(
     vids = {}
     total_chunks = {}
     print("** Preparing video readers **")
-    for e in tqdm(range(num_experiments)):
-        for name in camnames:
+    # TODO: clean up this code - difficult to read
+
+    for exp_idx in tqdm(range(num_experiments)):
+        for camname in camnames:
             video_files = [
-                f for f in all_vids if all_exps[e] + "-" + name.replace("C", "c") in f
+                filename
+                for filename in all_vids
+                if f"{all_exps[exp_idx]}-{camname.replace('C', 'c')}" in filename
             ]
+
             video_files = sorted(
                 video_files, key=lambda x: int(x.split("-")[-1].split(".mp4")[0])
             )
-            total_chunks[str(e) + "_" + name] = np.sort(
+
+            experiment_camname = f"{exp_idx}_{camname}"
+
+            total_chunks[experiment_camname] = np.sort(
                 [int(x.split("-")[-1].split(".mp4")[0]) for x in video_files]
             )
-            vids[str(e) + "_" + name] = {}
+
+            vids[experiment_camname] = {}
+
             for file in video_files:
-                vids[str(e) + "_" + name][
-                    str(e) + "_" + name + "/0.mp4"
-                ] = os.path.join(root, viddir, file)
+                vids[experiment_camname][f"{experiment_camname}/0.mp4"] = os.path.join(
+                    root, viddir, file
+                )
 
     new_camnames = {}
-    for e in range(len(all_exps)):
-        new_camnames[e] = [str(e) + "_" + camname for camname in camnames]
+    for exp_idx in range(len(all_exps)):
+        new_camnames[exp_idx] = [f"{str(exp_idx)}_{camname}" for camname in camnames]
     camnames = new_camnames
 
     # make train/valid splits
@@ -492,7 +499,9 @@ def make_rat7m(
 
     # check any other missing npy samples
     for samp in list(set(samples) - set(missing_samples)):
-        e, sampleID = int(samp.split("_")[0]), samp.split("_")[1]
+        e = int(samp.split("_")[0])
+        sampleID = samp.split("_")[1]
+
         if not os.path.exists(
             os.path.join(npydir[e], "image_volumes", f"0_{sampleID}.npy")
         ):
@@ -558,11 +567,11 @@ def make_rat7m(
 
 
 def sample_COM_augmentation(
-    comaug_params,
-    datadict,
-    datadict_3d,
-    com3d_dict,
-    partition,
+    comaug_params: dict,
+    datadict: dict,
+    datadict_3d: dict,
+    com3d_dict: dict,
+    partition: dict,
 ):
     perturb_radius = comaug_params.get("perturb_radius", 20)
     aug_iters = comaug_params.get("aug_iters", 2)
@@ -570,7 +579,7 @@ def sample_COM_augmentation(
     train_samples = list(partition["train_sampleIDs"])
     valid_samples = list(partition["valid_sampleIDs"])
     train_samples_new = []
-    for iter in range(aug_iters):
+    for _ in range(aug_iters):
         pbar = tqdm(train_samples)
         for sample in pbar:
             # Only augment training samples
@@ -587,14 +596,14 @@ def sample_COM_augmentation(
             )
             com3d_new += com_aug
             # Embed the used COM augmentation in sampleID?
-            # sample_new = sample+"-aug{}".format('_'.join(str(coord) for coord in com_aug))
-            sample_new = sample + "-comaug{}".format(iter)
+            # sample_new = f"{sample}-aug{'_'.join(str(coord) for coord in com_aug)}"
+            sample_new = f"{sample}-comaug{iter}"
             train_samples_new.append(sample_new)
             com3d_dict[sample_new] = com3d_new
             datadict_3d[sample_new] = datadict_3d[sample]
             datadict[sample_new] = datadict[sample]
 
-    print("Added {} COM augmented samples.".format(len(train_samples_new)))
+    print(f"Added {len(train_samples_new)} COM augmented samples.")
     partition["train_sampleIDs"] = np.array(sorted(train_samples + train_samples_new))
     samples = np.array(sorted(train_samples + train_samples_new + valid_samples))
     return samples, datadict, datadict_3d, com3d_dict, partition
@@ -655,9 +664,7 @@ def _make_data_npy(
 
     if len(missing_samples) != 0:
         logger.info(
-            "{} npy files for experiments {} are missing.".format(
-                len(missing_samples), list(missing_npydir.keys())
-            )
+            f"{len(missing_samples)} npy files for experiments {list(missing_npydir.keys())} are missing."
         )
     else:
         logger.info("No missing npy files. Ready for training.")
@@ -709,9 +716,7 @@ def _make_data_npy(
 
         if len(missing_samples) != 0:
             logger.info(
-                "{} aux npy files for experiments {} are missing.".format(
-                    len(missing_samples), list(missing_npydir.keys())
-                )
+                f"{len(missing_samples)} aux npy files for experiments {list(missing_npydir.keys())} are missing."
             )
             npy_generator = genfunc(
                 missing_samples,
@@ -757,6 +762,7 @@ def _make_data_npy(
         "aux_labels": None,
         "aux": params["use_silhouette"],
     }
+
     args_valid = {
         **args_valid,
         **shared_args_valid,
@@ -802,11 +808,10 @@ def _make_data_mem(
     """
     n_cams = len(camnames[0])
 
-    genfunc = (
-        generator.DataGenerator_3Dconv_social
-        if params["social_training"]
-        else generator.DataGenerator_3Dconv
-    )
+    if params["social_training"]:
+        genfunc = generator.DataGenerator_3Dconv_social
+    else:
+        genfunc = generator.DataGenerator_3Dconv
 
     # Populate with COM augmented samples if needed
     if params["COM_augmentation"] is not None:
@@ -920,7 +925,7 @@ def _make_data_mem(
             X_valid = np.concatenate(
                 (X_valid, y_valid_aux, y_valid_aux, y_valid_aux), axis=-1
             )
-            logger.info("Input dimension is now {}".format(X_train.shape))
+            logger.info(f"Input dimension is now {X_train.shape}")
 
             params["use_silhouette"] = False
             logger.info("Turn off silhouette loss.")
@@ -978,7 +983,7 @@ def _make_data_mem(
     return train_generator, valid_generator
 
 
-def get_segmentation_model(params: dict, valid_params: dict, vids):
+def get_segmentation_model(params: dict, valid_params: dict, vids: list):
     valid_params_sil = deepcopy(valid_params)
     valid_params_sil["vidreaders"] = vids  # vids_sil
 
@@ -1083,7 +1088,7 @@ def make_dataset_inference(params: dict, valid_params: dict):
             expID, sampleID = sample.split("_")
             if int(expID) % 2 != 0:
                 continue
-            new_sample = "{}_".format(int(expID) + 1) + sampleID
+            new_sample = f"{int(expID) + 1}_{sampleID}"
             com3d_dict[new_sample] = com3d_dict[new_sample][:, 1]
             com3d_dict[sample] = com3d_dict[sample][:, 0]
 

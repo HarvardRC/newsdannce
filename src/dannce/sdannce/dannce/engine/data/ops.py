@@ -1,4 +1,5 @@
 """Operations for dannce."""
+
 import time
 
 import cv2
@@ -247,7 +248,7 @@ def sample_grid(
     elif method == "linear" or method == "bilinear":
         proj_rgb = sample_grid_linear(im, projPts, device)
     else:
-        raise Exception("{} not a valid interpolation method".format(method))
+        raise Exception(f"{method} not a valid interpolation method")
 
     return proj_rgb
 

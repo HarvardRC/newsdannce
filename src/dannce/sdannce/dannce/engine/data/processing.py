@@ -126,9 +126,8 @@ def generate_readers(
         if pathonly:
             out[mp4files_scrub[i]] = os.path.join(viddir, mp4files[i])
         else:
-            logger.warning(
-                "NOTE: Ignoring {} files numbered above {}".format(extensions, maxopt)
-            )
+            # TODO: `extensions` not defined
+            logger.warning(f"NOTE: Ignoring {extensions} files numbered above {maxopt}")
             out[mp4files_scrub[i]] = imageio.get_reader(
                 os.path.join(viddir, mp4files[i]),
                 pixelformat=pixelformat,
@@ -170,7 +169,7 @@ def load_expdict(
         exp["viddir"] = expdict["viddir"]
 
     # if logger is not None:
-    #     logger.info("Experiment {} using videos in {}".format(e, exp["viddir"]))
+    #     logger.info(f"Experiment {e} using videos in {exp["viddir"]}")
 
     if params.get("use_silhouette", False):
         exp["viddir_sil"] = (
@@ -179,7 +178,7 @@ def load_expdict(
             else expdict["viddir_sil"]
         )
         # if logger is not None:
-        #     logger.info("Experiment {} also using masked videos in {}".format(e, exp["viddir_sil"]))
+        #     logger.info("Experiment {e} also using masked videos in {exp["viddir_sil"]}")
 
     l3d_camnames = io.load_camnames(expdict["label3d_file"])
     if "camnames" in expdict:
@@ -188,7 +187,7 @@ def load_expdict(
         exp["camnames"] = l3d_camnames
 
     # if logger is not None:
-    #     logger.info("Experiment {} using camnames: {}".format(e, exp["camnames"]))
+    #     logger.info("Experiment {e} using camnames: {exp["camnames"]}")
 
     # Use the camnames to find the chunks for each video
     chunks = {}
@@ -243,7 +242,7 @@ def load_all_exps(params: dict, logger: Logger):
             temporal_chunks_,
         ) = do_COM_load(exp, expdict, e, params)
 
-        # logger.info("Using {} samples total.".format(len(samples_)))
+        # logger.info("Using {len(samples_)} samples total.")
 
         (
             samples,
@@ -267,7 +266,7 @@ def load_all_exps(params: dict, logger: Logger):
 
         cameras[e] = cameras_
         camnames[e] = exp["camnames"]
-        # logger.info("Using the following cameras: {}".format(camnames[e]))
+        # logger.info(f"Using the following cameras: {camnames[e]}")
 
         params["experiment"][e] = exp
         for name, chunk in exp["chunks"].items():
@@ -375,7 +374,7 @@ def do_COM_load(exp: dict, expdict: dict, e, params: dict, training=True):
     # If there is "clean" data (full marker set), can take the
     # 3D COM from the labels
     if exp["com_fromlabels"] and training:
-        logger.info("For experiment {}, calculating 3D COM from labels".format(e))
+        logger.info(f"For experiment {e}, calculating 3D COM from labels")
         com3d_dict_ = deepcopy(datadict_3d_)
         for key in com3d_dict_.keys():
             com3d_dict_[key] = np.nanmean(datadict_3d_[key], axis=1, keepdims=True)
@@ -429,9 +428,7 @@ def do_COM_load(exp: dict, expdict: dict, e, params: dict, training=True):
                     selected_samples = sampleIDs[selected_indices]
 
                 logger.info(
-                    "Unlabeled sampling: EXP {} added {} samples".format(
-                        e, len(selected_samples)
-                    )
+                    f"Unlabeled sampling: EXP {e} added {len(selected_samples)} samples"
                 )
                 samples_ = list(samples_) + list(selected_samples)
                 samples_ = sorted(samples_)
@@ -468,13 +465,11 @@ def do_COM_load(exp: dict, expdict: dict, e, params: dict, training=True):
         c3dfile = io.load_com(exp["com_file"])
         com3d_dict_ = check_COM_load(c3dfile, "com3d", params["medfilt_window"])
 
-    # print("Experiment {} using com3d: {}".format(e, exp["com_file"]))
+    # print(f"Experiment {e} using com3d: {exp["com_file"]}")
 
     # if params["medfilt_window"] is not None:
     #     print(
-    #         "Median filtering COM trace with window size {}".format(
-    #             params["medfilt_window"]
-    #         )
+    #         "Median filtering COM trace with window size {params["medfilt_window"]}"
     #     )
 
     # Remove any 3D COMs that are beyond the confines off the 3D arena
@@ -487,8 +482,8 @@ def do_COM_load(exp: dict, expdict: dict, e, params: dict, training=True):
         rmc=do_cthresh,
         cthresh=exp["cthresh"],
     )
-    # msg = "Removed {} samples from the dataset because they either had COM positions over cthresh, or did not have matching sampleIDs in the COM file"
-    # print(msg.format(pre - len(samples_)))
+    # msg = f"Removed {pre - len(samples_)} samples from the dataset because they either had COM positions over cthresh, or did not have matching sampleIDs in the COM file"
+    # print(msg)
 
     return (
         exp,
@@ -518,7 +513,7 @@ def check_COM_load(c3dfile: dict, kkey: str, win_size: int):
     if win_size is not None:
         if win_size % 2 == 0:
             win_size += 1
-            # print("medfilt_window was not odd, changing to: {}".format(win_size))
+            # print("medfilt_window was not odd, changing to: {win_size}")
 
         from scipy.signal import medfilt
 
@@ -584,9 +579,7 @@ def make_data_splits(
                         if v > len(temporal_chunks[e]):
                             v = len(temporal_chunks[e])
                             logger.warning(
-                                "Setting all {} samples in experiment {} for validation purpose.".format(
-                                    v, e
-                                )
+                                f"Setting all {v} samples in experiment {e} for validation purpose."
                             )
 
                         valid_chunk_idx = sorted(
@@ -616,7 +609,7 @@ def make_data_splits(
                     train_chunks += list(temporal_chunks[e])
 
             train_expts = np.arange(num_experiments)
-            logger.info("TRAIN EXPTS: {}".format(train_expts))
+            logger.info(f"TRAIN EXPTS: {train_expts}")
 
             if isinstance(params["training_fraction"], float):
                 assert (params["training_fraction"] < 1.0) & (
@@ -713,9 +706,7 @@ def make_data_splits(
                 if v > len(tinds):
                     v = len(tinds)
                     logger.info(
-                        "Setting all {} samples in experiment {} for validation purpose.".format(
-                            v, e
-                        )
+                        f"Setting all {v} samples in experiment {e} for validation purpose."
                     )
 
                 valid_inds = valid_inds + list(
@@ -766,7 +757,7 @@ def make_data_splits(
         else:
             train_expts = np.arange(num_experiments)
 
-        logger.info("TRAIN EXPTS: {}".format(train_expts))
+        logger.info("TRAIN EXPTS: {train_expts}")
 
         if params["num_train_per_exp"] is not None:
             # Then sample randomly without replacement from training sampleIDs
@@ -892,9 +883,7 @@ def remove_samples_npy(npydir, samples, params):
 
         # import pdb; pdb.set_trace()
         logger.warning(
-            "Removed {} samples from {} because corresponding image or grid files could not be found".format(
-                sampdiff, params["experiment"][e]["label3d_file"]
-            )
+            f"Removed {sampdiff} samples from {params["experiment"][e]["label3d_file"]} because corresponding image or grid files could not be found"
         )
 
     return np.array(samps)
@@ -926,9 +915,7 @@ def reselect_training(partition, datadict_3d, frac, logger):
     partition["train_sampleIDs"] = sorted(unlabeled_samples + labeled_samples)
 
     logger.info(
-        "***LABELED: UNLABELED = {}:{}".format(
-            len(labeled_samples), len(unlabeled_samples)
-        )
+        f"***LABELED: UNLABELED = {len(labeled_samples)}:{len(unlabeled_samples)}"
     )
 
     return partition
@@ -1103,7 +1090,7 @@ def save_volumes_into_npy(
     logger.info("Generating missing npy files ...")
     pbar = tqdm(npy_generator.list_IDs)
     for i, samp in enumerate(pbar):
-        fname = "0_{}.npy".format(samp.split("_")[1])
+        fname = f"0_{samp.split('_')[1]}.npy"
         rr = npy_generator.__getitem__(i)
         # print(i, end="\r")
 
@@ -1152,7 +1139,7 @@ def save_volumes_into_npy(
                 np.save(os.path.join(save_root, "visual_hulls", fname), sil)
 
     # samples = remove_samples_npy(npydir, samples, params)
-    logger.info("{} samples ready for npy training.".format(len(samples)))
+    logger.info(f"{len(samples)} samples ready for npy training.")
 
 
 def save_volumes_into_tif(
@@ -1160,7 +1147,7 @@ def save_volumes_into_tif(
 ):
     if not os.path.exists(tifdir):
         os.makedirs(tifdir)
-    logger.info("Dump training volumes to {}".format(tifdir))
+    logger.info(f"Dump training volumes to {tifdir}")
     for i in range(X.shape[0]):
         for j in range(n_cams):
             im = X[
@@ -1340,7 +1327,7 @@ def rename_weights(traindir: str, kkey: str, mon):
     else:
         beste = e[np.argmin(q)]
 
-    newname = "weights." + str(int(beste)) + "-" + "{:.5f}".format(minq) + ".hdf5"
+    newname = f"weights.{str(int(beste))}-{minq:.5f}.hdf5"
 
     os.rename(os.path.join(traindir, kkey), os.path.join(traindir, newname))
 
@@ -1454,7 +1441,7 @@ def save_COM_checkpoint(
         )
 
     cfilename = os.path.join(results_dir, file_name + ".mat")
-    logger.success("Saving 3D COM to {}".format(cfilename))
+    logger.success(f"Saving 3D COM to {cfilename}")
     samples_keys = list(com3d_dict.keys())
 
     if params["n_instances"] > 1:
@@ -1495,7 +1482,7 @@ def save_COM_checkpoint(
 
 def write_com_file(params: dict, samples_, com3d_dict_):
     cfilename = os.path.join(params["dannce_predict_dir"], "com3d_used.mat")
-    logger.success("Saving 3D COM to {}".format(cfilename))
+    logger.success(f"Saving 3D COM to {cfilename}")
     c3d_shape = com3d_dict_[samples_[0]].shape
     c3d = np.zeros((len(samples_), *c3d_shape))
     for i in range(len(samples_)):
@@ -1504,7 +1491,7 @@ def write_com_file(params: dict, samples_, com3d_dict_):
 
 
 def savedata_expval(
-    fname,
+    fname: str,
     params: dict,
     write: bool = True,
     data=None,
@@ -2027,9 +2014,7 @@ def extract_3d_sil(vol: np.ndarray):
     vol[vol > 0] = 1
 
     print(
-        "{}\% of silhouette training voxels are occupied".format(
-            100 * np.sum(vol) / len(vol.ravel())
-        )
+        f"{100 * np.sum(vol) / len(vol.ravel())}\% of silhouette training voxels are occupied"
     )
     return vol
 
@@ -2045,9 +2030,7 @@ def extract_3d_sil_soft(vol: np.ndarray, keeprange=3):
     vol[vol > 0] = (vol[vol > 0] - lower_thres) / keeprange
 
     print(
-        "{}\% of silhouette training voxels are occupied".format(
-            100 * np.sum((vol > 0)) / len(vol.ravel())
-        )
+        f"{100 * np.sum((vol > 0)) / len(vol.ravel())}\% of silhouette training voxels are occupied"
     )
     return vol
 

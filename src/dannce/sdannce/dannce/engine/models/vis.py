@@ -1,12 +1,19 @@
-import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.axes import Axes
+import numpy as np
 import skimage.transform
 
 
-def draw_voxels(voxels, ax, shape=(8, 8, 8), norm=True, alpha=0.1):
-    # resize for visualization
-    zoom = np.array(shape) / np.array(voxels.shape)
+def draw_voxels(
+    voxels: np.ndarray,
+    ax: Axes,
+    shape: tuple = (8, 8, 8),
+    norm: bool = True,
+    alpha: float = 0.1,
+):
+    # resize for visualization: TODO: currently unused
+    _zoom = np.array(shape) / np.array(voxels.shape)
     voxels = skimage.transform.resize(
         voxels, shape, mode="constant", anti_aliasing=True
     )

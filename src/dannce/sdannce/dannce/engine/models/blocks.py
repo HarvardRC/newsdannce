@@ -1,5 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
+from typing import TypeAlias, Literal
+
 from .normalization import LayerNormalization
 
 NORMALIZATION_MODES = {
@@ -8,12 +10,28 @@ NORMALIZATION_MODES = {
     "layer": LayerNormalization,  # nn.LayerNorm
 }
 
+NormMethods: TypeAlias = Literal["batch", "instance", "layer"]
+
 
 class Basic3DBlock(nn.Module):
-    def __init__(self, in_planes, out_planes, norm_method, input_shape, kernel_size=3):
-        super(Basic3DBlock, self).__init__()
-
+    def __init__(
+        self,
+        in_planes: int,
+        out_planes: int,
+        norm_method: NormMethods,
+        input_shape: tuple[int, int, int, int],
+        kernel_size=3,
+    ):
+        super().__init__()
         self.normalization = NORMALIZATION_MODES[norm_method]
+
+        if norm_method == "layer":
+            norm_module1 = self.normalization([out_planes, *input_shape])
+            norm_module2 = self.normalization([out_planes, *input_shape])
+        else:  # norm_method == "instance" or "batch"
+            norm_module1 = self.normalization(out_planes)
+            norm_module2 = self.normalization(out_planes)
+
         self.block = nn.Sequential(
             nn.Conv3d(
                 in_planes,
@@ -22,9 +40,7 @@ class Basic3DBlock(nn.Module):
                 stride=1,
                 padding=((kernel_size - 1) // 2),
             ),
-            self.normalization([out_planes, *input_shape])
-            if norm_method == "layer"
-            else self.normalization(out_planes),
+            norm_module1,  # self.normalization(...)
             nn.ReLU(True),
             nn.Conv3d(
                 out_planes,
@@ -33,9 +49,7 @@ class Basic3DBlock(nn.Module):
                 stride=1,
                 padding=((kernel_size - 1) // 2),
             ),
-            self.normalization([out_planes, *input_shape])
-            if norm_method == "layer"
-            else self.normalization(out_planes),
+            norm_module2,  # self.normalization(...)
             nn.ReLU(True),
         )
 
@@ -44,25 +58,36 @@ class Basic3DBlock(nn.Module):
 
 
 class Res3DBlock(nn.Module):
-    def __init__(self, in_planes, out_planes, norm_method, input_shape):
-        super(Res3DBlock, self).__init__()
+    def __init__(
+        self,
+        in_planes: int,
+        out_planes: int,
+        norm_method: NormMethods,
+        input_shape: tuple[int, int, int, int],
+    ):
+        super().__init__()
         self.normalization = NORMALIZATION_MODES[norm_method]
+
+        if norm_method == "layer":
+            norm_module1 = self.normalization([out_planes, *input_shape])
+            norm_module2 = self.normalization([out_planes, *input_shape])
+        else:  # norm_method == "instance" or "batch"
+            norm_module1 = self.normalization(out_planes)
+            norm_module2 = self.normalization(out_planes)
+
         self.res_branch = nn.Sequential(
             nn.Conv3d(in_planes, out_planes, kernel_size=3, stride=1, padding=1),
-            self.normalization([out_planes, *input_shape])
-            if norm_method == "layer"
-            else self.normalization(out_planes),
+            norm_module1,  # self.normalization(...)
             nn.ReLU(True),
             nn.Conv3d(out_planes, out_planes, kernel_size=3, stride=1, padding=1),
-            self.normalization([out_planes, *input_shape])
-            if norm_method == "layer"
-            else self.normalization(out_planes),
+            norm_module2,  # self.normalization(...)
         )
 
+        # optionally skip convolution step
         if in_planes == out_planes:
-            self.skip_con = nn.Sequential()
+            self.skip_conv = nn.Sequential()
         else:
-            self.skip_con = nn.Sequential(
+            self.skip_conv = nn.Sequential(
                 nn.Conv3d(in_planes, out_planes, kernel_size=1, stride=1, padding=0),
                 self.normalization([out_planes, *input_shape])
                 if norm_method == "layer"
@@ -71,13 +96,13 @@ class Res3DBlock(nn.Module):
 
     def forward(self, x):
         res = self.res_branch(x)
-        skip = self.skip_con(x)
+        skip = self.skip_conv(x)
         return F.relu(res + skip, True)
 
 
 class Pool3DBlock(nn.Module):
-    def __init__(self, pool_size):
-        super(Pool3DBlock, self).__init__()
+    def __init__(self, pool_size: int):
+        super().__init__()
         self.pool_size = pool_size
 
     def forward(self, x):
@@ -86,9 +111,15 @@ class Pool3DBlock(nn.Module):
 
 class BasicUpSample3DBlock(nn.Module):
     def __init__(
-        self, in_planes, out_planes, kernel_size, stride, norm_method, input_shape
+        self,
+        in_planes: int,
+        out_planes: int,
+        kernel_size: int,
+        stride: int,
+        _norm_method,
+        _input_shape,
     ):
-        super(BasicUpSample3DBlock, self).__init__()
+        super().__init__()
         self.block = nn.Sequential(
             nn.ConvTranspose3d(
                 in_planes,
@@ -106,12 +137,26 @@ class BasicUpSample3DBlock(nn.Module):
 
 class Upsample3DBlock(nn.Module):
     def __init__(
-        self, in_planes, out_planes, kernel_size, stride, norm_method, input_shape
+        self,
+        in_planes: int,
+        out_planes: int,
+        kernel_size: int,
+        stride: int,
+        norm_method: NormMethods,
+        input_shape: tuple[int, int, int, int],
     ):
-        super(Upsample3DBlock, self).__init__()
+        super().__init__()
+
         assert kernel_size == 2
         assert stride == 2
+
         self.normalization = NORMALIZATION_MODES[norm_method]
+
+        if norm_method == "layer":
+            norm_module1 = self.normalization([out_planes, *input_shape])
+        else:  # norm_method == "instance" or "batch"
+            norm_module1 = self.normalization(out_planes)
+
         self.block = nn.Sequential(
             nn.ConvTranspose3d(
                 in_planes,
@@ -121,9 +166,7 @@ class Upsample3DBlock(nn.Module):
                 padding=0,
                 output_padding=0,
             ),
-            self.normalization([out_planes, *input_shape])
-            if norm_method == "layer"
-            else self.normalization(out_planes),
+            norm_module1,
             nn.ReLU(True),
         )
 
@@ -132,10 +175,24 @@ class Upsample3DBlock(nn.Module):
 
 
 class Basic2DBlock(nn.Module):
-    def __init__(self, in_planes, out_planes, norm_method, input_shape, kernel_size=3):
-        super(Basic2DBlock, self).__init__()
+    def __init__(
+        self,
+        in_planes: int,
+        out_planes: int,
+        norm_method: NormMethods,
+        input_shape: tuple[int, int, int, int],
+        kernel_size: int = 3,
+    ):
+        super().__init__()
 
         self.normalization = NORMALIZATION_MODES[norm_method]
+        if norm_method == "layer":
+            norm_module1 = self.normalization([out_planes, *input_shape])
+            norm_module2 = self.normalization([out_planes, *input_shape])
+        else:  # norm_method == "instance" or "batch"
+            norm_module1 = self.normalization(out_planes)
+            norm_module2 = self.normalization(out_planes)
+
         self.block = nn.Sequential(
             nn.Conv2d(
                 in_planes,
@@ -144,9 +201,7 @@ class Basic2DBlock(nn.Module):
                 stride=1,
                 padding=((kernel_size - 1) // 2),
             ),
-            self.normalization([out_planes, *input_shape])
-            if norm_method == "layer"
-            else self.normalization(out_planes),
+            norm_module1,
             nn.ReLU(True),
             nn.Conv2d(
                 out_planes,
@@ -155,9 +210,7 @@ class Basic2DBlock(nn.Module):
                 stride=1,
                 padding=((kernel_size - 1) // 2),
             ),
-            self.normalization([out_planes, *input_shape])
-            if norm_method == "layer"
-            else self.normalization(out_planes),
+            norm_module2,
             nn.ReLU(True),
         )
 
@@ -166,8 +219,8 @@ class Basic2DBlock(nn.Module):
 
 
 class Pool2DBlock(nn.Module):
-    def __init__(self, pool_size):
-        super(Pool2DBlock, self).__init__()
+    def __init__(self, pool_size: int):
+        super().__init__()
         self.pool_size = pool_size
 
     def forward(self, x):
@@ -176,9 +229,15 @@ class Pool2DBlock(nn.Module):
 
 class BasicUpSample2DBlock(nn.Module):
     def __init__(
-        self, in_planes, out_planes, kernel_size, stride, norm_method, input_shape
+        self,
+        in_planes: int,
+        out_planes: int,
+        kernel_size: int,
+        stride: int,
+        _norm_method,
+        _input_shape,
     ):
-        super(BasicUpSample2DBlock, self).__init__()
+        super().__init__()
         self.block = nn.Sequential(
             nn.ConvTranspose2d(
                 in_planes,

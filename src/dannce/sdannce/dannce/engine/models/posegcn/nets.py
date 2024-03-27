@@ -22,7 +22,7 @@ class PoseGCN(nn.Module):
         model_params,
         pose_generator,
     ):
-        super(PoseGCN, self).__init__()
+        super().__init__()
 
         # pose estimation backbone
         self.pose_generator = pose_generator

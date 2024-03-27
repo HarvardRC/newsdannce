@@ -135,14 +135,8 @@ class GridHandler:
 
         slurm_config = self.load_params(self.load_params(self.config)["slurm_config"])
         cmd = (
-            'sbatch --wait --array=0-%d %s --wrap="%s dannce-train-single-batch %s %s"'
-            % (
-                len(batch_params) - 1,
-                slurm_config["dannce_train_grid"],
-                slurm_config["setup"],
-                self.config,
-                self.grid_config,
-            )
+            f"sbatch --wait --array=0-{len(batch_params) - 1} {slurm_config['dannce_train_grid']}"
+            + f" --wrap=\"{slurm_config['setup']} dannce-train-single-batch {self.config} {self.grid_config}\""
         )
         if len(batch_params) > 0:
             self.save_batch_params(batch_params)

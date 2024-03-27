@@ -33,10 +33,8 @@ def grab_predict_label3d_file(defaultdir: str = "", index: int = 0):
     label3d_files = sorted(label3d_files)
 
     if len(label3d_files) == 0:
-        raise Exception("Did not find any *dannce.mat file in {}".format(def_ep))
-    logger.info(
-        "Using the following *dannce.mat files: {}".format(label3d_files[index])
-    )
+        raise Exception(f"Did not find any *dannce.mat file in {def_ep}")
+    logger.info(f"Using the following *dannce.mat files: {label3d_files[index]}")
     return label3d_files[index]
 
 
@@ -196,11 +194,11 @@ def infer_params(params: dict, dannce_net: bool, prediction: bool):
 def print_and_set(params: dict, varname: str, value):
     # Should add new values to params in place, no need to return
     params[varname] = value
-    logger.warning("Setting {} to {}.".format(varname, params[varname]))
+    logger.warning(f"Setting {varname} to {params[varname]}.")
 
 
 # NOTE: `prediction` arg unused
-def check_config(params: dict, dannce_net: bool, prediction):
+def check_config(params: dict, dannce_net: bool, _prediction):
     """
     Add parameter checks and restrictions here.
     """
@@ -219,13 +217,11 @@ def check_vmin_vmax(params: dict):
     for v in ["vmin", "vmax", "nvox"]:
         if params[v] is None:
             raise Exception(
-                "{} not in parameters. Please add it, or use vol_size instead of vmin and vmax".format(
-                    v
-                )
+                f"{v} not in parameters. Please add it, or use vol_size instead of vmin and vmax"
             )
 
 
-def check_camnames(camp):
+def check_camnames(camp: dict):
     """
     Raises an exception if camera names contain '_'
     """
@@ -240,7 +236,7 @@ def check_camnames(camp):
 #     Copies config files into the results directory, and creates results
 #         directory if necessary
 #     """
-#     print("Saving results to: {}".format(results_dir))
+#     print(f"Saving results to: {results_dir}")
 
 #     if not os.path.exists(results_dir):
 #         os.makedirs(results_dir)
@@ -262,9 +258,7 @@ def inherit_config(child: dict, parent: dict, keys: list[str]):
     for key in keys:
         if key not in child.keys():
             child[key] = parent[key]
-            logger.warning(
-                "{} not found in io.yaml file, falling back to default".format(key)
-            )
+            logger.warning(f"{key} not found in io.yaml file, falling back to default")
 
     return child
 
@@ -280,7 +274,7 @@ def write_config(
     """
     f = open(results_dir + filename, "w")
     for key in configdict:
-        f.write("{}: {}\n".format(key, configdict[key]))
+        f.write(f"{key}: {configdict[key]}\n")
     f.write("message:" + message)
 
 
@@ -343,8 +337,8 @@ def check_unrecognized_params(params: dict):
 
     # If there are any keys that are invalid, throw an error and print them out
     if len(invalid_keys) > 0:
-        invalid_key_msg = [" %s," % key for key in invalid_keys]
-        msg = "Unrecognized keys in the configs: %s" % "".join(invalid_key_msg)
+        invalid_key_msg = [f" {key}," for key in invalid_keys]
+        msg = f"Unrecognized keys in the configs: {''.join(invalid_key_msg)}"
         raise ValueError(msg)
 
 
@@ -470,9 +464,7 @@ def setup_train(params: dict):
 
     if params["n_rand_views"] == 0:
         logger.info(
-            "Using default n_rand_views augmentation with {} views and with replacement".format(
-                params["n_views"]
-            )
+            f"Using default n_rand_views augmentation with {params['n_views']} views and with replacement"
         )
         logger.warning(
             "To disable n_rand_views augmentation, set it to None in the config."
@@ -574,7 +566,7 @@ def setup_predict(params: dict):
         params["base_exp_folder"] = os.path.dirname(params["label3d_file"])
     params["multi_mode"] = False
 
-    logger.info("Using camnames: {}".format(params["camnames"]))
+    logger.info(f"Using camnames: {params['camnames']}")
     # Also add parent params under the 'experiment' key for compatibility
     # with DANNCE's video loading function
     if (params["use_silhouette_in_volume"]) or (
@@ -704,7 +696,7 @@ def setup_com_predict(params: dict):
     # Grab the input file for prediction
     params["label3d_file"] = grab_predict_label3d_file(index=params["label3d_index"])
 
-    logger.info("Using camnames: {}".format(params["camnames"]))
+    logger.info(f"Using camnames: {params['camnames']}")
 
     params["experiment"] = {}
     params["experiment"][0] = params

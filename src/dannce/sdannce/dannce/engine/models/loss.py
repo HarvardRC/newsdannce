@@ -113,7 +113,9 @@ class L1Loss(BaseLoss):
 
 
 class WeightedL1Loss(BaseLoss):
-    def __init__(self, joint_weights=None, num_joints=23, **kwargs):
+    def __init__(
+        self, joint_weights: list | None = None, num_joints: int = 23, **kwargs
+    ):
         super().__init__(**kwargs)
 
         self.weighting = np.ones((num_joints,))
@@ -138,14 +140,14 @@ class WeightedL1Loss(BaseLoss):
 class BoneLengthLoss(BaseLoss):
     def __init__(
         self,
-        priors,
+        priors: str,
         body_profile: str = "rat23",
-        mask=None,
+        mask: list | None = None,
         std_multiplier=1,
-        upper_only=False,
-        relative_scale=False,
-        ref_index=3,
-        ref_loss_weight=0.1,
+        upper_only: bool = False,
+        relative_scale: bool = False,
+        ref_index: int = 3,
+        ref_loss_weight: float = 0.1,
         **kwargs,
     ):
         """
@@ -185,7 +187,7 @@ class BoneLengthLoss(BaseLoss):
 
         self._construct_intervals(do_masking=(self.mask is not None))
 
-    def _construct_intervals(self, do_masking=False):
+    def _construct_intervals(self, do_masking: bool = False):
         self.intervals = []
 
         priors = self.relative_priors if self.relative_scale else self.priors
@@ -272,7 +274,7 @@ class ConsistencyLoss(BaseLoss):
 class TemporalLoss(BaseLoss):
     def __init__(
         self,
-        temporal_chunk_size,
+        temporal_chunk_size: tuple[int, ...],
         method: Literal["l1", "l2"] = "l1",
         downsample: int = 1,
         **kwargs,
@@ -297,7 +299,7 @@ class TemporalLoss(BaseLoss):
 
 
 class BoneVectorLoss(BaseLoss):
-    def __init__(self, body_profile="rat23", mask=None, **kwargs):
+    def __init__(self, body_profile: str = "rat23", mask=None, **kwargs):
         super().__init__(**kwargs)
 
         self.animal = body_profile
@@ -354,7 +356,7 @@ class KCSLoss(BaseLoss):
 
 
 class JointAngleLoss(KCSLoss):
-    def __init__(self, angle_prior, std_multiplier=1.0, **kwargs):
+    def __init__(self, angle_prior: str, std_multiplier: float = 1.0, **kwargs):
         self.priors = np.load(angle_prior, allow_pickle=True)
         super().__init__(**kwargs)
 
@@ -393,7 +395,7 @@ class JointAngleLoss(KCSLoss):
 
 
 class BodySymmetryLoss(BaseLoss):
-    def __init__(self, animal="mouse22", **kwargs):
+    def __init__(self, animal: str = "mouse22", **kwargs):
         super().__init__(**kwargs)
 
         self.animal = animal
@@ -568,7 +570,7 @@ class PairConsistencyLoss(BaseLoss):
 
 
 class PairRepulsionLoss(BaseLoss):
-    def __init__(self, delta=5, pairwise=False, **kwargs):
+    def __init__(self, delta=5, pairwise: bool = False, **kwargs):
         super().__init__(**kwargs)
         self.delta = delta
 
@@ -607,7 +609,7 @@ class PairRepulsionLoss(BaseLoss):
 
 
 class SilhouetteLoss(BaseLoss):
-    def __init__(self, delta=5, reduction_axes=[2, 3, 4], **kwargs):
+    def __init__(self, delta=5, reduction_axes: list[int] = [2, 3, 4], **kwargs):
         super().__init__(**kwargs)
         self.delta = delta
         self.reduction_axes = reduction_axes

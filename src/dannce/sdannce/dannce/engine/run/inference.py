@@ -1,5 +1,5 @@
-"""Handle inference procedures for dannce and com networks.
-"""
+"""Handle inference procedures for dannce and com networks."""
+
 import os
 import time
 
@@ -31,10 +31,10 @@ def print_checkpoint(
     No Longer Returned:
         float: New timing reference.
     """
-    print("Predicting on sample %d" % (n_frame), flush=True)
+    print(f"Predicting on sample {n_frame}", flush=True)
     if (n_frame - start_ind) % sample_save == 0 and n_frame != start_ind:
         print(n_frame)
-        print("{} samples took {} seconds".format(sample_save, time.time() - end_time))
+        print(f"{sample_save} samples took {time.time() - end_time} seconds")
         end_time = time.time()
     return end_time
 
@@ -111,7 +111,7 @@ def debug_com(
     )
     if n_instance is not None:
         pred_to_plot = pred_to_plot[..., n_instance]
-        fname = fname.replace(".png", "_0{}.png".format(n_instance))
+        fname = fname.replace(".png", f"_0{n_instance}.png")
     plt.imshow(pred_to_plot)
     plt.savefig(fname)
 
@@ -209,9 +209,9 @@ def extract_multi_instance_single_channel(
             cameras[params["camnames"][n_cam]]["R"],
             cameras[params["camnames"][n_cam]]["t"],
         )
-        save_data[sample_id][params["camnames"][n_cam]]["COM"][
-            instance, :
-        ] = np.squeeze(pts1)
+        save_data[sample_id][params["camnames"][n_cam]]["COM"][instance, :] = (
+            np.squeeze(pts1)
+        )
 
     return save_data
 
@@ -286,9 +286,9 @@ def extract_multi_instance_multi_channel(
             cameras[params["camnames"][n_cam]]["R"],
             cameras[params["camnames"][n_cam]]["t"],
         )
-        save_data[sample_id][params["camnames"][n_cam]]["COM"][
-            instance, :
-        ] = np.squeeze(pts)
+        save_data[sample_id][params["camnames"][n_cam]]["COM"][instance, :] = (
+            np.squeeze(pts)
+        )
 
         # TODO(pred_max): Currently only saves for one instance.
         save_data[sample_id][params["camnames"][n_cam]]["pred_max"] = pred_max
@@ -404,7 +404,7 @@ def triangulate_single_instance(
             ).squeeze()
 
             save_data[sample_id]["triangulation"][
-                "{}_{}".format(params["camnames"][n_cam1], params["camnames"][n_cam2])
+                f"{params['camnames'][n_cam1]}_{params['camnames'][n_cam2]}"
             ] = test3d
     return save_data
 
@@ -446,9 +446,7 @@ def triangulate_multi_instance_multi_channel(
                 ).squeeze()
 
                 save_data[sample_id]["triangulation"][
-                    "{}_{}".format(
-                        params["camnames"][n_cam1], params["camnames"][n_cam2]
-                    )
+                    f"{params['camnames'][n_cam1]}_{params['camnames'][n_cam2]}"
                 ] = test3d
 
         pairs = [
@@ -691,14 +689,14 @@ def infer_dannce(
 
     pbar = tqdm(range(start_ind, end_ind))
     for idx, i in enumerate(pbar):
-        # print("Predicting on batch {}".format(i), flush=True)
+        # print(f"Predicting on batch {i}", flush=True)
         # if (i - start_ind) % 10 == 0 and i != start_ind:
         # print(i)
-        # print("10 batches took {} seconds".format(time.time() - end_time))
+        # print(f"10 batches took {time.time() - end_time} seconds")
         # end_time = time.time()
 
         if (i - start_ind) % 1000 == 0 and i != start_ind:
-            print("Saving checkpoint at {}th batch".format(i))
+            print(f"Saving checkpoint at {i}th batch")
             if params["expval"]:
                 p_n = savedata_expval(
                     params["dannce_predict_dir"] + "/save_data_AVG.mat",
@@ -808,7 +806,7 @@ def infer_dannce(
 
 def save_inference_checkpoint(params, save_data, num_markers, savename):
     p_n = savedata_expval(
-        params["dannce_predict_dir"] + "/{}".format(savename),
+        f"{params['dannce_predict_dir']}/{savename}",
         params,
         write=True,
         data=save_data,
@@ -851,7 +849,7 @@ def infer_sdannce(
     pbar = tqdm(range(start_ind, end_ind))
     for idx, i in enumerate(pbar):
         if (i - start_ind) % 1000 == 0 and i != start_ind:
-            print("Saving checkpoint at {}th batch".format(i))
+            print(f"Saving checkpoint at {i}th batch")
             save_inference_checkpoint(
                 params, save_data, final_poses.shape[-1], "/save_data_AVG.mat"
             )
@@ -956,7 +954,7 @@ def infer_sdannce(
             }
 
     if params["save_tag"] is not None:
-        savename = "save_data_AVG%d.mat" % (params["save_tag"])
+        savename = f"save_data_AVG{params['save_tag']}.mat"
     else:
         savename = "save_data_AVG.mat"
     save_inference_checkpoint(params, save_data, final_poses.shape[-1], savename)
@@ -970,7 +968,7 @@ def save_results(params, save_data):
         if params["save_tag"] is not None:
             path = os.path.join(
                 params["dannce_predict_dir"],
-                "save_data_AVG%d.mat" % (params["save_tag"]),
+                f"save_data_AVG{params['save_tag']}.mat",
             )
         else:
             path = os.path.join(params["dannce_predict_dir"], "save_data_AVG.mat")
@@ -987,7 +985,7 @@ def save_results(params, save_data):
         if params["save_tag"] is not None:
             path = os.path.join(
                 params["dannce_predict_dir"],
-                "save_data_MAX%d.mat" % (params["save_tag"]),
+                f"save_data_MAX{params['save_tag']}.mat",
             )
         else:
             path = os.path.join(params["dannce_predict_dir"], "save_data_MAX.mat")
@@ -1100,9 +1098,7 @@ def inference_ttt(
             total_loss = bone_loss + consist_loss
 
             pbar.set_description(
-                "Consistency Loss {:.4f} Bone Loss {:.4f}".format(
-                    consist_loss.item(), bone_loss.item()
-                )
+                f"Consistency Loss {consist_loss.item():.4f} Bone Loss {bone_loss.item():.4f}"
             )
 
             total_loss.backward()
@@ -1152,9 +1148,7 @@ def inference_ttt(
             state,
             os.path.join(
                 params["dannce_predict_dir"],
-                "checkpoint-online-iter{}.pth".format(
-                    ((end_ind - start_ind) // downsample) * niter
-                ),
+                f"checkpoint-online-iter{((end_ind - start_ind) // downsample) * niter}.pth",
             ),
         )
 

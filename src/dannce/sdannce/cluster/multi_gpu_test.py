@@ -76,23 +76,11 @@ class MultiGpuTest(absltest.TestCase):
             )
 
     def test_dannce_predict_multi_gpu_cli(self):
-        cmd = (
-            "dannce-predict-multi-gpu %s --test=True --verbose=False --dannce-file=%s"
-            % (
-                CONFIG_PATH,
-                DANNCE_PATH,
-            )
-        )
+        cmd = f"dannce-predict-multi-gpu {CONFIG_PATH} --test=True --verbose=False --dannce-file={DANNCE_PATH}"
         os.system(cmd)
 
     def test_com_predict_multi_gpu_cli(self):
-        cmd = (
-            "com-predict-multi-gpu %s --test=True --verbose=False --dannce-file=%s"
-            % (
-                CONFIG_PATH,
-                DANNCE_PATH,
-            )
-        )
+        cmd = f"com-predict-multi-gpu {CONFIG_PATH} --test=True --verbose=False --dannce-file={DANNCE_PATH}"
         os.system(cmd)
 
 

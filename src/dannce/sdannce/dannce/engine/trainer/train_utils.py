@@ -1,9 +1,10 @@
 import dannce.engine.models.loss as custom_losses
 import dannce.engine.models.metrics as custom_metrics
 import numpy as np
+import torch
 
 
-def prepare_batch(batch, device):
+def prepare_batch(batch, device: torch.Device):
     volumes = batch[0].float().to(device)
     grids = batch[1].float().to(device) if batch[1] is not None else None
     targets = batch[2].float().to(device)
@@ -13,7 +14,7 @@ def prepare_batch(batch, device):
 
 
 class LossHelper:
-    def __init__(self, params):
+    def __init__(self, params: dict):
         self.loss_params = params
         self._get_losses()
 
@@ -24,12 +25,12 @@ class LossHelper:
 
     def compute_loss(
         self,
-        kpts_gt,
-        kpts_pred,
-        heatmaps,
-        grid_centers=None,
+        kpts_gt: torch.Tensor,
+        kpts_pred: torch.Tensor,
+        heatmaps: torch.Tensor,
+        grid_centers: torch.Tensor | None = None,
         aux=None,
-        heatmaps_gt=None,
+        heatmaps_gt: torch.Tensor | None = None,
     ):
         """
         Compute each loss and return their weighted sum for backprop.
@@ -68,7 +69,7 @@ class LossHelper:
 
 
 class MetricHelper:
-    def __init__(self, params):
+    def __init__(self, params: dict):
         self.metric_names = params["metric"]
         self._get_metrics()
 
@@ -77,7 +78,7 @@ class MetricHelper:
         for met in self.metric_names:
             self.metrics[met] = getattr(custom_metrics, met)
 
-    def evaluate(self, kpts_gt, kpts_pred):
+    def evaluate(self, kpts_gt: torch.Tensor, kpts_pred: torch.Tensor):
         # perform NaN masking ONCE before metric computation
         metric_dict = {}
         if len(self.metric_names) == 0:
@@ -94,7 +95,7 @@ class MetricHelper:
         return self.metric_names
 
     @classmethod
-    def mask_nan(self, pred, gt):
+    def mask_nan(self, pred: np.ndarray, gt: np.ndarray):
         """
         pred, gt: [bs, 3, n_joints]
         """

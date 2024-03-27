@@ -477,11 +477,9 @@ class MultiGpuHandler:
         batch_params = self.generate_batch_params_dannce(n_samples)
         slurm_config = load_params(load_params(self.config)["slurm_config"])
 
-        cmd = 'sbatch --array=0-%d %s --wrap="%s sdannce-predict-single-batch %s"' % (
-            len(batch_params) - 1,
-            slurm_config["dannce_multi_predict"],
-            slurm_config["setup"],
-            self.config,
+        cmd = (
+            f"sbatch --array=0-{len(batch_params) - 1} {slurm_config['dannce_multi_predict']}"
+            + f" --wrap=\"{slurm_config['setup']} sdannce-predict-single-batch {self.config}\""
         )
 
         if len(batch_params) > 0:

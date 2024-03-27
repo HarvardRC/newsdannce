@@ -27,7 +27,7 @@ def main(args: argparse.Namespace):
     N_FRAMES = args.n_frames
     VID_NAME = "0.mp4"
     START_FRAME = args.start_frame
-    CAMERAS = ["Camera{}".format(int(i)) for i in args.cameras.split(",")]
+    CAMERAS = [f"Camera{int(i)}" for i in args.cameras.split(",")]
     N_ANIMALS = args.n_animals
     MARKER_COLOR = ["blue", "red"]
     # NOTE: COLOR is unused
@@ -39,7 +39,7 @@ def main(args: argparse.Namespace):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    camnames = "Camera{}".format(args.cameras)
+    camnames = f"Camera{args.cameras}"
     fname = f"frame{START_FRAME}-{START_FRAME+N_FRAMES}_{camnames}.mp4"
 
     ###############################################################################################################
@@ -125,7 +125,7 @@ def main(args: argparse.Namespace):
                 axes[i].set_title(CAMERAS[i])
                 axes[i].axis("off")
 
-            fig.suptitle("Frame: {}".format(curr_frame))
+            fig.suptitle(f"Frame: {curr_frame}")
             fig.tight_layout()
 
             writer.grab_frame()
