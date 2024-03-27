@@ -322,7 +322,7 @@ def initialize_model(params, n_cams, device):
     """
     try:
         ret_enc_feat = params.get("graph_cfg", {}).get("ret_enc_feat", False)
-    except:
+    except Exception:
         ret_enc_feat = False
     model_params = {
         "input_channels": (params["chan_num"] + params["depth"]) * n_cams,

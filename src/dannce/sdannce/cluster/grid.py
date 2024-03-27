@@ -6,7 +6,6 @@ import yaml
 import argparse
 import ast
 
-from typing import Text, List, Tuple
 from multi_gpu import build_params_from_config_and_batch
 
 
@@ -17,20 +16,20 @@ import time
 class GridHandler:
     def __init__(
         self,
-        config: Text,
-        grid_config: Text,
+        config: str,
+        grid_config: str,
         verbose: bool = True,
         test: bool = False,
-        dannce_file: Text = None,
+        dannce_file: str = None,
     ):
         """Initialize grid search handler
 
         Args:
-            config (Text): Path to base config .yaml file.
-            grid_config (Text): Path to grid search config .yaml file.
+            config (str): Path to base config .yaml file.
+            grid_config (str): Path to grid search config .yaml file.
             verbose (bool, optional): If True, print out batch parameters. Defaults to True.
             test (bool, optional): If True, print out system command, but do not run. Defaults to False.
-            dannce_file (Text, optional): Path to dannce.mat file. Defaults to None.
+            dannce_file (str, optional): Path to dannce.mat file. Defaults to None.
         """
         self.config = config
         self.grid_config = grid_config
@@ -38,53 +37,53 @@ class GridHandler:
         self.verbose = verbose
         self.test = test
 
-    def load_params(self, param_path: Text) -> List:
+    def load_params(self, param_path: str) -> list:
         """Load the training parameters
 
         Args:
-            param_path (Text): Path to parameters file.
+            param_path (str): Path to parameters file.
 
         Returns:
-            List: Training parameters for each batch
+            list: Training parameters for each batch
         """
         with open(param_path, "rb") as file:
             params = yaml.safe_load(file)
         return params["batch_params"]
 
-    def save_batch_params(self, batch_params: List):
+    def save_batch_params(self, batch_params: list):
         """Save the batch_param dictionary to the batch_param file
 
         Args:
-            batch_params (List): List of batch training parameters
+            batch_params (list): list of batch training parameters
         """
         out_dict = {"batch_params": batch_params}
         with open(self.batch_param_file, "wb") as file:
             pickle.dump(out_dict, file)
 
-    def load_batch_params(self) -> List:
+    def load_batch_params(self) -> list:
         """Load the batch parameters
 
         Returns:
-            List: Batch training parameters
+            list: Batch training parameters
         """
         with open(self.batch_param_file, "rb") as file:
             in_dict = pickle.load(file)
         return in_dict["batch_params"]
 
-    def generate_batch_params_dannce(self) -> List:
+    def generate_batch_params_dannce(self) -> list:
         """Generate the batch parameters
 
         Returns:
-            List: Training parameters for each batch
+            list: Training parameters for each batch
         """
         return self.load_params(self.grid_config)
 
-    def submit_jobs(self, batch_params: List, cmd: Text):
+    def submit_jobs(self, batch_params: list, cmd: str):
         """Print out description of command and issue system command
 
         Args:
-            batch_params (List): List of batch training parameters.
-            cmd (Text): System command to be issued.
+            batch_params (list): list of batch training parameters.
+            cmd (str): System command to be issued.
         """
         if self.verbose:
             for batch_param in batch_params:
@@ -123,14 +122,14 @@ class GridHandler:
 
         return job_id, slurm_uname
 
-    def submit_dannce_train_grid(self) -> Tuple[List, Text]:
+    def submit_dannce_train_grid(self) -> tuple[list, str]:
         """Submit dannce grid search.
 
         Submit a training job with parameter modifications
         listed in grid_config.
 
         Returns:
-            Tuple[List, Text]: Batch parameters list, system command
+            tuple[list, str]: Batch parameters list, system command
         """
         batch_params = self.generate_batch_params_dannce()
 

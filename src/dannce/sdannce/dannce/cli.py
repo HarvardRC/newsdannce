@@ -1,10 +1,8 @@
 """Entrypoints for dannce training and prediction."""
 import argparse
 import ast
-import os
 import subprocess
 import sys
-from typing import Dict, Text
 
 import yaml
 from cluster.multi_gpu import MultiGpuHandler
@@ -26,21 +24,21 @@ from dannce.param_defaults import (
 )
 
 
-def load_params(param_path: Text) -> Dict:
+def load_params(param_path: str) -> dict:
     """Load a params file
 
     Args:
-        param_path (Text): Path to .yaml file
+        param_path (str): Path to .yaml file
 
     Returns:
-        Dict: Parameters
+        dict: Parameters
     """
     with open(param_path, "rb") as file:
         params = yaml.safe_load(file)
     return params
 
 
-def submit_job(args):
+def submit_job(args: argparse.Namespace):
     job_name = f"{args.mode}_{args.command}"
     base_config = load_params(args.base_config)
     if "slurm_config" not in base_config:
@@ -59,7 +57,7 @@ def submit_job(args):
 
 def build_clarg_params(
     args: argparse.Namespace, dannce_net: bool, prediction: bool
-) -> Dict:
+) -> dict:
     """Build command line argument parameters
 
     Args:
@@ -68,7 +66,7 @@ def build_clarg_params(
         prediction (bool): If true, use prediction defaults.
 
     Returns:
-        Dict: Parameters dictionary.
+        dict: Parameters dictionary.
     """
     # Get the params specified in base config and io.yaml
     params = build_params(args.base_config, dannce_net)
@@ -748,16 +746,16 @@ def add_multi_gpu_args(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
     )
 
 
-def combine(base_params: Dict, clargs: argparse.Namespace, dannce_net: bool) -> Dict:
+def combine(base_params: dict, clargs: argparse.Namespace, dannce_net: bool) -> dict:
     """Combine command line, io, and base configurations.
 
     Args:
-        base_params (Dict): Parameters dictionary.
+        base_params (dict): Parameters dictionary.
         clargs (argparse.Namespace): Command line argument namespace.
         dannce_net (bool): Description
 
     Returns:
-        Dict: Parameters dictionary.
+        dict: Parameters dictionary.
     """
     if dannce_net:
         alldefaults = {**param_defaults_shared, **param_defaults_dannce}

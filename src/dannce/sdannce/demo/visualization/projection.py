@@ -1,6 +1,6 @@
+import mat73
 import numpy as np
 import scipy.io as sio
-import mat73
 
 
 # helper functions
@@ -12,6 +12,12 @@ def project_to_2d(
     matrix (K), and the extrinsic rotation matric (R), and extrinsic
     translation vector (t). Note that this uses the matlab
     convention, such that
+
+    pts: points
+    K: intrinsics matrix
+    R: rotation matrix
+    t: translation vector
+
     M = [R;t] * K, and pts2d = pts3d * M
     """
 
@@ -22,7 +28,12 @@ def project_to_2d(
     return projPts
 
 
-def distortPoints(points, intrinsicMatrix, radialDistortion, tangentialDistortion):
+def distortPoints(
+    points: np.ndarray,
+    intrinsicMatrix: np.ndarray,
+    radialDistortion: np.ndarray,
+    tangentialDistortion: np.ndarray,
+):
     """Distort points according to camera parameters.
     Ported from Matlab 2018a
     """
@@ -80,14 +91,14 @@ def distortPoints(points, intrinsicMatrix, radialDistortion, tangentialDistortio
     return distortedPoints
 
 
-def load_cameras(path):
+def load_cameras(path: str):
     mat73_flag = False
     # breakpoint()
     try:
         d = sio.loadmat(path)
         # camnames = [cam[0][0] for cam in d['camnames']]
         camnames = [cam[0] for cam in d["camnames"][0]]
-    except:
+    except Exception:
         d = mat73.loadmat(path)
         camnames = [name[0] for name in d["camnames"]]
         mat73_flag = True
@@ -109,12 +120,12 @@ def load_cameras(path):
     return cameras
 
 
-def load_label3d_data(path, key):
+def load_label3d_data(path: str, key: str):
     """Load Label3D data
 
     Args:
-        path (Text): Path to Label3D file
-        key (Text): Field to access
+        path (str): Path to Label3D file
+        key (str): Field to access
 
     Returns:
         TYPE: Data from field
@@ -136,20 +147,20 @@ def load_label3d_data(path, key):
                 d_[key] = d[key][0, 0]
                 # print(key, d_[key].shape)
             data.append(d_)
-    except:
+    except Exception:
         d = mat73.loadmat(path)[key]
         data = [f[0] for f in d]
     return data
 
 
-def load_sync(path):
+def load_sync(path: str):
     """Load synchronization data from Label3D file.
 
     Args:
-        path (Text): Path to Label3D file.
+        path (str): Path to Label3D file.
 
     Returns:
-        List[Dict]: List of synchronization dictionaries.
+        list[dict]: List of synchronization dictionaries.
     """
     dataset = load_label3d_data(path, "sync")
     for d in dataset:
@@ -158,14 +169,14 @@ def load_sync(path):
     return dataset
 
 
-def load_labels(path):
+def load_labels(path: str):
     """Load labelData from Label3D file.
 
     Args:
-        path (Text): Path to Label3D file.
+        path (str): Path to Label3D file.
 
     Returns:
-        List[Dict]: List of labelData dictionaries.
+        list[dict]: List of labelData dictionaries.
     """
     dataset = load_label3d_data(path, "labelData")
     for d in dataset:
@@ -174,21 +185,21 @@ def load_labels(path):
     return dataset
 
 
-def load_com(path):
+def load_com(path: str):
     """Load COM from .mat file.
 
     Args:
-        path (Text): Path to .mat file with "com" field
+        path (str): Path to .mat file with "com" field
 
     Returns:
-        Dict: Dictionary with com data
+        dict: Dictionary with com data
     """
     try:
         d = sio.loadmat(path)["com"]
         # data = {}
         data = d["com3d"][0, 0]
         # data["sampleID"] = d["sampleID"][0, 0].astype(int)
-    except:
+    except Exception:
         data = mat73.loadmat(path)["com"]["com3d"]
         # breakpoint()
         # data["sampleID"] = data["sampleID"].astype(int)

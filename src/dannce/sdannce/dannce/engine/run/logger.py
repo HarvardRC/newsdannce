@@ -1,12 +1,12 @@
+import json
 import logging
 import logging.config
-from pathlib import Path
-import json
-from collections import OrderedDict
 import os
+from collections import OrderedDict
+from pathlib import Path
 
 
-def read_json(fname):
+def read_json(fname: str):
     fname = Path(fname)
     with fname.open("rt") as handle:
         return json.load(handle, object_hook=OrderedDict)
@@ -44,7 +44,7 @@ log_config = OrderedDict(
 )
 
 
-def setup_logging(basedir, filename):
+def setup_logging(basedir: str, filename: str):
     """
     Setup logging configuration
     """

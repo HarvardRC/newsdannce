@@ -1,20 +1,22 @@
+import os
 from abc import abstractmethod
-import imageio, os
+from typing import Literal
 
+import imageio
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from dannce.engine.skeletons.utils import SYMMETRY, load_body_profile
-from dannce.engine.models.vis import draw_voxels
 from dannce.engine.data import ops, processing
+from dannce.engine.models.vis import draw_voxels
+from dannce.engine.skeletons.utils import SYMMETRY, load_body_profile
 
 ##################################################################################################
 # UTIL_FUNCTIONS
 ##################################################################################################
 
 
-def compute_mask_nan_loss(loss_fcn, kpts_gt, kpts_pred):
+def compute_mask_nan_loss(loss_fcn, kpts_gt: torch.Tensor, kpts_pred: torch.Tensor):
     # kpts_gt, kpts_pred, notnan = mask_nan(kpts_gt, kpts_pred)
     notnan_gt = ~torch.isnan(kpts_gt)
     notnan = notnan_gt.sum()
@@ -32,12 +34,12 @@ def compute_mask_nan_loss(loss_fcn, kpts_gt, kpts_pred):
 
 
 class BaseLoss(nn.Module):
-    def __init__(self, loss_weight=1.0):
+    def __init__(self, loss_weight: float = 1.0):
         super().__init__()
         self.loss_weight = loss_weight
 
     @abstractmethod
-    def forward(kpts_gt, kpts_pred):
+    def forward(kpts_gt: torch.Tensor, kpts_pred: torch.Tensor):
         return NotImplementedError
 
 
@@ -45,7 +47,7 @@ class L2Loss(BaseLoss):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def forward(self, kpts_gt, kpts_pred):
+    def forward(self, kpts_gt: torch.Tensor, kpts_pred: torch.Tensor):
         loss = compute_mask_nan_loss(nn.MSELoss(reduction="sum"), kpts_gt, kpts_pred)
         return self.loss_weight * loss
 
@@ -54,7 +56,7 @@ class MSELoss(BaseLoss):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def forward(self, heatmap_gt, heatmap_pred):
+    def forward(self, heatmap_gt: torch.Tensor, heatmap_pred: torch.Tensor):
         # if len(heatmap_gt.shape) == 5:
         #     heatmap_gt = heatmap_gt.permute(0, 4, 1, 2, 3)
         loss = F.mse_loss(heatmap_gt, heatmap_pred)
@@ -66,7 +68,7 @@ class BCELoss(BaseLoss):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def forward(self, heatmap_gt, heatmap_pred):
+    def forward(self, heatmap_gt: torch.Tensor, heatmap_pred: torch.Tensor):
         if len(heatmap_gt.shape) == 5:
             heatmap_gt = heatmap_gt.permute(0, 4, 1, 2, 3)
 
@@ -80,7 +82,7 @@ class HuberLoss(BaseLoss):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def forward(self, kpts_gt, kpts_pred):
+    def forward(self, kpts_gt: torch.Tenspr, kpts_pred: torch.Tenspr):
         return F.huber_loss(kpts_gt, kpts_pred)
 
 
@@ -88,7 +90,7 @@ class BCEWithLogitsLoss(BaseLoss):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def forward(self, kpts_gt, kpts_pred):
+    def forward(self, kpts_gt: torch.Tensor, kpts_pred: torch.Tensor):
         return F.binary_cross_entropy_with_logits(kpts_pred, kpts_gt)
 
 
@@ -96,7 +98,7 @@ class ReconstructionLoss(BaseLoss):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def forward(self, gt, pred):
+    def forward(self, gt: torch.Tensor, pred: torch.Tensor):
         loss = F.mse_loss(gt, pred)
         return self.loss_weight * loss
 
@@ -105,7 +107,7 @@ class L1Loss(BaseLoss):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def forward(self, kpts_gt, kpts_pred):
+    def forward(self, kpts_gt: torch.Tensor, kpts_pred: torch.Tensor):
         loss = compute_mask_nan_loss(nn.L1Loss(reduction="sum"), kpts_gt, kpts_pred)
         return self.loss_weight * loss
 
@@ -119,7 +121,7 @@ class WeightedL1Loss(BaseLoss):
             for joint, weight in joint_weights:
                 self.weighting[joint] = weight
 
-    def forward(self, kpts_gt, kpts_pred):
+    def forward(self, kpts_gt: torch.Tensor, kpts_pred: torch.Tensor):
         loss = []
         for joint_idx in range(kpts_gt.shape[-1]):
             gt, pred = kpts_gt[:, :, joint_idx], kpts_pred[:, :, joint_idx]
@@ -137,7 +139,7 @@ class BoneLengthLoss(BaseLoss):
     def __init__(
         self,
         priors,
-        body_profile="rat23",
+        body_profile: str = "rat23",
         mask=None,
         std_multiplier=1,
         upper_only=False,
@@ -152,7 +154,7 @@ class BoneLengthLoss(BaseLoss):
         Args:
             priors (str): path to npy file, which holds the pre-computed bone lengths
             body_profile (str): skeleton profile available in `dannce/engine/skeletons`
-            mask (List): keypoints to be excluded
+            mask (list): keypoints to be excluded
             relative_scale (Bool): regularize by relative ratios rather than absolute
             lengths.
             ref_index (int): index of the reference bone, i.e. all bone lengths will be
@@ -205,7 +207,7 @@ class BoneLengthLoss(BaseLoss):
             self.intervals[..., 1],
         )  # [1, n_limbs]
 
-    def forward(self, kpts_gt, kpts_pred):
+    def forward(self, kpts_gt: torch.Tensor, kpts_pred: torch.Tensor):
         """
         kpts_pred: [bs, 3, n_joints]
         """
@@ -231,7 +233,9 @@ class BoneLengthLoss(BaseLoss):
 
 
 class ConsistencyLoss(BaseLoss):
-    def __init__(self, method="l1", copies_per_sample=1, **kwargs):
+    def __init__(
+        self, method: Literal["l1", "l2"] = "l1", copies_per_sample: int = 1, **kwargs
+    ):
         """
         Implements the batch consistency loss.
 
@@ -240,7 +244,7 @@ class ConsistencyLoss(BaseLoss):
         predictions.
 
         Args:
-            method (str): distance metric, L1 or L2 Euclidean distance
+            method (str): distance metric -- L1 or L2 Euclidean distance
             copies_per_sample (int): number of unique samples in each batch
         """
         super().__init__(**kwargs)
@@ -248,7 +252,7 @@ class ConsistencyLoss(BaseLoss):
         self.method = method
         self.copies_per_sample = copies_per_sample
 
-    def forward(self, kpts_gt, kpts_pred):
+    def forward(self, kpts_gt: torch.Tensor, kpts_pred: torch.Tensor):
         if self.copies_per_sample <= kpts_pred.shape[0]:
             kpts_pred = kpts_pred.reshape(
                 -1, self.copies_per_sample, *kpts_pred.shape[1:]
@@ -256,23 +260,30 @@ class ConsistencyLoss(BaseLoss):
         else:
             # validation
             kpts_pred = kpts_pred.unsqueeze(0)
+
         diff = torch.diff(kpts_pred, dim=1)
         if self.method == "l1":
             loss_temp = torch.abs(diff).mean()
-        else:
+        else:  # self.method == "l2"
             loss_temp = (diff**2).sum(1).sqrt().mean()
         return self.loss_weight * loss_temp
 
 
 class TemporalLoss(BaseLoss):
-    def __init__(self, temporal_chunk_size, method="l1", downsample=1, **kwargs):
+    def __init__(
+        self,
+        temporal_chunk_size,
+        method: Literal["l1", "l2"] = "l1",
+        downsample: int = 1,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
 
         self.temporal_chunk_size = temporal_chunk_size
         assert method in ["l1", "l2"]
         self.method = method
 
-    def forward(self, kpts_gt, kpts_pred):
+    def forward(self, kpts_gt: torch.Tensor, kpts_pred: torch.Tensor):
         # reshape w.r.t temporal chunk size
         kpts_pred = kpts_pred.reshape(
             -1, self.temporal_chunk_size, *kpts_pred.shape[1:]
@@ -280,7 +291,7 @@ class TemporalLoss(BaseLoss):
         diff = torch.diff(kpts_pred, dim=1)
         if self.method == "l1":
             loss_temp = torch.abs(diff).mean()
-        else:
+        else:  # self.method == "l2"
             loss_temp = (diff**2).sum(1).sqrt().mean()
         return self.loss_weight * loss_temp
 
@@ -296,16 +307,16 @@ class BoneVectorLoss(BaseLoss):
 
         if mask is not None:
             x = torch.arange(len(self.limbs))
-            self.limbs = [self.limbs[l] for l in x if l not in mask]
+            self.limbs = [self.limbs[lim] for lim in x if lim not in mask]
 
-    def get_bone_vectors(self, kpts):
+    def get_bone_vectors(self, kpts: torch.Tensor):
         device = kpts.device
         kpts_from = kpts[:, :, self.limbs[:, 0].to(device)]  # [bs, 3, n_limbs]
         kpts_to = kpts[:, :, self.limbs[:, 1].to(device)]  # [bs, 3, n_limbs]
 
         return kpts_from - kpts_to
 
-    def forward(self, kpts_gt, kpts_pred):
+    def forward(self, kpts_gt: torch.Tensor, kpts_pred: torch.Tensor):
         bvec_gt = self.get_bone_vectors(kpts_gt)
         bvec_pred = self.get_bone_vectors(kpts_pred)
 
@@ -314,7 +325,7 @@ class BoneVectorLoss(BaseLoss):
 
 
 class KCSLoss(BaseLoss):
-    def __init__(self, body_profile="rat23", **kwargs):
+    def __init__(self, body_profile: str = "rat23", **kwargs):
         super().__init__(**kwargs)
 
         self.animal = load_body_profile(body_profile)
@@ -330,7 +341,7 @@ class KCSLoss(BaseLoss):
             C[t, col] = -1
         self.C = C
 
-    def forward(self, kpts_gt, kpts_pred):
+    def forward(self, kpts_gt: torch.Tensor, kpts_pred: torch.Tensor):
         # represent the keypoint predictions in the kinematic chain space
         device = kpts_pred.device
         C = self.C.to(device)
@@ -361,7 +372,7 @@ class JointAngleLoss(KCSLoss):
             torch.from_numpy(self.ubound).unsqueeze(0),
         )
 
-    def forward(self, kpts_gt, kpts_pred):
+    def forward(self, kpts_gt: torch.Tensor, kpts_pred: torch.Tensor):
         device = kpts_pred.device
         C = self.C.to(device)
         B = kpts_pred @ C
@@ -389,7 +400,7 @@ class BodySymmetryLoss(BaseLoss):
         self.limbL = torch.as_tensor([limbs[0] for limbs in SYMMETRY[animal]])
         self.limbR = torch.as_tensor([limbs[1] for limbs in SYMMETRY[animal]])
 
-    def forward(self, kpts_gt, kpts_pred):
+    def forward(self, kpts_gt: torch.Tensor, kpts_pred: torch.Tensor):
         len_L = (
             (torch.diff(kpts_pred[:, :, self.limbL], dim=-1) ** 2).sum(1).sqrt().mean()
         )
@@ -406,7 +417,7 @@ class SeparationLoss(BaseLoss):
 
         self.delta = delta
 
-    def forward(self, kpts_gt, kpts_pred):
+    def forward(self, kpts_gt: torch.Tensor, kpts_pred: torch.Tensor):
         num_kpts = kpts_pred.shape[-1]
 
         t1 = kpts_pred.repeat(1, 1, num_kpts)
@@ -419,7 +430,7 @@ class SeparationLoss(BaseLoss):
 
 
 class GaussianRegLoss(BaseLoss):
-    def __init__(self, method="mse", sigma=5, **kwargs):
+    def __init__(self, method="mse", sigma: float = 5, **kwargs):
         super().__init__(**kwargs)
         self.method = method
         self.sigma = sigma
@@ -437,7 +448,12 @@ class GaussianRegLoss(BaseLoss):
         plt.show(block=True)
         input("Press Enter to continue...")
 
-    def save(self, heatmaps, heatmap_target, savedir="./debug_gaussian_unsupervised"):
+    def save(
+        self,
+        heatmaps: torch.Tensor,
+        heatmap_target,  # variable type - converted from torch.Tensor to np.ndarray
+        savedir: str = "./debug_gaussian_unsupervised",
+    ):
         if not os.path.exists(savedir):
             os.makedirs(savedir)
 
@@ -458,7 +474,7 @@ class GaussianRegLoss(BaseLoss):
                 of = os.path.join(savedir, f"{i}_{j}_target.tif")
                 imageio.mimwrite(of, np.transpose(im, [2, 0, 1]))
 
-    def _generate_gaussian_target(self, centers, grids):
+    def _generate_gaussian_target(self, centers: torch.Tensor, grids: torch.Tensor):
         """
         centers: [batch_size, 3, n_joints]
         grid: [batch_size, 3, h, w, d]
@@ -479,7 +495,14 @@ class GaussianRegLoss(BaseLoss):
 
         return y_3d
 
-    def forward(self, kpts_gt, kpts_pred, heatmaps, grids):
+    # NOTE: `kpts_gp` arg is unused
+    def forward(
+        self,
+        kpts_gt: torch.Tensor,
+        kpts_pred: torch.Tensor,
+        heatmaps: torch.Tensor,
+        grids: torch.Tensor,
+    ):
         """
         kpts_pred: [bs, 3, n_joints]
         heatmaps: [bs, n_joints, h, w, d]
@@ -513,7 +536,7 @@ class PairConsistencyLoss(BaseLoss):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def forward(self, kpts_gt, kpts_pred):
+    def forward(self, kpts_gt: torch.Tensor, kpts_pred: torch.Tensor):
         """
         Assume each batch contains social volumes
         kpts_gt, kpts_pred: [B*2, 3, n_joints]
@@ -552,8 +575,9 @@ class PairRepulsionLoss(BaseLoss):
         # whether only penalize repulsion on the same set of keypoints (e.g. elbow of animal 1 and elbow of animal 2)
         self.pairwise = pairwise
 
-    def forward(self, kpts_gt, kpts_pred):
+    def forward(self, kpts_gt: torch.Tensor, kpts_pred: torch.Tensor):
         """
+        NOTE: bs = batch_size
         [bs, 3, n_joints]
         """
         bs, n_joints = kpts_pred.shape[0], kpts_pred.shape[-1]
@@ -588,7 +612,7 @@ class SilhouetteLoss(BaseLoss):
         self.delta = delta
         self.reduction_axes = reduction_axes
 
-    def forward(self, vh, heatmaps):
+    def forward(self, vh: torch.Tensor, heatmaps: torch.Tensor):
         """
         vh, heatmaps: [bs, n_joints, H, W, D]
         Heatmap is not softmaxed.
@@ -607,7 +631,7 @@ class SilhouetteLoss2D(BaseLoss):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def forward(self, sils, heatmaps):
+    def forward(self, sils: torch.Tensor, heatmaps: torch.Tensor):
         """
         vh: [bs, n_cams, H, W, D]
         heatmaps: [bs, n_joints, H, W, D]. Heatmap is not softmaxed.
@@ -626,7 +650,9 @@ class VarianceLoss(BaseLoss):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def forward(self, kpts_pred, heatmaps, grids):
+    def forward(
+        self, kpts_pred: torch.Tensor, heatmaps: torch.Tensor, grids: torch.Tensor
+    ):
         """
         heatmaps: [bs, n_joints, h, w, d]
         grid: [bs, h*w*d, 3]
@@ -645,4 +671,7 @@ class VarianceLoss(BaseLoss):
 
         loss = self.loss_weight * torch.mean(torch.sum(diff, dim=[2, 3, 4]))
 
-        return loss if not torch.isnan(loss) else loss.new_zeros((), requires_grad=True)
+        if torch.isnan(loss):
+            return loss.new_zeros((), requires_grad=True)
+        else:
+            return loss

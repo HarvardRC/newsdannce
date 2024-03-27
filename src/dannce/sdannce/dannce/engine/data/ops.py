@@ -1,14 +1,28 @@
 """Operations for dannce."""
-import numpy as np
-import cv2
 import time
-from typing import Text
+
+import cv2
+import numpy as np
 import torch
 import torch.nn.functional as F
 
 
 class Camera:
-    def __init__(self, R, t, K, tdist, rdist, name=""):
+    def __init__(
+        self,
+        R: np.ndarray,
+        t: np.ndarray,
+        K: np.ndarray,
+        tdist: np.ndarray,
+        rdist: np.ndarray,
+        name: str = "",
+    ):
+        """
+        R: rotation matrix
+        t: translation vector
+        K : camera intrinsics matrix
+        tdist: tangential distortion
+        rdist: radial distortion"""
         self.R = torch.tensor(R).float()  # rotation matrix
         assert self.R.shape == (3, 3)
 
@@ -28,6 +42,7 @@ class Camera:
         self.name = name
 
     def update_after_crop(self, bbox):
+        """bbox: bounding box"""
         left, upper, right, lower = bbox
 
         cx, cy = self.K[2, 0], self.K[2, 1]
@@ -38,7 +53,9 @@ class Camera:
         self.K[2, 0], self.K[2, 1] = new_cx, new_cy
         self.M = self.extrinsics @ self.K
 
-    def update_after_resize(self, image_shape, new_image_shape):
+    def update_after_resize(
+        self, image_shape: tuple[int, int], new_image_shape: tuple[int, int]
+    ):
         height, width = image_shape
         new_height, new_width = new_image_shape
 
@@ -67,6 +84,10 @@ class Camera:
 def camera_matrix(K: np.ndarray, R: np.ndarray, t: np.ndarray) -> np.ndarray:
     """Derive the camera matrix.
 
+    L: camera intrinsics matrix [3x3]
+    R: rotaiton matrix [3x3]
+    t: translation vector [3x1]
+
     Derive the camera matrix from the camera intrinsic matrix (K),
     and the extrinsic rotation matric (R), and extrinsic
     translation vector (t).
@@ -77,7 +98,7 @@ def camera_matrix(K: np.ndarray, R: np.ndarray, t: np.ndarray) -> np.ndarray:
     return np.concatenate((R, t), axis=0) @ K
 
 
-def world_to_cam(pts, M, device):
+def world_to_cam(pts, M: torch.Tensor, device: torch.device):
     M = M.to(device=device)
     pts1 = torch.ones(pts.shape[0], 1, dtype=torch.float32, device=device)
 
@@ -85,7 +106,9 @@ def world_to_cam(pts, M, device):
     return projPts
 
 
-def project_to2d(pts, M: np.ndarray, device: Text) -> torch.Tensor:
+def project_to2d(
+    pts, M: np.ndarray | torch.Tensor, device: torch.device
+) -> torch.Tensor:
     """Project 3d points to 2d.
 
     Projects a set of 3-D points, pts, into 2-D using the camera intrinsic
@@ -109,7 +132,7 @@ def project_to2d(pts, M: np.ndarray, device: Text) -> torch.Tensor:
 
 
 def sample_grid_nearest(
-    im: np.ndarray, projPts: np.ndarray, device: Text
+    im: np.ndarray | torch.Tensor, projPts: np.ndarray, device: torch.device
 ) -> torch.Tensor:
     """Unproject features."""
     # im_x, im_y are the x and y coordinates of each projected 3D position.
@@ -134,7 +157,7 @@ def sample_grid_nearest(
 
 
 def sample_grid_linear(
-    im: np.ndarray, projPts: np.ndarray, device: Text
+    im: np.ndarray | torch.Tensor, projPts: np.ndarray, device: torch.device
 ) -> torch.Tensor:
     """Unproject features."""
     # im_x, im_y are the x and y coordinates of each projected 3D position.
@@ -207,7 +230,10 @@ def sample_grid_linear(
 
 
 def sample_grid(
-    im: np.ndarray, projPts: np.ndarray, device: Text, method: Text = "linear"
+    im: np.ndarray | torch.Tensor,
+    projPts: np.ndarray,
+    device: torch.device,
+    method: str = "linear",
 ):
     """Transfer 3d features to 2d by projecting down to 2d grid, using torch.
 
@@ -227,12 +253,12 @@ def sample_grid(
 
 
 def unDistortPoints(
-    pts,
-    intrinsicMatrix,
-    radialDistortion,
-    tangentDistortion,
-    rotationMatrix,
-    translationVector,
+    pts: np.ndarray,
+    intrinsicMatrix: np.ndarray,
+    radialDistortion: np.ndarray,
+    tangentDistortion: np.ndarray,
+    rotationMatrix: np.ndarray,
+    translationVector: np.ndarray,
 ):
     """Remove lens distortion from the input points.
 
@@ -343,18 +369,24 @@ def ravel_multi_index(I, J, shape):
 
 
 def distortPoints(
-    points, intrinsicMatrix, radialDistortion, tangentialDistortion, device
+    points: torch.Tensor,
+    intrinsicMatrix: np.ndarray,
+    radialDistortion: np.ndarray,
+    tangentialDistortion: np.ndarray,
+    device: torch.device,
 ):
     """Distort points according to camera parameters.
     Ported from Matlab 2018a
     """
 
     # unpack the intrinsic matrix
+    # cx, cy = principal point (x, y)
+    # fx, fy = focal length (x, y)
     cx = intrinsicMatrix[2, 0]
     cy = intrinsicMatrix[2, 1]
-    fx = intrinsicMatrix[0, 0]
-    fy = intrinsicMatrix[1, 1]
-    skew = intrinsicMatrix[1, 0]
+    fx: float = intrinsicMatrix[0, 0]
+    fy: float = intrinsicMatrix[1, 1]
+    skew: float = intrinsicMatrix[1, 0]
 
     # center the points
     center = torch.as_tensor((cx, cy), dtype=torch.float32, device=device)
@@ -406,7 +438,12 @@ def distortPoints(
 
 
 def cal_reprojection_error(
-    keypoints_3d, keypoints_2d, joint_idx, cameras, camnames, prefix=None
+    keypoints_3d,
+    keypoints_2d,
+    joint_idx,
+    cameras,
+    camnames: list[str],
+    prefix: str = None,
 ):
     reprojection_errs = []
     keypoints_3d = torch.as_tensor(keypoints_3d[np.newaxis, :])
@@ -417,7 +454,7 @@ def cal_reprojection_error(
 
         camparam = cameras[camname]
         proj = project_to2d(keypoints_3d, camparam["cammat"], "cpu")[:, :2]
-        proj = proj.cpu().numpy()
+        proj: np.ndarray = proj.cpu().numpy()
         proj = unDistortPoints(
             proj,
             camparam["K"],
@@ -497,7 +534,10 @@ def spatial_softmax(feats):
     return feats.reshape(bs, channels, *feat_shape)
 
 
-def var_3d(prob_map, grid_centers, markerlocs):
+# NOTE: unused
+def var_3d(
+    prob_map: torch.Tensor, grid_centers: torch.Tensor, markerlocs: torch.Tensor
+):
     """Return the average variance across all marker probability maps.
 
     Used a loss to promote "peakiness" in the probability map output

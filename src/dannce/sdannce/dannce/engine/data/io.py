@@ -1,16 +1,16 @@
 """Data loading and saving operations."""
+
+import mat73
 import numpy as np
 import scipy.io as sio
-from typing import List, Dict, Text, Union
-import mat73
 
 
-def load_label3d_data(path: Text, key: Text):
+def load_label3d_data(path: str, key: str):
     """Load Label3D data
 
     Args:
-        path (Text): Path to Label3D file
-        key (Text): Field to access
+        path (str): Path to Label3D file
+        key (str): Field to access
 
     Returns:
         TYPE: Data from field
@@ -30,20 +30,20 @@ def load_label3d_data(path: Text, key: Text):
             for key in d.dtype.names:
                 d_[key] = d[key][0, 0]
             data.append(d_)
-    except:
+    except Exception:
         d = mat73.loadmat(path)[key]
         data = [f[0] for f in d]
     return data
 
 
-def load_camera_params(path: Text) -> List[Dict]:
+def load_camera_params(path: str) -> list[dict]:
     """Load camera parameters from Label3D file.
 
     Args:
-        path (Text): Path to Label3D file
+        path (str): Path to Label3D file
 
     Returns:
-        List[Dict]: List of camera parameter dictionaries.
+        list[dict]: List of camera parameter dictionaries.
     """
     params = load_label3d_data(path, "params")
     for p in params:
@@ -54,14 +54,14 @@ def load_camera_params(path: Text) -> List[Dict]:
     return params
 
 
-def load_sync(path: Text) -> List[Dict]:
+def load_sync(path: str) -> list[dict]:
     """Load synchronization data from Label3D file.
 
     Args:
-        path (Text): Path to Label3D file.
+        path (str): Path to Label3D file.
 
     Returns:
-        List[Dict]: List of synchronization dictionaries.
+        list[dict]: List of synchronization dictionaries.
     """
     dataset = load_label3d_data(path, "sync")
     for d in dataset:
@@ -70,14 +70,14 @@ def load_sync(path: Text) -> List[Dict]:
     return dataset
 
 
-def load_labels(path: Text) -> List[Dict]:
+def load_labels(path: str) -> list[dict]:
     """Load labelData from Label3D file.
 
     Args:
-        path (Text): Path to Label3D file.
+        path (str): Path to Label3D file.
 
     Returns:
-        List[Dict]: List of labelData dictionaries.
+        list[dict]: List of labelData dictionaries.
     """
     dataset = load_label3d_data(path, "labelData")
     for d in dataset:
@@ -86,34 +86,34 @@ def load_labels(path: Text) -> List[Dict]:
     return dataset
 
 
-def load_com(path: Text) -> Dict:
+def load_com(path: str) -> dict:
     """Load COM from .mat file.
 
     Args:
-        path (Text): Path to .mat file with "com" field
+        path (str): Path to .mat file with "com" field
 
     Returns:
-        Dict: Dictionary with com data
+        dict: Dictionary with com data
     """
     try:
         d = sio.loadmat(path)["com"]
         data = {}
         data["com3d"] = d["com3d"][0, 0]
         data["sampleID"] = d["sampleID"][0, 0].astype(int)
-    except:
+    except Exception:
         data = mat73.loadmat(path)["com"]
         data["sampleID"] = data["sampleID"].astype(int)
     return data
 
 
-def load_camnames(path: Text) -> Union[List, None]:
+def load_camnames(path: str) -> list | None:
     """Load camera names from .mat file.
 
     Args:
-        path (Text): Path to .mat file with "camnames" field
+        path (str): Path to .mat file with "camnames" field
 
     Returns:
-        Union[List, None]: List of cameranames
+        list | None: List of cameranames
     """
     try:
         label_3d_file = sio.loadmat(path)
@@ -125,7 +125,7 @@ def load_camnames(path: Text) -> Union[List, None]:
                 camnames = [name[0][0] for name in names]
         else:
             camnames = None
-    except:
+    except Exception:
         label_3d_file = mat73.loadmat(path)
         if "camnames" in label_3d_file:
             camnames = [name[0] for name in label_3d_file["camnames"]]

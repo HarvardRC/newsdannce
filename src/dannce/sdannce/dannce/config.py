@@ -1,18 +1,18 @@
-from copy import deepcopy
-import numpy as np
-import imageio
-import os, shutil
-import yaml
-from typing import Dict, Text
+import os
 import warnings
+from copy import deepcopy
+
+import imageio
+import numpy as np
+import yaml
+from loguru import logger
 
 from dannce.engine.data import io
 from dannce.param_defaults import (
+    param_defaults_com,
     param_defaults_dannce,
     param_defaults_shared,
-    param_defaults_com,
 )
-from loguru import logger
 
 _DEFAULT_VIDDIR = "videos"
 _DEFAULT_VIDDIR_SIL = "videos_sil"
@@ -21,7 +21,7 @@ _DEFAULT_COMFILENAME = "com3d.mat"
 _DEFAULT_SEG_MODEL = "../weights/maskrcnn.pth"
 
 
-def grab_predict_label3d_file(defaultdir="", index=0):
+def grab_predict_label3d_file(defaultdir: str = "", index: int = 0):
     """
     Finds the paths to the training experiment yaml files.
     """
@@ -40,7 +40,7 @@ def grab_predict_label3d_file(defaultdir="", index=0):
     return label3d_files[index]
 
 
-def infer_params(params, dannce_net, prediction):
+def infer_params(params: dict, dannce_net: bool, prediction: bool):
     """
     Some parameters that were previously specified in configs can just be inferred
         from others, thus relieving config bloat
@@ -193,13 +193,14 @@ def infer_params(params, dannce_net, prediction):
     return params
 
 
-def print_and_set(params, varname, value):
+def print_and_set(params: dict, varname: str, value):
     # Should add new values to params in place, no need to return
     params[varname] = value
     logger.warning("Setting {} to {}.".format(varname, params[varname]))
 
 
-def check_config(params, dannce_net, prediction):
+# NOTE: `prediction` arg unused
+def check_config(params: dict, dannce_net: bool, prediction):
     """
     Add parameter checks and restrictions here.
     """
@@ -214,7 +215,7 @@ def check_config(params, dannce_net, prediction):
         check_vmin_vmax(params)
 
 
-def check_vmin_vmax(params):
+def check_vmin_vmax(params: dict):
     for v in ["vmin", "vmax", "nvox"]:
         if params[v] is None:
             raise Exception(
@@ -253,7 +254,7 @@ def check_camnames(camp):
 #     shutil.copyfile(io_config, dconfig)
 
 
-def inherit_config(child, parent, keys):
+def inherit_config(child: dict, parent: dict, keys: list[str]):
     """
     If a key in keys does not exist in child, assigns the key-value in parent to
         child.
@@ -268,7 +269,9 @@ def inherit_config(child, parent, keys):
     return child
 
 
-def write_config(results_dir, configdict, message, filename="modelconfig.cfg"):
+def write_config(
+    results_dir: str, configdict: dict, message: str, filename: str = "modelconfig.cfg"
+):
     """Write a dictionary of k-v pairs to file.
 
     A much more customizable configuration writer. Accepts a dictionary of
@@ -281,7 +284,7 @@ def write_config(results_dir, configdict, message, filename="modelconfig.cfg"):
     f.write("message:" + message)
 
 
-def read_config(filename):
+def read_config(filename: str):
     """Read configuration file.
 
     :param filename: Path to configuration file.
@@ -292,7 +295,7 @@ def read_config(filename):
     return params
 
 
-def make_paths_safe(params):
+def make_paths_safe(params: dict):
     """Given a parameter dictionary, loops through the keys and replaces any \\ or / with os.sep
     to promote OS agnosticism
     """
@@ -304,7 +307,7 @@ def make_paths_safe(params):
     return params
 
 
-def make_none_safe(pdict):
+def make_none_safe(pdict: dict | None):
     if isinstance(pdict, dict):
         for key in pdict:
             pdict[key] = make_none_safe(pdict[key])
@@ -320,11 +323,11 @@ def make_none_safe(pdict):
     return pdict
 
 
-def check_unrecognized_params(params: Dict):
+def check_unrecognized_params(params: dict):
     """Check for invalid keys in the params dict against param defaults.
 
     Args:
-        params (Dict): Parameters dictionary.
+        params (dict): Parameters dictionary.
 
     Raises:
         ValueError: Error if there are unrecognized keys in the configs.
@@ -345,15 +348,15 @@ def check_unrecognized_params(params: Dict):
         raise ValueError(msg)
 
 
-def build_params(base_config: Text, dannce_net: bool):
+def build_params(base_config: str, dannce_net: bool):
     """Build parameters dictionary from base config and io.yaml
 
     Args:
-        base_config (Text): Path to base configuration .yaml.
+        base_config (str): Path to base configuration .yaml.
         dannce_net (bool): If True, use dannce net defaults.
 
     Returns:
-        Dict: Parameters dictionary.
+        dict: Parameters dictionary.
     """
     base_params = read_config(base_config)
     base_params = make_paths_safe(base_params)
@@ -364,15 +367,15 @@ def build_params(base_config: Text, dannce_net: bool):
     return params
 
 
-def adjust_loss_params(params):
+def adjust_loss_params(params: dict):
     """
     Adjust parameters dictionary according to specific losses.
 
     Args:
-        params (Dict): Parameters dictionary.
+        params (dict): Parameters dictionary.
 
     Returns:
-        Dict: Parameters dictionary.
+        dict: Parameters dictionary.
     """
 
     # turn on flags for losses that require changes in inputs
@@ -400,7 +403,7 @@ def adjust_loss_params(params):
     # option for using downsampled temporal sequences
     try:
         downsample = params["loss"]["TemporalLoss"]["downsample"]
-    except:
+    except Exception:
         downsample = 1
     params["downsample"] = downsample
 
@@ -429,7 +432,7 @@ def adjust_loss_params(params):
     return params
 
 
-def setup_train(params):
+def setup_train(params: dict):
     # turn off currently unavailable features
     params["multi_mode"] = False
     params["depth"] = False
@@ -551,7 +554,7 @@ def setup_train(params):
     return params, base_params, shared_args, shared_args_train, shared_args_valid
 
 
-def setup_predict(params):
+def setup_predict(params: dict):
     # Depth disabled until next release.
     params["depth"] = False
     # Make the prediction directory if it does not exist.
@@ -655,7 +658,7 @@ def setup_predict(params):
     return params, valid_params
 
 
-def setup_com_train(params):
+def setup_com_train(params: dict):
     # os.environ["CUDA_VISIBLE_DEVICES"] = params["gpu_id"]
 
     # MULTI_MODE is where the full set of markers is trained on, rather than
@@ -692,7 +695,7 @@ def setup_com_train(params):
     return params, train_params, valid_params
 
 
-def setup_com_predict(params):
+def setup_com_predict(params: dict):
     params["multi_mode"] = MULTI_MODE = (
         params["n_channels_out"] > 1 & params["n_instances"] == 1
     )

@@ -1,12 +1,9 @@
 """Tests for locomotion.tasks.two_tap."""
-import multi_gpu
-
-import functools
-from unittest.mock import patch
-from absl.testing import absltest
-
-import numpy as np
 import os
+from unittest.mock import patch
+
+import multi_gpu
+from absl.testing import absltest
 
 DEMO_PATH = "../demo/markerless_mouse_1"
 os.chdir(DEMO_PATH)

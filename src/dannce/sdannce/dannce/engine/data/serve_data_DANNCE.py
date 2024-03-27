@@ -1,15 +1,13 @@
 """Define routines for reading/structuring input data for DANNCE."""
+import os
+import warnings
+
 import numpy as np
-import scipy.io as sio
 import torch
 from dannce.engine.data import ops as ops
 from dannce.engine.data.io import load_camera_params, load_labels, load_sync
-import os
-from six.moves import cPickle
 from scipy.special import comb
-from scipy.ndimage import median_filter
-import warnings
-from copy import deepcopy
+from six.moves import cPickle
 
 
 def prepare_data(
@@ -19,9 +17,9 @@ def prepare_data(
     prediction=False,
     predict_labeled_only=False,
     predict_smoothed_labels=False,
-    valid=False,
-    support=False,
-    downsample=1,
+    valid: bool = False,
+    support: bool = False,
+    downsample: int = 1,
     return_cammat=False,
     return_full2d=False,
 ):
@@ -188,7 +186,9 @@ def get_seq_bounds(seqlen):
     return left_bound, right_bound
 
 
-def get_chunks(sample_inds, left_bound, right_bound, maxlen, downsample):
+def get_chunks(
+    sample_inds: list[int], left_bound, right_bound, maxlen, downsample: int
+):
     chunk_ind_list = []
     for sample_ind in sample_inds:
         # check chunk validity
@@ -210,7 +210,12 @@ def get_chunks(sample_inds, left_bound, right_bound, maxlen, downsample):
 
 
 def prepare_temporal_seqs(
-    params, samples, labels, downsample=1, valid=False, support=False
+    params: dict,
+    samples,
+    labels,
+    downsample: int = 1,
+    valid: bool = False,
+    support: bool = False,
 ):
     """
     For temporal training, prepare samples in form of consecutive chunks.
@@ -231,7 +236,7 @@ def prepare_temporal_seqs(
 
     # what if we want to use the unlabeled frames in the test set for pretraining
     sample_inds, samples_inds_unlabeled, samples_test_inds = [], [], []
-    if (support) and isinstance(params["n_support_chunks"], int):
+    if support and isinstance(params["n_support_chunks"], int):
         samples_test_inds = np.random.choice(
             samples_extra[-left_bound::temp_n],
             size=params["n_support_chunks"],
@@ -676,7 +681,7 @@ def prepend_experiment(
                     new_chunks[name] = params["experiment"][e]["chunks"][
                         prev_camnames[e][n_cam]
                     ]
-                except:
+                except Exception:
                     new_chunks[name] = params["experiment"][e]["chunks"][name]
             else:
                 new_chunks[name] = params["experiment"][e]["chunks"][name]
@@ -704,8 +709,8 @@ def identify_exp_pairs(exps):
        '.../dannce_rig/ratsInColor/2021_07_07_M1_M6/20210813_195437_Label3D_R_dannce.mat'
        each corresponding to one of the animals present in the same scene.
     args:
-        exps: Dict. Keys are integers [0, n_exps].
-              Each value is a Dict containing single experiment information
+        exps: dict. Keys are integers [0, n_exps].
+              Each value is a dict containing single experiment information
     return:
         pair_list: List of tuples of indices
         [[1, 3], [0, 5, 10], ...]
@@ -731,12 +736,12 @@ def collate_fn(items):
 
     try:
         grids = torch.cat([item[1] for item in items], dim=0)
-    except:
+    except Exception:
         grids = None
 
     try:
         auxs = torch.cat([item[3] for item in items], dim=0)
-    except:
+    except Exception:
         auxs = None
 
     return volumes, grids, targets, auxs

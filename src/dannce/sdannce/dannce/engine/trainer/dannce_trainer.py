@@ -1,13 +1,14 @@
+import csv
+import os
+
+import dannce.engine.data.processing as processing
+import imageio
 import numpy as np
 import torch
-import csv, os
-import imageio
-from tqdm import tqdm
-
-from dannce.engine.trainer.base_trainer import BaseTrainer
-from dannce.engine.trainer.train_utils import prepare_batch, LossHelper, MetricHelper
-import dannce.engine.data.processing as processing
 from dannce.engine.run.inference import form_batch
+from dannce.engine.trainer.base_trainer import BaseTrainer
+from dannce.engine.trainer.train_utils import LossHelper, MetricHelper, prepare_batch
+from tqdm import tqdm
 
 
 class DannceTrainer(BaseTrainer):
@@ -97,7 +98,7 @@ class DannceTrainer(BaseTrainer):
             # save checkpoints after each save period or at the end of training
             self._save_checkpoint(epoch)
 
-    def _forward(self, epoch, batch, train=True):
+    def _forward(self, epoch: int, batch, train=True):
         volumes, grid_centers, keypoints_3d_gt, aux = prepare_batch(batch, self.device)
 
         if self.visualize_batch:
@@ -125,7 +126,7 @@ class DannceTrainer(BaseTrainer):
 
         return keypoints_3d_gt, keypoints_3d_pred, heatmaps, grid_centers, aux
 
-    def _train_epoch(self, epoch):
+    def _train_epoch(self, epoch: int):
         self.model.train()
 
         # with torch.autograd.set_detect_anomaly(False):
@@ -170,7 +171,7 @@ class DannceTrainer(BaseTrainer):
         )
         return {**epoch_loss_dict, **epoch_metric_dict}
 
-    def _valid_epoch(self, epoch):
+    def _valid_epoch(self, epoch: int):
         self.model.eval()
 
         epoch_loss_dict = {}
@@ -224,7 +225,7 @@ class DannceTrainer(BaseTrainer):
 
         return keypoints_3d_gt, keypoints_3d_pred, heatmaps
 
-    def _update_step(self, epoch_dict, step_dict):
+    def _update_step(self, epoch_dict: dict, step_dict: dict):
         if len(epoch_dict) == 0:
             for k, v in step_dict.items():
                 epoch_dict[k] = [v]
@@ -233,7 +234,7 @@ class DannceTrainer(BaseTrainer):
                 epoch_dict[k].append(v)
         return epoch_dict
 
-    def _average(self, epoch_dict):
+    def _average(self, epoch_dict: dict):
         for k, v in epoch_dict.items():
             valid_num = sum([item > 0 for item in v])
             epoch_dict[k] = sum(v) / valid_num if valid_num > 0 else 0.0
@@ -249,14 +250,14 @@ class DannceTrainer(BaseTrainer):
         stats_writer.writerow(["Epoch", *self.train_stats_keys, *self.valid_stats_keys])
         stats_file.close()
 
-    def _add_loss_attr(self, names):
+    def _add_loss_attr(self, names: list[str]):
         self.stats_keys = names + self.stats_keys
         self.train_stats_keys = [f"train_{k}" for k in names] + self.train_stats_keys
         self.valid_stats_keys = [f"val_{k}" for k in names] + self.valid_stats_keys
 
         self._rewrite_csv()
 
-    def _del_loss_attr(self, names):
+    def _del_loss_attr(self, names: list[str]):
         for name in names:
             self.stats_keys.remove(name)
             self.train_stats_keys.remove(f"train_{name}")
@@ -264,7 +265,7 @@ class DannceTrainer(BaseTrainer):
 
         self._rewrite_csv()
 
-    def visualize(self, epoch, volumes):
+    def visualize(self, epoch: int, volumes):
         tifdir = os.path.join(
             self.params["dannce_train_dir"], "debug_volumes", f"epoch{epoch}"
         )

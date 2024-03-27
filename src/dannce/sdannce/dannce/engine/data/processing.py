@@ -1,39 +1,44 @@
 """Processing functions for dannce."""
-import numpy as np
-import imageio
-import os
-import PIL
-from six.moves import cPickle
-from typing import Dict, Text
-import pickle
-from tqdm import tqdm
-from copy import deepcopy
-import yaml
-from loguru import logger
 
+import os
+import pickle
+from copy import deepcopy
+from typing import Literal
+
+import imageio
+import matplotlib.pyplot as plt
+import numpy as np
+import PIL
 import scipy.io as sio
+import yaml
+from dannce.config import (
+    _DEFAULT_VIDDIR,
+    _DEFAULT_VIDDIR_SIL,
+    make_none_safe,
+    make_paths_safe,
+)
+from dannce.engine.data import io, serve_data_DANNCE
+from loguru import Logger, logger
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from scipy.ndimage.filters import maximum_filter
+from six.moves import cPickle
 from skimage import measure
 from skimage.color import rgb2gray
 from skimage.transform import downscale_local_mean as dsm
-
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-
-from dannce.engine.data import serve_data_DANNCE, io
-from dannce.config import make_paths_safe, make_none_safe
-from dannce.config import _DEFAULT_VIDDIR, _DEFAULT_VIDDIR_SIL
+from tqdm import tqdm
 
 """
 VIDEO
 """
 
 
-def initialize_vids(params, datadict, e, vids, pathonly=True, vidkey="viddir"):
+def initialize_vids(
+    params: dict, datadict, e: int, vids, pathonly=True, vidkey="viddir"
+):
     """
     Initializes video path dictionaries for a training session. This is different
         than a predict session because it operates over a single animal ("experiment")
-        at a time
+        at a time.
     """
     for i in range(len(params["experiment"][e]["camnames"])):
         # Rather than opening all vids, only open what is needed based on the
@@ -83,7 +88,7 @@ def initialize_vids(params, datadict, e, vids, pathonly=True, vidkey="viddir"):
     return vids
 
 
-def initialize_all_vids(params, datadict, exps, pathonly=True, vidkey="viddir"):
+def initialize_all_vids(params: dict, datadict, exps, pathonly=True, vidkey="viddir"):
     vids = {}
     for e in exps:
         vids = initialize_vids(params, datadict, e, vids, pathonly, vidkey)
@@ -139,7 +144,14 @@ LOAD EXP INFO
 """
 
 
-def load_expdict(params, e, expdict, _DEFAULT_VIDDIR, _DEFAULT_VIDDIR_SIL, logger=None):
+def load_expdict(
+    params: dict,
+    e: int,
+    expdict: dict,
+    _DEFAULT_VIDDIR,
+    _DEFAULT_VIDDIR_SIL,
+    logger: Logger = None,
+):
     """
     Load in camnames and video directories and label3d files for a single experiment
         during training.
@@ -205,7 +217,7 @@ def load_expdict(params, e, expdict, _DEFAULT_VIDDIR, _DEFAULT_VIDDIR_SIL, logge
     return exp
 
 
-def load_all_exps(params, logger):
+def load_all_exps(params: dict, logger: Logger):
     samples = []  # training sample identifiers
     datadict, datadict_3d, com3d_dict = {}, {}, {}  # labels
     cameras, camnames = {}, {}  # camera
@@ -275,7 +287,7 @@ def load_all_exps(params, logger):
     )
 
 
-def load_all_com_exps(params, exps):
+def load_all_com_exps(params: dict, exps):
     params["experiment"] = {}
     total_chunks = {}
     cameras = {}
@@ -323,14 +335,14 @@ def load_all_com_exps(params, exps):
     return samples, datadict, datadict_3d, cameras, camnames, total_chunks
 
 
-def do_COM_load(exp: Dict, expdict: Dict, e, params: Dict, training=True):
+def do_COM_load(exp: dict, expdict: dict, e, params: dict, training=True):
     """Load and process COMs.
 
     Args:
-        exp (Dict): Parameters dictionary for experiment
-        expdict (Dict): Experiment specific overrides (e.g. com_file, vid_dir)
+        exp (dict): Parameters dictionary for experiment
+        expdict (dict): Experiment specific overrides (e.g. com_file, vid_dir)
         e (TYPE): Description
-        params (Dict): Parameters dictionary.
+        params (dict): Parameters dictionary.
         training (bool, optional): If true, load COM for training frames.
 
     Returns:
@@ -489,16 +501,16 @@ def do_COM_load(exp: Dict, expdict: Dict, e, params: Dict, training=True):
     )
 
 
-def check_COM_load(c3dfile: Dict, kkey: Text, win_size: int):
+def check_COM_load(c3dfile: dict, kkey: str, win_size: int):
     """Check that the COM file is of the appropriate format, and filter it.
 
     Args:
-        c3dfile (Dict): Loaded com3d dictionary.
-        kkey (Text): Key to use for extracting com.
-        wsize (int): Window size.
+        c3dfile (dict): Loaded com3d dictionary.
+        kkey (str): Key to use for extracting com.
+        win_size (int): Window size.
 
     Returns:
-        Dict: Dictionary containing com data.
+        dict: dictionary containing com data.
     """
     c3d = c3dfile[kkey]
 
@@ -544,7 +556,7 @@ DATA SPLITS
 
 
 def make_data_splits(
-    samples, params, results_dir, num_experiments, temporal_chunks=None
+    samples, params: dict, results_dir, num_experiments, temporal_chunks=None
 ):
     """
     Make train/validation splits from list of samples, or load in a specific
@@ -557,7 +569,7 @@ def make_data_splits(
     if params.get("use_temporal", False):
         if params["load_valid"] is None:
             assert (
-                temporal_chunks != None
+                temporal_chunks is not None
             ), "If use temporal, do partitioning over chunks."
             v = params["num_validation_per_exp"]
             # fix random seeds
@@ -641,7 +653,7 @@ def make_data_splits(
             train_sampleIDs = list(np.concatenate(train_chunks))
             try:
                 valid_sampleIDs = list(np.concatenate(valid_chunks))
-            except:
+            except Exception:
                 valid_sampleIDs = []
 
             partition["train_sampleIDs"], partition["valid_sampleIDs"] = (
@@ -928,25 +940,22 @@ PRELOAD DATA INTO MEMORY
 
 
 def load_volumes_into_mem(
-    params,
-    logger,
+    params: dict,
+    logger: Logger,
     partition,
-    n_cams,
+    n_cams: int,
     generator,
-    train=True,
-    silhouette=False,
-    social=False,
+    train: bool = True,
+    silhouette: bool = False,
+    social: bool = False,
 ):
-    n_samples = (
-        len(partition["train_sampleIDs"])
-        if train
-        else len(partition["valid_sampleIDs"])
-    )
-    message = (
-        "Loading training data into memory"
-        if train
-        else "Loading validation data into memory"
-    )
+    if train:
+        n_samples = len(partition["train_sampleIDs"])
+        message = "Loading training data into memory"
+    else:
+        n_samples = len(partition["valid_sampleIDs"])
+        message = "Loading validation data into memory"
+
     gridsize = tuple([params["nvox"]] * 3)
 
     # initialize vars
@@ -956,6 +965,7 @@ def load_volumes_into_mem(
         X = np.empty(
             (n_samples, *gridsize, params["chan_num"] * n_cams), dtype="float32"
         )
+
     logger.info(message)
 
     X_grid = np.empty((n_samples, params["nvox"] ** 3, 3), dtype="float32")
@@ -1020,7 +1030,7 @@ DEBUG, VIS
 
 
 def write_debug(
-    params: Dict,
+    params: dict,
     ims_train: np.ndarray,
     ims_valid: np.ndarray,
     y_train: np.ndarray,
@@ -1030,15 +1040,15 @@ def write_debug(
     """Factoring re-used debug output code.
 
     Args:
-        params (Dict): Parameters dictionary
+        params (dict): Parameters dictionary
         ims_train (np.ndarray): Training images
         ims_valid (np.ndarray): Validation images
         y_train (np.ndarray): Training targets
-        model (Model): Model
+        [unused] model (Model): Model
         trainData (bool, optional): If True use training data for debug. Defaults to True.
     """
 
-    def plot_out(imo, lo, imn):
+    def plot_out(imo, lo, imn: str):
         plot_markers_2d(norm_im(imo), lo, newfig=False)
         plt.gca().xaxis.set_major_locator(plt.NullLocator())
         plt.gca().yaxis.set_major_locator(plt.NullLocator())
@@ -1083,7 +1093,12 @@ def write_debug(
 
 
 def save_volumes_into_npy(
-    params, npy_generator, missing_npydir, samples, logger, silhouette=False
+    params: dict,
+    npy_generator,
+    missing_npydir,
+    samples,
+    logger: Logger,
+    silhouette: bool = False,
 ):
     logger.info("Generating missing npy files ...")
     pbar = tqdm(npy_generator.list_IDs)
@@ -1140,7 +1155,9 @@ def save_volumes_into_npy(
     logger.info("{} samples ready for npy training.".format(len(samples)))
 
 
-def save_volumes_into_tif(params, tifdir, X, sampleIDs, n_cams, logger):
+def save_volumes_into_tif(
+    params: dict, tifdir, X, sampleIDs, n_cams: int, logger: Logger
+):
     if not os.path.exists(tifdir):
         os.makedirs(tifdir)
     logger.info("Dump training volumes to {}".format(tifdir))
@@ -1162,7 +1179,7 @@ def save_volumes_into_tif(params, tifdir, X, sampleIDs, n_cams, logger):
             imageio.mimwrite(of, np.transpose(im, [2, 0, 1, 3]))
 
 
-def save_visual_hull(aux, sampleIDs, savedir="./visual_hull"):
+def save_visual_hull(aux, sampleIDs, savedir: str = "./visual_hull"):
     if not os.path.exists(savedir):
         os.makedirs(savedir)
 
@@ -1193,7 +1210,7 @@ def save_visual_hull(aux, sampleIDs, savedir="./visual_hull"):
         plt.close(fig)
 
 
-def save_train_volumes(params, tifdir, generator, n_cams):
+def save_train_volumes(params: dict, tifdir, generator, n_cams: int):
     if not os.path.exists(tifdir):
         os.makedirs(tifdir)
     for i in range(len(generator)):
@@ -1229,7 +1246,7 @@ def save_train_images(savedir, X, y):
         plt.close(fig)
 
 
-def write_npy(uri, gen):
+def write_npy(uri: str, gen):
     """
     Creates a new image folder and grid folder at the uri and uses
     the generator to generate samples and save them as npy files
@@ -1268,9 +1285,9 @@ def write_npy(uri, gen):
             np.save(os.path.join(griddir, fname + ".npy"), bch[0][1][j])
 
 
-def write_sil_npy(uri, gen):
+def write_sil_npy(uri: str, gen):
     """
-    Creates a new image folder and grid folder at the uri and uses
+    [Silhouette] Creates a new image folder and grid folder at the uri and uses
     the generator to generate samples and save them as npy files
     """
     imdir = os.path.join(uri, "visual_hulls")
@@ -1308,7 +1325,7 @@ SAVE TRAIN
 """
 
 
-def rename_weights(traindir, kkey, mon):
+def rename_weights(traindir: str, kkey: str, mon):
     """
     At the end of DANNCe or COM training, rename the best weights file with the epoch #
         and value of the monitored quantity
@@ -1328,7 +1345,7 @@ def rename_weights(traindir, kkey, mon):
     os.rename(os.path.join(traindir, kkey), os.path.join(traindir, newname))
 
 
-def save_params_pickle(params):
+def save_params_pickle(params: dict):
     """
     save copy of params as pickle for reproducibility.
     """
@@ -1338,11 +1355,11 @@ def save_params_pickle(params):
     return True
 
 
-def save_params_yaml(params):
+def save_params_yaml(params: dict):
     """Save copy of params as yaml.
 
     Args:
-        params (Dict): experiment parameters
+        params (dict): experiment parameters
     """
     # exclude keys for intermediate computations
     _exclude = ["experiment", "chunks"]
@@ -1351,7 +1368,7 @@ def save_params_yaml(params):
     yaml.dump(params_to_save, handle, default_flow_style=False, sort_keys=False)
 
 
-def prepare_save_metadata(params):
+def prepare_save_metadata(params: dict):
     """
     To save metadata, i.e. the prediction param values associated with COM or DANNCE
         output, we need to convert loss and metrics and net into names, and remove
@@ -1366,14 +1383,14 @@ def prepare_save_metadata(params):
     if "loss" in meta:
         try:
             meta["loss"] = [loss.__name__ for loss in meta["loss"]]
-        except:
+        except Exception:
             meta["loss"] = list(meta["loss"].keys())
 
     meta = make_none_safe(meta.copy())
     return meta
 
 
-def save_COM_dannce_mat(params, com3d, sampleID):
+def save_COM_dannce_mat(params: dict, com3d, sampleID):
     """
     Instead of saving 3D COM to com3d.mat, save it into the dannce.mat file, which
     streamlines subsequent dannce access.
@@ -1395,7 +1412,7 @@ def save_COM_dannce_mat(params, com3d, sampleID):
 
 
 def save_COM_checkpoint(
-    save_data, results_dir, datadict_, cameras, params, file_name="com3d"
+    save_data, results_dir, datadict_, cameras, params: dict, file_name: str = "com3d"
 ):
     """
     Saves COM pickle and matfiles
@@ -1476,7 +1493,7 @@ def save_COM_checkpoint(
             )
 
 
-def write_com_file(params, samples_, com3d_dict_):
+def write_com_file(params: dict, samples_, com3d_dict_):
     cfilename = os.path.join(params["dannce_predict_dir"], "com3d_used.mat")
     logger.success("Saving 3D COM to {}".format(cfilename))
     c3d_shape = com3d_dict_[samples_[0]].shape
@@ -1488,13 +1505,13 @@ def write_com_file(params, samples_, com3d_dict_):
 
 def savedata_expval(
     fname,
-    params,
-    write=True,
+    params: dict,
+    write: bool = True,
     data=None,
-    num_instances=1,
-    num_markers=20,
-    tcoord=True,
-    pmax=False,
+    num_instances: int = 1,
+    num_markers: int = 20,
+    tcoord: bool = True,
+    pmax: bool = False,
 ):
     """Save the expected values."""
     if data is None:
@@ -1537,15 +1554,15 @@ def savedata_expval(
 
 def savedata_tomat(
     fname,
-    params,
+    params: dict,
     vmin,
     vmax,
     nvox,
-    write=True,
+    write: bool = True,
     data=None,
-    num_markers=20,
-    tcoord=True,
-    tcoord_scale=True,
+    num_markers: int = 20,
+    tcoord: bool = True,
+    tcoord_scale: bool = True,
     addCOM=None,
 ):
     """Save pickled data to a mat file.
@@ -1611,7 +1628,7 @@ IMAGE OPS (should be moved to ops)
 """
 
 
-def __initAvgMax(t, g, o, params):
+def __initAvgMax(t, g: np.npdarray, o: np.ndarray, params: dict):
     """
     Helper function for creating 3D targets
     """
@@ -1635,7 +1652,7 @@ def __initAvgMax(t, g, o, params):
     return o
 
 
-def batch_rgb2gray(imstack):
+def batch_rgb2gray(imstack: np.ndarray):
     """Convert to gray image-wise.
 
     batch dimension is first.
@@ -1646,7 +1663,7 @@ def batch_rgb2gray(imstack):
     return grayim
 
 
-def return_tile(imstack, fac=2):
+def return_tile(imstack: np.ndarray, fac: int = 2):
     """Crop a larger image into smaller tiles without any overlap."""
     height = imstack.shape[1] // fac
     width = imstack.shape[2] // fac
@@ -1662,7 +1679,7 @@ def return_tile(imstack, fac=2):
     return out
 
 
-def tile2im(imstack, fac=2):
+def tile2im(imstack: np.ndarray, fac: int = 2):
     """Reconstruct lagrer image from tiled data."""
     height = imstack.shape[1]
     width = imstack.shape[2]
@@ -1679,7 +1696,7 @@ def tile2im(imstack, fac=2):
     return out
 
 
-def downsample_batch(imstack, fac=2, method="PIL"):
+def downsample_batch(imstack: np.ndarray, fac: int = 2, method: str = "PIL"):
     """Downsample each image in a batch."""
 
     if method == "PIL":
@@ -1732,7 +1749,7 @@ def downsample_batch(imstack, fac=2, method="PIL"):
     return out
 
 
-def batch_maximum(imstack):
+def batch_maximum(imstack: np.ndarray):
     """Find the location of the maximum for each image in a batch."""
     maxpos = np.zeros((imstack.shape[0], 2))
     for i in range(imstack.shape[0]):
@@ -1749,7 +1766,7 @@ def batch_maximum(imstack):
     return maxpos
 
 
-def cropcom(im, com, size=512):
+def cropcom(im: np.ndarray, com: np.ndarray, size: int = 512):
     """Crops single input image around the coordinates com."""
     minlim_r = int(np.round(com[1])) - size // 2
     maxlim_r = int(np.round(com[1])) + size // 2
@@ -1784,7 +1801,7 @@ def cropcom(im, com, size=512):
     return out, diff
 
 
-def plot_markers_2d(im, markers, newfig=True):
+def plot_markers_2d(im: np.ndarray, markers: np.ndarray, newfig: bool = True):
     """Plot markers in two dimensions."""
 
     if newfig:
@@ -1798,19 +1815,19 @@ def plot_markers_2d(im, markers, newfig=True):
         plt.plot(ind[1], ind[0], ".r")
 
 
-def preprocess_3d(im_stack):
+def preprocess_3d(im_stack: np.ndarray):
     """Easy inception-v3 style image normalization across a set of images."""
     im_stack /= 127.5
     im_stack -= 1.0
     return im_stack
 
 
-def norm_im(im):
+def norm_im(im: np.ndarray):
     """Normalize image."""
     return (im - np.min(im)) / (np.max(im) - np.min(im))
 
 
-def plot_markers_3d_torch(stack, nonan=True):
+def plot_markers_3d_torch(stack: np.ndarray, nonan: bool = True):
     """Return the 3d coordinates for each of the peaks in probability maps."""
     import torch
 
@@ -1833,7 +1850,7 @@ def plot_markers_3d_torch(stack, nonan=True):
     return x, y, z
 
 
-def unravel_index(index, shape):
+def unravel_index(index: int, shape: tuple):
     out = []
     for dim in reversed(shape):
         out.append(index % dim)
@@ -1841,7 +1858,7 @@ def unravel_index(index, shape):
     return tuple(reversed(out))
 
 
-def grid_channelwise_max(grid_):
+def grid_channelwise_max(grid_: np.ndarray):
     """Return the max value in each channel over a 3D volume.
 
     input--
@@ -1853,7 +1870,7 @@ def grid_channelwise_max(grid_):
     return np.max(np.max(np.max(grid_, axis=0), axis=0), axis=0)
 
 
-def moment_3d(im, mesh, thresh=0):
+def moment_3d(im: np.ndarray, mesh: np.ndarray, thresh: int = 0):
     """Get the normalized spatial moments of the 3d image stack.
 
     inputs--
@@ -1876,12 +1893,14 @@ def moment_3d(im, mesh, thresh=0):
     return x, y, z
 
 
-def get_peak_inds(map_):
+def get_peak_inds(map_: np.ndarray):
     """Return the indices of the peak value of an n-d map."""
     return np.unravel_index(np.argmax(map_, axis=None), map_.shape)
 
 
-def get_peak_inds_multi_instance(im, n_instances, window_size=10):
+def get_peak_inds_multi_instance(
+    im: np.ndarray, n_instances: int, window_size: int = 10
+):
     """Return top n_instances local peaks through non-max suppression."""
     bw = im == maximum_filter(im, footprint=np.ones((window_size, window_size)))
     inds = np.argwhere(bw)
@@ -1890,7 +1909,7 @@ def get_peak_inds_multi_instance(im, n_instances, window_size=10):
     return inds[idx[:n_instances], :]
 
 
-def get_marker_peaks_2d(stack):
+def get_marker_peaks_2d(stack: np.ndarray):
     """Return the concatenated coordinates of all peaks for each map/marker."""
     x = []
     y = []
@@ -1901,7 +1920,7 @@ def get_marker_peaks_2d(stack):
     return x, y
 
 
-def spatial_expval(map_):
+def spatial_expval(map_: np.ndarray):
     """Calculate the spatial expected value of the input.
 
     Note there is probably underflow here that I am ignoring, because this
@@ -1913,7 +1932,7 @@ def spatial_expval(map_):
     return np.sum(map_ * x), np.sum(map_ * y)
 
 
-def spatial_var(map_):
+def spatial_var(map_: np.ndarray):
     """Calculate the spatial variance of the input."""
     expx, expy = spatial_expval(map_)
     map_ = map_ / np.sum(map_)
@@ -1922,7 +1941,7 @@ def spatial_var(map_):
     return np.sum(map_ * ((x - expx) ** 2 + (y - expy) ** 2))
 
 
-def spatial_entropy(map_):
+def spatial_entropy(map_: np.ndarray):
     """Calculate the spatial entropy of the input."""
     map_ = map_ / np.sum(map_)
     return -1 * np.sum(map_ * np.log(map_))
@@ -1933,7 +1952,8 @@ SEGMENTATION
 """
 
 
-def mask_to_bbox(mask):
+def mask_to_bbox(mask: np.ndarray):
+    """Mask to bounding boxes"""
     bounding_boxes = np.zeros((4,))
     y, x, _ = np.where(mask != 0)
     try:
@@ -1941,13 +1961,13 @@ def mask_to_bbox(mask):
         bounding_boxes[1] = np.min(y)
         bounding_boxes[2] = np.max(x)
         bounding_boxes[3] = np.max(y)
-    except:
+    except Exception:
         return bounding_boxes
     return bounding_boxes
 
 
 def mask_iou(mask1, mask2):
-    """compute iou between two binary masks"""
+    """compute intersection over union (IOU) between two binary masks"""
     intersection = np.sum(mask1 * mask2)
     if intersection == 0:
         return 0.0
@@ -1960,6 +1980,7 @@ def mask_intersection(mask1, mask2):
 
 
 def bbox_iou(bb1, bb2):
+    "Bounding box (bbox) intersection over union (IOU)"
     x_left = max(bb1[0], bb2[0])
     y_top = max(bb1[1], bb2[1])
     x_right = min(bb1[2], bb2[2])
@@ -1991,8 +2012,9 @@ def compute_support(coms, mask, support_region_size=10):
     return np.array(counts)
 
 
-def extract_3d_sil(vol):
+def extract_3d_sil(vol: np.ndarray):
     """
+    Extract 3d silhouette
     vol: [n_samples, H, W, D, C*n_cam]
     """
     vol[vol > 0] = 1
@@ -2012,7 +2034,8 @@ def extract_3d_sil(vol):
     return vol
 
 
-def extract_3d_sil_soft(vol, keeprange=3):
+def extract_3d_sil_soft(vol: np.ndarray, keeprange=3):
+    """Extract 3d silohuette soft"""
     vol[vol > 0] = 1
     vol = np.sum(vol, axis=-1, keepdims=True)
 
@@ -2029,8 +2052,9 @@ def extract_3d_sil_soft(vol, keeprange=3):
     return vol
 
 
-def compute_bbox_from_3dmask(mask3d, grids):
+def compute_bbox_from_3dmask(mask3d: np.ndarray, grids: np.ndarray):
     """
+    Compute bounding box from 3D Mask
     mask3d: [N, H, W, D, 1]
     grid: [N, H*W*D, 3]
     """
@@ -2065,7 +2089,7 @@ def compute_bbox_from_3dmask(mask3d, grids):
     return new_com3ds, new_dims
 
 
-def create_new_labels(partition, old_com3ds, new_com3ds, new_dims, params):
+def create_new_labels(partition, old_com3ds, new_com3ds, new_dims, params: dict):
     com3d_dict, dim_dict = {}, {}
     all_sampleIDs = [*partition["train_sampleIDs"], *partition["valid_sampleIDs"]]
 
@@ -2081,7 +2105,7 @@ def create_new_labels(partition, old_com3ds, new_com3ds, new_dims, params):
     return com3d_dict, dim_dict
 
 
-def filter_com3ds(pairs, com3d_dict, datadict_3d, threshold=120):
+def filter_com3ds(pairs, com3d_dict, datadict_3d, threshold: float = 120):
     train_sampleIDs, valid_sampleIDs = [], []
     new_com3d_dict, new_datadict_3d = {}, {}
 
@@ -2117,7 +2141,7 @@ def filter_com3ds(pairs, com3d_dict, datadict_3d, threshold=120):
     return partition, new_com3d_dict, new_datadict_3d, new_samples
 
 
-def mask_coords_outside_volume(vmin, vmax, pose3d, anchor, n_chan):
+def mask_coords_outside_volume(vmin, vmax, pose3d, anchor, n_chan: int):
     # compute relative distance to COM
     anchor_dist = pose3d - anchor
     x_in_vol = (anchor_dist[0] >= vmin) & (anchor_dist[0] <= vmax)
@@ -2141,7 +2165,7 @@ def mask_coords_outside_volume(vmin, vmax, pose3d, anchor, n_chan):
     return new_pose3d
 
 
-def prepare_joint_volumes(params, pairs, com3d_dict, datadict_3d):
+def prepare_joint_volumes(params: dict, pairs, com3d_dict: dict, datadict_3d: dict):
     vmin, vmax = params["vmin"], params["vmax"]
     for k, v in pairs.items():
         for vol1, vol2 in v:
@@ -2167,12 +2191,15 @@ def prepare_joint_volumes(params, pairs, com3d_dict, datadict_3d):
     return datadict_3d
 
 
-def _preprocess_numpy_input(x, data_format="channels_last", mode="torch"):
+def _preprocess_numpy_input(
+    x, data_format="channels_last", mode=Literal["caffe", "tf", "torch"]
+):
     """Preprocesses a Numpy array encoding a batch of images.
     Args:
         x: Input array, 3D or 4D.
         data_format: Data format of the image array.
         mode: One of "caffe", "tf" or "torch".
+
         - caffe: will convert the images from RGB to BGR,
             then will zero-center each color channel with
             respect to the ImageNet dataset,
@@ -2182,6 +2209,7 @@ def _preprocess_numpy_input(x, data_format="channels_last", mode="torch"):
         - torch: will scale pixels between 0 and 1 and then
             will normalize each channel with respect to the
             ImageNet dataset.
+
     Returns:
         Preprocessed Numpy array.
     """
@@ -2197,6 +2225,7 @@ def _preprocess_numpy_input(x, data_format="channels_last", mode="torch"):
         mean = [0.485, 0.456, 0.406]
         std = [0.229, 0.224, 0.225]
     else:
+        # assume mode == "caffe"?
         if data_format == "channels_first":
             # 'RGB'->'BGR'
             if x.ndim == 3:

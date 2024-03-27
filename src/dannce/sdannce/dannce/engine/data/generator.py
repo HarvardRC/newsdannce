@@ -1,24 +1,21 @@
 """Generator module for dannce training.
 """
 import os
-from copy import deepcopy
-import numpy as np
-
-from dannce.engine.data import processing, ops
-from dannce.engine.data.video import LoadVideoFrame
-from dannce.engine.data.ops import Camera
-import warnings
 import time
+import warnings
+from copy import deepcopy
 from multiprocessing.dummy import Pool as ThreadPool
-from typing import List, Dict, Tuple, Text
+
 import cv2
 import imageio
-
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
 import torchvision
-
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+from dannce.engine.data import ops, processing
+from dannce.engine.data.ops import Camera
+from dannce.engine.data.video import LoadVideoFrame
 
 _DEFAULT_CAM_NAMES = [
     "CameraR",
@@ -57,44 +54,44 @@ class DataGenerator(torch.utils.data.Dataset):
     """
     Attributes:
         batch_size (int): Batch size to generate
-        camnames (List): List of camera names.
-        clusterIDs (List): List of sampleIDs
-        crop_height (Tuple): (first, last) pixels in image height
+        camnames (list): list of camera names.
+        clusterIDs (list): list of sampleIDs
+        crop_height (tuple): (first, last) pixels in image height
         crop_width (tuple): (first, last) pixels in image width
-        currvideo (Dict): Contains open video objects
-        currvideo_name (Dict): Contains open video object names
-        dim_in (Tuple): Input dimension
-        dim_out (Tuple): Output dimension
-        extension (Text): Video extension
+        currvideo (dict): Contains open video objects
+        currvideo_name (dict): Contains open video object names
+        dim_in (tuple): Input dimension
+        dim_out (tuple): Output dimension
+        extension (str): Video extension
         indexes (np.ndarray): sample indices used for batch generation
-        labels (Dict): Label dictionary
-        list_IDs (List): List of sampleIDs
+        labels (dict): Label dictionary
+        list_IDs (list): list of sampleIDs
         mono (bool): If True, use grayscale image.
         n_channels_in (int): Number of input channels
         n_channels_out (int): Number of output channels
         out_scale (int): Scale of the output gaussians.
         samples_per_cluster (int): Samples per cluster
         shuffle (bool): If True, shuffle the samples.
-        vidreaders (Dict): Dict containing video readers.
+        vidreaders (dict): dict containing video readers.
         predict_flag (bool): If True, use imageio for reading videos, rather than OpenCV
     """
 
     def __init__(
         self,
-        list_IDs: List,
-        labels: Dict,
-        clusterIDs: List,
+        list_IDs: list,
+        labels: dict,
+        clusterIDs: list,
         batch_size: int = 32,
-        dim_in: Tuple = (32, 32, 32),
+        dim_in: tuple = (32, 32, 32),
         n_channels_in: int = 1,
         n_channels_out: int = 1,
         out_scale: float = 5,
         shuffle: bool = True,
-        camnames: List = [],
-        crop_width: Tuple = (0, 1024),
-        crop_height: Tuple = (20, 1300),
+        camnames: list = [],
+        crop_width: tuple = (0, 1024),
+        crop_height: tuple = (20, 1300),
         samples_per_cluster: int = 0,
-        vidreaders: Dict = None,
+        vidreaders: dict = None,
         chunks: int = 3500,
         mono: bool = False,
         mirror: bool = False,
@@ -147,34 +144,34 @@ class DataGenerator_3Dconv(DataGenerator):
 
     def __init__(
         self,
-        list_IDs: List,
-        labels: Dict,
-        labels_3d: Dict,
-        camera_params: Dict,
-        clusterIDs: List,
-        com3d: Dict,
-        tifdirs: List,
+        list_IDs: list,
+        labels: dict,
+        labels_3d: dict,
+        camera_params: dict,
+        clusterIDs: list,
+        com3d: dict,
+        tifdirs: list,
         batch_size: int = 32,
-        dim_in: Tuple = (32, 32, 32),
+        dim_in: tuple = (32, 32, 32),
         n_channels_in: int = 1,
         n_channels_out: int = 1,
         out_scale: int = 5,
         shuffle: bool = True,
-        camnames: List = [],
-        crop_width: Tuple = (0, 1024),
-        crop_height: Tuple = (20, 1300),
+        camnames: list = [],
+        crop_width: tuple = (0, 1024),
+        crop_height: tuple = (20, 1300),
         vmin: int = -100,
         vmax: int = 100,
         nvox: int = 32,
-        gpu_id: Text = "0",
-        interp: Text = "linear",
+        gpu_id: str = "0",
+        interp: str = "linear",
         depth: bool = False,
         channel_combo=None,
-        mode: Text = "3dprob",
+        mode: str = "3dprob",
         samples_per_cluster: int = 0,
-        immode: Text = "tif",
+        immode: str = "tif",
         rotation: bool = False,
-        vidreaders: Dict = None,
+        vidreaders: dict = None,
         distort: bool = True,
         expval: bool = False,
         multicam: bool = True,
@@ -191,34 +188,34 @@ class DataGenerator_3Dconv(DataGenerator):
         """Initialize data generator.
 
         Args:
-            list_IDs (List): List of sample Ids
-            labels (Dict): Dictionary of labels
-            labels_3d (Dict): Dictionary of 3d labels.
-            camera_params (Dict): Camera parameters dictionary.
-            clusterIDs (List): List of sample Ids
-            com3d (Dict): Dictionary of com3d data.
-            tifdirs (List): Directories of .tifs
+            list_IDs (list): list of sample Ids
+            labels (dict): dictionary of labels
+            labels_3d (dict): dictionary of 3d labels.
+            camera_params (dict): Camera parameters dictionary.
+            clusterIDs (list): list of sample Ids
+            com3d (dict): dictionary of com3d data.
+            tifdirs (list): Directories of .tifs
             batch_size (int, optional): Batch size to generate
-            dim_in (Tuple, optional): Input dimension
+            dim_in (tuple, optional): Input dimension
             n_channels_in (int, optional): Number of input channels
             n_channels_out (int, optional): Number of output channels
             out_scale (int, optional): Scale of the output gaussians.
             shuffle (bool, optional): If True, shuffle the samples.
-            camnames (List, optional): List of camera names.
-            crop_width (Tuple, optional): (first, last) pixels in image width
-            crop_height (Tuple, optional): (first, last) pixels in image height
+            camnames (list, optional): list of camera names.
+            crop_width (tuple, optional): (first, last) pixels in image width
+            crop_height (tuple, optional): (first, last) pixels in image height
             vmin (int, optional): Minimum box dim (relative to the COM)
             vmax (int, optional): Maximum box dim (relative to the COM)
             nvox (int, optional): Number of voxels per box side
-            gpu_id (Text, optional): Identity of GPU to use.
-            interp (Text, optional): Interpolation method.
+            gpu_id (str, optional): Identity of GPU to use.
+            interp (str, optional): Interpolation method.
             depth (bool): If True, appends voxel depth to sampled image features [DEPRECATED]
-            channel_combo (Text): Method for shuffling camera input order
-            mode (Text): Toggles output label format to match MAX vs. AVG network requirements.
+            channel_combo (str): Method for shuffling camera input order
+            mode (str): Toggles output label format to match MAX vs. AVG network requirements.
             samples_per_cluster (int, optional): Samples per cluster
-            immode (Text): Toggles using 'video' or 'tif' files as image input [DEPRECATED]
+            immode (str): Toggles using 'video' or 'tif' files as image input [DEPRECATED]
             rotation (bool, optional): If True, use simple rotation augmentation.
-            vidreaders (Dict, optional): Dict containing video readers.
+            vidreaders (dict, optional): dict containing video readers.
             distort (bool, optional): If true, apply camera undistortion.
             expval (bool, optional): If True, process an expected value network (AVG)
             multicam (bool): If True, formats data to work with multiple cameras as input.
@@ -303,7 +300,7 @@ class DataGenerator_3Dconv(DataGenerator):
             index (int): Frame index
 
         Returns:
-            Tuple[np.ndarray, np.ndarray]: One batch of data X
+            tuple[np.ndarray, np.ndarray]: One batch of data X
                 (np.ndarray): Input volume y
                 (np.ndarray): Target
         """
@@ -339,8 +336,8 @@ class DataGenerator_3Dconv(DataGenerator):
 
         Args:
             X_grid (np.ndarray): 3-D array containing center coordinates of each voxel.
-            camname (Text): camera name
-            ID (Text): string denoting a sample ID
+            camname (str): camera name
+            ID (str): string denoting a sample ID
             experimentID (int): identifier for a video recording session.
 
         Returns:
@@ -634,10 +631,10 @@ class DataGenerator_3Dconv(DataGenerator):
     def __data_generation(self, list_IDs_temp):
         """
         Args:
-            list_IDs_temp (List): List of experiment Ids
+            list_IDs_temp (list): list of experiment Ids
 
         Returns:
-            Tuple: Batch_size training samples
+            tuple: Batch_size training samples
                 X: Input volumes
                 y_3d: Targets
         Raises:
@@ -721,13 +718,13 @@ class DataGenerator_3Dconv(DataGenerator):
 class DataGenerator_3Dconv_social(DataGenerator_3Dconv):
     def __init__(
         self,
-        list_IDs: List,
-        labels: Dict,
-        labels_3d: Dict,
-        camera_params: Dict,
-        clusterIDs: List,
-        com3d: Dict,
-        tifdirs: List,
+        list_IDs: list,
+        labels: dict,
+        labels_3d: dict,
+        camera_params: dict,
+        clusterIDs: list,
+        com3d: dict,
+        tifdirs: list,
         n_instances=2,
         occlusion=False,
         **kwargs,
@@ -766,7 +763,7 @@ class DataGenerator_3Dconv_social(DataGenerator_3Dconv):
             index (int): Frame index
 
         Returns:
-            Tuple[np.ndarray, np.ndarray]: One batch of data X
+            tuple[np.ndarray, np.ndarray]: One batch of data X
                 (np.ndarray): Input volume y
                 (np.ndarray): Target
         """
@@ -805,8 +802,8 @@ class DataGenerator_3Dconv_social(DataGenerator_3Dconv):
 
         Args:
             X_grid (np.ndarray): 3-D array containing center coordinates of each voxel.
-            camname (Text): camera name
-            ID (Text): string denoting a sample ID
+            camname (str): camera name
+            ID (str): string denoting a sample ID
             experimentID (int): identifier for a video recording session.
 
         Returns:
@@ -1161,10 +1158,10 @@ class DataGenerator_3Dconv_social(DataGenerator_3Dconv):
         X : (n_samples, *dim, n_channels)
 
         Args:
-            list_IDs_temp (List): List of experiment Ids
+            list_IDs_temp (list): list of experiment Ids
 
         Returns:
-            Tuple: Batch_size training samples
+            tuple: Batch_size training samples
                 X: Input volumes
                 y_3d: Targets
                 rotangle: Rotation angle
@@ -1441,7 +1438,7 @@ class MultiviewImageGenerator(DataGenerator_3Dconv):
             index (int): Frame index
 
         Returns:
-            Tuple[np.ndarray, np.ndarray]: One batch of data X
+            tuple[np.ndarray, np.ndarray]: One batch of data X
                 (np.ndarray): Input volume y
                 (np.ndarray): Target
         """
@@ -1508,7 +1505,7 @@ class MultiviewImageGenerator(DataGenerator_3Dconv):
         X = torch.stack(X, dim=0)
         try:
             y_2d = torch.stack(y_2d, dim=0)  # [BS, 6, 2, n_joints]
-        except:
+        except Exception:
             y_2d = torch.zeros(X.shape[0], 6, 2, 1)
             print("Found {}".format(list_IDs_temp))
 

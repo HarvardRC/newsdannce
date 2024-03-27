@@ -1,12 +1,11 @@
-from logging import RootLogger
 import os
-import scipy.io as sio
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
+
+# NOTE: unused
 _BODY_PROFILES = [
     file.split(".mat")[0] for file in os.listdir(ROOT) if file.endswith(".mat")
 ]
-
 
 _BODY_CONNECTIVITY = {
     "rat23": [
@@ -242,7 +241,7 @@ SYMMETRY = {
 }
 
 
-def load_body_profile(name):
+def load_body_profile(name: str):
     assert (name in _BODY_CONNECTIVITY) and (
         name in _JOINT_NAMES
     ), f"{name} not a valid skeleton profile"

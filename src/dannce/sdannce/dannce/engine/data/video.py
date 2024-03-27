@@ -1,13 +1,12 @@
 """ Video reading and writing interfaces for different formats. """
-from copy import Error
-import os
-import cv2
-import numpy as np
-import attr
 import multiprocessing
-import imageio
+import os
 import time
-from typing import List, Dict, Tuple, Text
+
+import attr
+import cv2
+import imageio
+import numpy as np
 from loguru import logger
 
 
@@ -187,7 +186,7 @@ class LoadVideoFrame:
                 self.currvideo_name[cc] = None
 
     def load_vid_frame(
-        self, ind: int, camname: Text, extension: Text = ".mp4"
+        self, ind: int, camname: str, extension: str = ".mp4"
     ) -> np.ndarray:
         """Load video frame from a single camera.
 
@@ -195,8 +194,8 @@ class LoadVideoFrame:
 
         Args:
             ind (int): Frame index
-            camname (Text): Camera index
-            extension (Text, optional): Video extension
+            camname (str): Camera index
+            extension (str, optional): Video extension
 
         Returns:
             np.ndarray: Video frame as w x h x c numpy ndarray
