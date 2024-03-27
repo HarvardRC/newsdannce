@@ -14,7 +14,7 @@ BASIC GCN CONV LAYERS
 
 class SemGraphConv(nn.Module):
     def __init__(self, in_features, out_features, adj, bias=True):
-        super(SemGraphConv, self).__init__()
+        super().__init__()
         self.in_features = in_features
         self.out_features = out_features
 
@@ -69,7 +69,7 @@ class ModulatedGraphConv(SemGraphConv):
     """
 
     def __init__(self, in_features, out_features, adj, bias=True):
-        super(ModulatedGraphConv, self).__init__(in_features, out_features, adj, bias)
+        super().__init__(in_features, out_features, adj, bias)
 
         # weight modulation matrix
         self.M = nn.Parameter(
@@ -113,7 +113,7 @@ class _GraphConv(nn.Module):
         base_block="sem",
         norm_type="batch",
     ):
-        super(_GraphConv, self).__init__()
+        super().__init__()
 
         if base_block == "sem":
             convblock = SemGraphConv
@@ -148,7 +148,7 @@ class _GraphConv(nn.Module):
 
 class _GraphConv_no_bn(nn.Module):
     def __init__(self, adj, input_dim, output_dim, p_dropout=None):
-        super(_GraphConv_no_bn, self).__init__()
+        super().__init__()
 
         self.gconv = SemGraphConv(input_dim, output_dim, adj)
 
@@ -168,7 +168,7 @@ class _ResGraphConv(nn.Module):
         base_block="sem",
         norm_type="batch",
     ):
-        super(_ResGraphConv, self).__init__()
+        super().__init__()
 
         self.gconv1 = _GraphConv(
             adj,
@@ -199,7 +199,7 @@ class Node_Attention(nn.Module):
         """
         likely SElayer
         """
-        super(Node_Attention, self).__init__()
+        super().__init__()
         self.avg = nn.AdaptiveAvgPool1d(1)
         self.squeeze = nn.Sequential(
             nn.Linear(channels, channels // 4),
@@ -219,7 +219,7 @@ class Node_Attention(nn.Module):
 
 class _ResGraphConv_Attention(nn.Module):
     def __init__(self, adj, input_dim, output_dim, hid_dim, p_dropout):
-        super(_ResGraphConv_Attention, self).__init__()
+        super().__init__()
 
         self.gconv1 = _GraphConv_no_bn(adj, input_dim, hid_dim // 2, p_dropout)
 
@@ -306,7 +306,7 @@ class MLP(nn.Module):
 
 class GraphConv(nn.Module):
     def __init__(self, in_features, out_features, activation=nn.ReLU(inplace=True)):
-        super(GraphConv, self).__init__()
+        super().__init__()
         self.fc = nn.Linear(in_features=in_features, out_features=out_features)
         # self.adj_sq = adj_sq
         self.activation = activation
@@ -345,7 +345,7 @@ class GraphConv(nn.Module):
 
 class GraphPool(nn.Module):
     def __init__(self, in_nodes, out_nodes):
-        super(GraphPool, self).__init__()
+        super().__init__()
         self.fc = nn.Linear(in_features=in_nodes, out_features=out_nodes)
 
     def forward(self, X):
@@ -357,7 +357,7 @@ class GraphPool(nn.Module):
 
 class GraphUnpool(nn.Module):
     def __init__(self, in_nodes, out_nodes):
-        super(GraphUnpool, self).__init__()
+        super().__init__()
         self.fc = nn.Linear(in_features=in_nodes, out_features=out_nodes)
 
     def forward(self, X):
@@ -369,7 +369,7 @@ class GraphUnpool(nn.Module):
 
 class GraphUNet(nn.Module):
     def __init__(self, in_features=3, out_features=3):
-        super(GraphUNet, self).__init__()
+        super().__init__()
 
         self.A_0 = Parameter(torch.eye(23).float().cuda(), requires_grad=True)
         self.A_1 = Parameter(torch.eye(11).float().cuda(), requires_grad=True)
@@ -456,7 +456,7 @@ class GraphUNet(nn.Module):
 
 class GraphNet(nn.Module):
     def __init__(self, in_features=2, out_features=2):
-        super(GraphNet, self).__init__()
+        super().__init__()
 
         self.A_hat = Parameter(torch.eye(29).float().cuda(), requires_grad=True)
 

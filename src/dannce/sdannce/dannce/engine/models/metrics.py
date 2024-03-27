@@ -3,10 +3,9 @@ Adapted from
 https://github.com/facebookresearch/VideoPose3D/blob/main/common/loss.py
 """
 import numpy as np
-import torch
 
 
-def nanmean_infmean(loss):
+def nanmean_infmean(loss: np.ndarray):
     valid = (~np.isnan(loss)) & (~np.isposinf(loss)) & (~np.isneginf(loss))
     num_valid = valid.sum()
     if num_valid == 0:
@@ -14,7 +13,7 @@ def nanmean_infmean(loss):
     return loss[valid].sum() / num_valid
 
 
-def euclidean_distance_3D(predicted, target):
+def euclidean_distance_3D(predicted: np.ndarray, target: np.ndarray):
     """
     Mean per-joint position error (i.e. mean Euclidean distance),
     often referred to as "Protocol #1" in many papers.
@@ -26,7 +25,14 @@ def euclidean_distance_3D(predicted, target):
     return nanmean_infmean(mpjpe)
 
 
-def p_mpjpe(predicted, target, pmax=None, thresh=None, error=True, scale=False):
+def p_mpjpe(
+    predicted: np.ndarray,
+    target: np.ndarray,
+    pmax: np.ndarray | None = None,
+    thresh: float | None = None,
+    error: bool = True,
+    scale: bool = False,
+):
     """
     Pose error: MPJPE after rigid alignment (scale, rotation, and translation),
     often referred to as "Protocol #2" in many papers.
@@ -83,7 +89,7 @@ def p_mpjpe(predicted, target, pmax=None, thresh=None, error=True, scale=False):
         return predicted_aligned
 
 
-def n_mpjpe(predicted, target):
+def n_mpjpe(predicted: np.ndarray, target: np.ndarray):
     """
     Normalized MPJPE (scale only), adapted from:
     https://github.com/hrhodin/UnsupervisedGeometryAwareRepresentationLearning/blob/master/losses/poses.py

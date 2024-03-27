@@ -228,7 +228,7 @@ class LoadVideoFrame:
                     if self.predict_flag
                     else MediaVideo(thisvid_name, grayscale=False)
                 )
-            logger.info("Loading new video: {} for {}".format(abname, camname))
+            logger.info(f"Loading new video: {abname} for {camname}")
             self.currvideo_name[camname] = abname
             # close current vid
             # Without a sleep here, ffmpeg can hang on video close

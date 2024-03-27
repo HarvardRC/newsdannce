@@ -4,7 +4,7 @@ import torch.nn as nn
 
 class NodeNorm(nn.Module):
     def __init__(self, nn_type="n", unbiased=False, eps=1e-5, power_root=2):
-        super(NodeNorm, self).__init__()
+        super().__init__()
         self.unbiased = unbiased
         self.eps = eps
         self.nn_type = nn_type

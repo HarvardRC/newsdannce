@@ -121,7 +121,7 @@ def prepare_data(
             data[:, 1] = params["raw_im_h"] - data[:, 1] - 1
 
         if params["multi_mode"]:
-            print("Entering multi-mode with {} + 1 targets".format(data.shape[-1]))
+            print(f"Entering multi-mode with {data.shape[-1]} + 1 targets")
             if nanflag:
                 dcom = np.mean(data, axis=2, keepdims=True)
             else:
@@ -151,9 +151,7 @@ def prepare_data(
     # If specific markers are set to be excluded, set them to NaN here.
     if params["drop_landmark"] is not None and not prediction:
         print(
-            "Setting landmarks {} to NaN. These landmarks will not be included in loss or metric evaluations".format(
-                params["drop_landmark"]
-            )
+            f"Setting landmarks {params["drop_landmark"]} to NaN. These landmarks will not be included in loss or metric evaluations"
         )
         data_3d[:, :, params["drop_landmark"]] = np.nan
 
@@ -244,9 +242,7 @@ def prepare_temporal_seqs(
         )
         samples_test_inds = sorted(list(samples_test_inds))
         print(
-            "For unsupervised training, load in {} unlabeled chunks from the valid/test recording.".format(
-                params["n_support_chunks"]
-            )
+            f"For unsupervised training, load in {params["n_support_chunks"]} unlabeled chunks from the valid/test recording."
         )
         samples = None
     else:
@@ -261,9 +257,7 @@ def prepare_temporal_seqs(
             # n_unlabeled_temp = int(params["unlabeled_temp"])
             n_unlabeled_temp = int(np.ceil(len(samples) * params["unlabeled_temp"]))
             print(
-                "Load in {} unlabeled temporal chunks, in addition to {} labels.".format(
-                    n_unlabeled_temp, len(samples)
-                )
+                f"Load in {n_unlabeled_temp} unlabeled temporal chunks, in addition to {len(samples)} labels."
             )
             samples_inds_unlabeled = np.random.choice(
                 all_samples_inds_unlabeled, size=n_unlabeled_temp, replace=False
@@ -472,24 +466,22 @@ def prepare_COM(
                         this_com[uCamnames[k]]["pred_max"] > comthresh
                     ):
                         if (
-                            "{}_{}".format(uCamnames[j], uCamnames[k])
+                            f"{uCamnames[j]}_{uCamnames[k]}"
                             in this_com["triangulation"].keys()
                         ):
                             com3d[:, cnt] = this_com["triangulation"][
-                                "{}_{}".format(uCamnames[j], uCamnames[k])
+                                f"{uCamnames[j]}_{uCamnames[k]}"
                             ]
                         elif (
-                            "{}_{}".format(uCamnames[k], uCamnames[j])
+                            f"{uCamnames[k]}_{uCamnames[j]}"
                             in this_com["triangulation"].keys()
                         ):
                             com3d[:, cnt] = this_com["triangulation"][
-                                "{}_{}".format(uCamnames[k], uCamnames[j])
+                                f"{uCamnames[k]}_{uCamnames[j]}"
                             ]
                         else:
                             raise Exception(
-                                "Could not find this camera pair: {}".format(
-                                    "{}_{}".format(uCamnames[k], uCamnames[j])
-                                )
+                                f"Could not find this camera pair: {uCamnames[k]}_{uCamnames[j]}"
                             )
                         weights[cnt] = (
                             this_com[uCamnames[j]]["pred_max"]

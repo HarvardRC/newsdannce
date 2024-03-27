@@ -1,4 +1,5 @@
 """Entrypoints for dannce training and prediction."""
+
 import argparse
 import ast
 import subprocess
@@ -46,10 +47,8 @@ def submit_job(args: argparse.Namespace):
     slurm_config = load_params(base_config["slurm_config"])
 
     command = " ".join(sys.argv).replace("--sbatch", "")
-    cmd = 'sbatch %s --wrap="%s %s"' % (
-        slurm_config[job_name],
-        slurm_config["setup"],
-        command,
+    cmd = (
+        f"sbatch {slurm_config[job_name]} --wrap=\"{slurm_config['setup']} {command}\""
     )
     print(cmd)
     subprocess.run(cmd, shell=True, check=True, universal_newlines=True)
@@ -773,7 +772,7 @@ def combine(base_params: dict, clargs: argparse.Namespace, dannce_net: bool) -> 
             base_params[k] = v
 
     for k, v in base_params.items():
-        logger.info("Setting {} to: {}".format(k, v))
+        logger.info(f"Setting {k} to: {v}")
     return base_params
 
 

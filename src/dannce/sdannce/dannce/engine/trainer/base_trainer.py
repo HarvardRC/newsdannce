@@ -55,7 +55,7 @@ class BaseTrainer:
             if epoch % self.save_period == 0 or epoch == self.epochs:
                 self._save_checkpoint(epoch)
 
-    def _save_checkpoint(self, epoch: int, save_best=False):
+    def _save_checkpoint(self, epoch: int, save_best: bool = False):
         """
         Saving checkpoints
         :param epoch: current epoch number
@@ -74,6 +74,7 @@ class BaseTrainer:
             self.logger.info("Saving checkpoint: {filename} ...")
         else:
             # NOTE: why is format string missing {}?
-            filename = os.path.join(self.checkpoint_dir, "checkpoint.pth".format(epoch))
+            # filename = os.path.join(self.checkpoint_dir, "checkpoint.pth".format(epoch))
+            filename = os.path.join(self.checkpoint_dir, "checkpoint.pth")
 
         torch.save(state, filename)

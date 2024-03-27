@@ -630,9 +630,7 @@ class PoseDatasetNPY(PoseDatasetFromMem):
             prefeat (bool, optional): If True, prepares input for a network performing volume feature extraction before fusion
             sigma (float, optional): For MAX network, size of target Gaussian (mm)
         """
-        super(PoseDatasetNPY, self).__init__(
-            list_IDs=list_IDs, data=None, labels=None, **kwargs
-        )
+        super().__init__(list_IDs=list_IDs, data=None, labels=None, **kwargs)
         self.labels_3d = labels_3d
         self.npydir = npydir
         self.griddir = griddir
@@ -1044,7 +1042,7 @@ class MultiViewImageDataset(torch.utils.data.Dataset):
         labels_3d,
         cameras,
     ):
-        super(MultiViewImageDataset, self).__init__()
+        super().__init__()
         self.images = images
         self.grids = grids
         self.labels_3d = labels_3d
@@ -1079,7 +1077,7 @@ class ImageDataset(torch.utils.data.Dataset):
         heatmap_size=[64, 64],
         train: bool = True,
     ):
-        super(ImageDataset, self).__init__()
+        super().__init__()
         self.images = images
         self.labels = labels
 
@@ -1260,7 +1258,7 @@ class ImageDataset(torch.utils.data.Dataset):
                 targets = np.stack(all_targets, axis=0)
                 targets = torch.from_numpy(targets).float()
                 # end = time.time()
-                # print("Create gaussian takes {} seconds".format(end-start))
+                # print(f"Create gaussian takes {end-start} seconds")
             if self.train:
                 if random.random() > 0.5:
                     im = TF.hflip(im)

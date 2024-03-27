@@ -271,7 +271,7 @@ class DannceTrainer(BaseTrainer):
         )
         if not os.path.exists(tifdir):
             os.makedirs(tifdir)
-        print("Dump training volumes to {}".format(tifdir))
+        print(f"Dump training volumes to {tifdir}")
         volumes = volumes.clone().detach().cpu().permute(0, 2, 3, 4, 1).numpy()
         for i in range(volumes.shape[0]):
             for j in range(volumes.shape[-1] // self.params["chan_num"]):

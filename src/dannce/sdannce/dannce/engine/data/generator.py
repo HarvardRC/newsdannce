@@ -1,5 +1,5 @@
-"""Generator module for dannce training.
-"""
+"""Generator module for dannce training."""
+
 import os
 import time
 import warnings
@@ -289,7 +289,7 @@ class DataGenerator_3Dconv(DataGenerator):
                 M = torch.as_tensor(ops.camera_matrix(K, R, t), dtype=torch.float32)
                 self.camera_params[experimentID][camname]["M"] = M
 
-        print("Init took {} sec.".format(time.time() - ts))
+        print(f"Init took {time.time() - ts} sec.")
 
         self.pj_method = self.pj_grid_mirror if self.mirror else self.pj_grid
 
@@ -416,7 +416,7 @@ class DataGenerator_3Dconv(DataGenerator):
                 )
             else:
                 thisim, _ = processing.cropcom(thisim, com, size=self.dim_in[0])
-        # print('Frame loading took {} sec.'.format(time.time() - ts))
+        # print(f'Frame loading took {time.time() - ts} sec.')
 
         if self.segmentation_model is not None:
             input = [
@@ -438,7 +438,7 @@ class DataGenerator_3Dconv(DataGenerator):
         proj_grid = ops.project_to2d(
             X_grid, self.camera_params[experimentID][camname]["M"], self.device
         )
-        # print('Project2d took {} sec.'.format(time.time() - ts))
+        # print(f'Project2d took {time.time() - ts} sec.')
 
         ts = time.time()
         if self.distort:
@@ -450,7 +450,7 @@ class DataGenerator_3Dconv(DataGenerator):
                 self.device,
             )
             proj_grid = proj_grid.transpose(0, 1)
-            # print('Distort took {} sec.'.format(time.time() - ts))
+            # print(f'Distort took {time.time() - ts} sec.')
 
         ts = time.time()
         if self.crop_im:
@@ -463,7 +463,7 @@ class DataGenerator_3Dconv(DataGenerator):
             proj_grid[:, 1] = proj_grid[:, 1] - self.crop_height[0]
 
         rgb = ops.sample_grid(thisim, proj_grid, self.device, method=self.interp)
-        # print('Sample grid {} sec.'.format(time.time() - ts))
+        # print(f'Sample grid {time.time() - ts} sec.')
 
         if (
             ~torch.any(torch.isnan(com_precrop))
@@ -610,7 +610,7 @@ class DataGenerator_3Dconv(DataGenerator):
             y_3d = y_3d.cpu().numpy()
         if torch.is_tensor(X_grid):
             X_grid = X_grid.cpu().numpy()
-        # print('Numpy took {} sec'.format(time.time() - ts))
+        # print(f'Numpy took {time.time() - ts} sec')
 
         return X, y_3d, X_grid
 
@@ -694,7 +694,7 @@ class DataGenerator_3Dconv(DataGenerator):
             for c in range(num_cams):
                 ic = c + i * num_cams
                 X[ic, :, :, :, :] = result[c]
-            # print('MP took {} sec.'.format(time.time()-ts))
+            # print(f'MP took {time.time()-ts} sec.')
 
         # adjust volume channels
         X, y_3d = self._adjust_vol_channels(X, y_3d, first_exp, num_cams)
@@ -900,9 +900,7 @@ class DataGenerator_3Dconv_social(DataGenerator_3Dconv):
         fig, ax = plt.subplots(1, 1)
         ax.imshow(im)
         ax.set_title(
-            "B: {:.2f}, {:.2f} | R: {:.2f}, {:.2f}".format(
-                depths[0], scores[0], depths[1], scores[1]
-            )
+            f"B: {depths[0]:.2f}, {scores[0]:.2f} | R: {depths[1]:.2f}, {scores[1]:.2f}"
         )
         # Create a Rectangle patch
         rect1 = patches.Rectangle(
@@ -988,7 +986,7 @@ class DataGenerator_3Dconv_social(DataGenerator_3Dconv):
                     thisims[i] = processing.cropcom(
                         thisims[i], coms[i], size=self.dim_in[0]
                     )[0]
-        # print('Frame loading took {} sec.'.format(time.time() - ts))
+        # print(f'Frame loading took {time.time() - ts} sec.')
 
         # convert 3D COMs into camera coordinate frame for occlusion check
         com_3ds_cam = (
@@ -1112,7 +1110,7 @@ class DataGenerator_3Dconv_social(DataGenerator_3Dconv):
                 self.camera_params[experimentIDs[i]][camnames[i]]["M"],
                 self.device,
             )
-            # print('Project2d took {} sec.'.format(time.time() - ts))
+            # print(f"Project2d took {time.time() - ts} sec.")
 
             # ts = time.time()
             if self.distort:
@@ -1128,7 +1126,7 @@ class DataGenerator_3Dconv_social(DataGenerator_3Dconv):
                     self.device,
                 )
                 proj_grid = proj_grid.transpose(0, 1)
-                # print('Distort took {} sec.'.format(time.time() - ts))
+                # print(f"Distort took {time.time() - ts} sec.")
 
             # ts = time.time()
             if self.crop_im:
@@ -1226,7 +1224,7 @@ class DataGenerator_3Dconv_social(DataGenerator_3Dconv):
                 ic = c + j * num_cams
                 X[ic, ...] = result[c][0][j][0]  # [H, W, D, C]
             occlusion_scores[:, c] = result[c][1]  # [2]
-        # print('MP took {} sec.'.format(time.time()-ts))
+        # print(f"MP took {time.time()-ts} sec.")
 
         # adjust camera channels
         X, y_3d = self._adjust_vol_channels(X, y_3d, first_exp, num_cams)
@@ -1285,7 +1283,7 @@ class DataGenerator_3Dconv_social(DataGenerator_3Dconv):
 
 class MultiviewImageGenerator(DataGenerator_3Dconv):
     def __init__(self, resize=True, image_size=256, crop=True, crop_size=512, **kwargs):
-        super(MultiviewImageGenerator, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.image_size = image_size
         self.resize = resize
         self.crop = crop
@@ -1507,7 +1505,7 @@ class MultiviewImageGenerator(DataGenerator_3Dconv):
             y_2d = torch.stack(y_2d, dim=0)  # [BS, 6, 2, n_joints]
         except Exception:
             y_2d = torch.zeros(X.shape[0], 6, 2, 1)
-            print("Found {}".format(list_IDs_temp))
+            print(f"Found {list_IDs_temp}")
 
         # self._visualize_multiview(list_IDs_temp[0], X[0], y_2d[0])
         # breakpoint()
@@ -1602,9 +1600,7 @@ class DataGenerator_COM(torch.utils.data.Dataset):
     def load_tif_frame(self, ind, camname):
         """Load frames in tif mode."""
         # In tif mode, vidreaders should just be paths to the tif directory
-        return imageio.imread(
-            os.path.join(self.vidreaders[camname], "{}.tif".format(ind))
-        )
+        return imageio.imread(os.path.join(self.vidreaders[camname], f"{ind}.tif"))
 
     def __data_generation(self, list_IDs_temp):
         """Generate data containing batch_size samples.
