@@ -18,7 +18,7 @@ n_cams = 6
 
 
 def make_path(cam_no):
-    return f"/Users/caxon/olveczky/dannce_data/2024-03-22_extrinsics_tests/2024-03-22_extrinsics_benchmark_noshield/Camera{cam_no}/corner3-lowlight.mp4"
+    return f"/Users/caxon/olveczky/dannce_data/2024-03-22_extrinsics_tests/2024-03-22_extrinsics_benchmark_noshield/Camera{cam_no}/corner1-lowlight.mp4"
 
 
 videos = [make_path(i) for i in ["1", "2", "3", "4", "5", "6"]]
