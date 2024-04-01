@@ -19,6 +19,18 @@ E.g. `conda activate dannce-dev`
 Launch with `python -m src.calibration.new.gui`
 
 
+## SETUP
+
+1. install conda/mamba (I prefer mamba)
+2. create conda environment
+    `conda env create -f ./src/calibration/new/environment.yml`
+3. activate environment
+   `conda activate dannce-dev`
+
+   ...
+
+
+
 ## Calibration CLI
 
 You can run the calibration pipeline directly as a python module (argparse)
