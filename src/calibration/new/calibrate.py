@@ -29,6 +29,21 @@ def do_calibrate(
     matlab_intrinsics=True,
     verbose=False,
 ) -> None:
+    print(
+        "ALL ARGS ARE:",
+        project_dir,
+        output_dir,
+        rows,
+        cols,
+        square_size_mm,
+        intrinsics_dir,
+        matlab_intrinsics,
+    )
+
+    # TODO: improve this, but an empty string for intrinsics_dir is not None
+    if intrinsics_dir == "":
+        intrinsics_dir = None
+
     calibration_paths = get_calibration_paths(
         project_dir=project_dir, skip_intrinsics=bool(intrinsics_dir)
     )
