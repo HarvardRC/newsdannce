@@ -124,6 +124,7 @@ for camera_idx in range(n_cams):
         patternWasFound=True,
     )
     cv2.imwrite(img=draw_img, filename=f"./out/triang/cam{camera_idx}.png")
+    os.makedirs("./out/triang", exist_ok=True)
     print("Saving to: ", f"./out/triang/cam{camera_idx}.png")
     print("RPE is: ", rpe)
 
