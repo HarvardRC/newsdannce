@@ -147,7 +147,6 @@ param_defaults_com = {
     "com_predict_weights": None,
     "com_debug": None,
     "com_exp": None,
-    "n_channels_out": 1,
     "augment_rotation": False,
     "augment_shear": False,
     "augment_zoom": False,
