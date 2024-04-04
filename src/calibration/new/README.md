@@ -24,10 +24,12 @@ Launch with `python -m src.calibration.new.gui`
 1. install conda/mamba (I prefer mamba)
 2. create conda environment
     `conda env create -f ./src/calibration/new/environment.yml`
-3. activate environment
-   `conda activate dannce-dev`
 
-   ...
+
+## 
+1. activate environment
+   `conda activate dannce-dev`
+2. start gui with the command
 
 
 
