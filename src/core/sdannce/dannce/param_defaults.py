@@ -134,7 +134,7 @@ param_defaults_dannce = {
 }
 
 param_defaults_com = {
-    "dsmode": "nn",
+    "dsmode": "nn",  # downsample mode
     "sigma": 30,
     "debug": False,
     "lr": 5e-5,
