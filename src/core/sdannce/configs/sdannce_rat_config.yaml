@@ -9,8 +9,7 @@ crop_height: [0, 1200]
 crop_width: [0, 1920]
 
 # volumetric representation
-vmin: -120
-vmax: 120
+vol_size: 240
 nvox: 80
 interp: nearest
 

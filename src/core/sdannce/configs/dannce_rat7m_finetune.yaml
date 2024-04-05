@@ -10,9 +10,7 @@ n_views: 6
 num_validation_per_exp: 4
 data_split_seed: 1024
 
-vmin: -60 # lower and upper bound of the 3D volume (in mm) anchored on animal
-vmax: 60
-# OR, use vol_size: 120 to replace the above two lines
+vol_size: 120 # bounds of the 3D volume (in mm), centered on animal
 nvox: 80
 interp: nearest
 
