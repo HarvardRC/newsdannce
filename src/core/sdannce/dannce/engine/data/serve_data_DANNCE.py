@@ -1,4 +1,5 @@
 """Define routines for reading/structuring input data for DANNCE."""
+
 import os
 import warnings
 
@@ -7,7 +8,7 @@ import torch
 from dannce.engine.data import ops as ops
 from dannce.engine.data.io import load_camera_params, load_labels, load_sync
 from scipy.special import comb
-from six.moves import cPickle
+import pickle
 
 
 def prepare_data(
@@ -328,7 +329,7 @@ def prepare_COM_multi_instance(
     """
 
     with open(comfile, "rb") as f:
-        com = cPickle.load(f)
+        com = pickle.load(f)
     com3d_dict = {}
 
     firstkey = list(com.keys())[0]
@@ -413,7 +414,7 @@ def prepare_COM(
     """
 
     with open(comfile, "rb") as f:
-        com = cPickle.load(f)
+        com = pickle.load(f)
     com3d_dict = {}
 
     if method == "mean":

@@ -21,7 +21,6 @@ from dannce.engine.data import io, serve_data_DANNCE
 from loguru import Logger, logger
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from scipy.ndimage.filters import maximum_filter
-from six.moves import cPickle
 from skimage import measure
 from skimage.color import rgb2gray
 from skimage.transform import downscale_local_mean as dsm
@@ -533,7 +532,7 @@ def trim_COM_pickle(fpath, start_sample, end_sample, opath=None):
     spath is the output path for saving the trimmed COM dictionary, if desired
     """
     with open(fpath, "rb") as f:
-        save_data = cPickle.load(f)
+        save_data = pickle.load(f)
     sd = {}
 
     for key in save_data:
@@ -541,7 +540,7 @@ def trim_COM_pickle(fpath, start_sample, end_sample, opath=None):
             sd[key] = save_data[key]
 
     with open(opath, "wb") as f:
-        cPickle.dump(sd, f)
+        pickle.dump(sd, f)
     return sd
 
 
@@ -659,7 +658,7 @@ def make_data_splits(
             with open(
                 os.path.join(params["load_valid"], "val_samples.pickle"), "rb"
             ) as f:
-                partition["valid_sampleIDs"] = cPickle.load(f)
+                partition["valid_sampleIDs"] = pickle.load(f)
             partition["train_sampleIDs"] = [
                 f for f in samples if f not in partition["valid_sampleIDs"]
             ]
@@ -676,10 +675,10 @@ def make_data_splits(
         # breakpoint()
         # Save train/val inds
         with open(os.path.join(results_dir, "val_samples.pickle"), "wb") as f:
-            cPickle.dump(partition["valid_sampleIDs"], f)
+            pickle.dump(partition["valid_sampleIDs"], f)
 
         with open(os.path.join(results_dir, "train_samples.pickle"), "wb") as f:
-            cPickle.dump(partition["train_sampleIDs"], f)
+            pickle.dump(partition["train_sampleIDs"], f)
         return partition
 
     if params["load_valid"] is None:
@@ -786,16 +785,16 @@ def make_data_splits(
             os.path.join(params["load_valid"], "val_samples.pickle"),
             "rb",
         ) as f:
-            partition["valid_sampleIDs"] = cPickle.load(f)
+            partition["valid_sampleIDs"] = pickle.load(f)
         partition["train_sampleIDs"] = [
             f for f in samples if f not in partition["valid_sampleIDs"]
         ]
     # Save train/val inds
     with open(os.path.join(results_dir, "val_samples.pickle"), "wb") as f:
-        cPickle.dump(partition["valid_sampleIDs"], f)
+        pickle.dump(partition["valid_sampleIDs"], f)
 
     with open(os.path.join(results_dir, "train_samples.pickle"), "wb") as f:
-        cPickle.dump(partition["train_sampleIDs"], f)
+        pickle.dump(partition["train_sampleIDs"], f)
 
     # Reset any seeding so that future batch shuffling, etc. are not tied to this seed
     if params["data_split_seed"] is not None:
@@ -1407,7 +1406,7 @@ def save_COM_checkpoint(
     """
     # Save undistorted 2D COMs and their 3D triangulations
     f = open(os.path.join(results_dir, file_name + ".pickle"), "wb")
-    cPickle.dump(save_data, f)
+    pickle.dump(save_data, f)
     f.close()
 
     # We need to remove the eID in front of all the keys in datadict
@@ -1503,7 +1502,7 @@ def savedata_expval(
     """Save the expected values."""
     if data is None:
         f = open(fname, "rb")
-        data = cPickle.load(f)
+        data = pickle.load(f)
         f.close()
 
     d_coords = np.zeros((len(list(data.keys())), num_instances, 3, num_markers))
@@ -1560,7 +1559,7 @@ def savedata_tomat(
     """
     if data is None:
         f = open(fname, "rb")
-        data = cPickle.load(f)
+        data = pickle.load(f)
         f.close()
 
     d_coords = np.zeros((list(data.keys())[-1] + 1, 3, num_markers))
