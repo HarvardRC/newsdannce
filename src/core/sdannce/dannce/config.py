@@ -14,11 +14,7 @@ from dannce.param_defaults import (
     param_defaults_shared,
 )
 
-_DEFAULT_VIDDIR = "videos"
 _DEFAULT_VIDDIR_SIL = "videos_sil"
-_DEFAULT_COMSTRING = "COM"
-_DEFAULT_COMFILENAME = "com3d.mat"
-_DEFAULT_SEG_MODEL = "../weights/maskrcnn.pth"
 
 
 def grab_predict_label3d_file(defaultdir: str = "", index: int = 0):
