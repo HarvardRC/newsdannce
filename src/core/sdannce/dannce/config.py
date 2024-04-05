@@ -167,9 +167,18 @@ def infer_params(params: dict, dannce_net: bool, prediction: bool):
         else:
             print_and_set(params, "start_batch", 0)
 
+        if params.get("vmin") or params.get("vmax"):
+            raise Exception(
+                "vmin & vmax are depreciated. Specify vol_size instead. vol_size = 2*(vmax)"
+            )
+
         if params["vol_size"] is not None:
             print_and_set(params, "vmin", -1 * params["vol_size"] / 2)
             print_and_set(params, "vmax", params["vol_size"] / 2)
+        else:
+            raise Exception(
+                "vol_size must be specified (replaces vmin and vmax). vol_size = 2*(vmax)"
+            )
 
         if params["heatmap_reg"] and not params["expval"]:
             raise Exception(
@@ -551,6 +560,7 @@ def setup_predict(params: dict):
     params["depth"] = False
     # Make the prediction directory if it does not exist.
 
+    # NOTE: ALIAS "net_name" not used anywhere. TODO: remove?
     params["net_name"] = params["net"]
     params["n_views"] = int(params["n_views"])
 
