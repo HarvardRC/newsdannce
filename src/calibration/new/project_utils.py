@@ -147,7 +147,7 @@ def get_extrinsics_dir(project_dir):
     project_dir = os.path.normpath(project_dir)
     all_files = list(iglob(os.path.join(project_dir, "**", "*"), recursive=True))
     all_dirs = [a for a in all_files if os.path.isdir(a)]
-    search_re = f"{re.escape(project_dir)}(?:{os.path.sep}[Cc]alibration)?{os.path.sep}[Ee]xtrinsics?"
+    search_re = (f"{re.escape(project_dir)}(?:{re.escape(os.path.sep)}[Cc]alibration)?{re.escape(os.path.sep)}[Ee]xtrinsics?")
     r = re.compile(search_re)
     matching_paths = list(filter(r.fullmatch, all_dirs))
     return matching_paths[0]
@@ -162,7 +162,7 @@ def get_intrinsics_dir(project_dir):
     project_dir = os.path.normpath(project_dir)
     all_files = list(iglob(os.path.join(project_dir, "**", "*"), recursive=True))
     all_dirs = [a for a in all_files if os.path.isdir(a)]
-    search_re = f"{re.escape(project_dir)}(?:{os.path.sep}[Cc]alibration)?{os.path.sep}[Ii]ntrinsics?"
+    search_re = f"{re.escape(project_dir)}(?:{re.escape(os.path.sep)}[Cc]alibration)?{re.escape(os.path.sep)}[Ii]ntrinsics?"
     r = re.compile(search_re)
     matching_paths = list(filter(r.fullmatch, all_dirs))
     return matching_paths[0]
@@ -179,7 +179,7 @@ def get_camera_names(extrinsics_dir) -> list[str]:
     all_files = list(iglob(os.path.join(extrinsics_dir, "**", "*"), recursive=True))
     # all_dirs = [a for a in all_files if os.path.isdir(a)]
     search_re = (
-        f"{re.escape(extrinsics_dir)}{os.path.sep}([Cc]amera.+?){os.path.sep}.+?\.mp4"
+        f"{re.escape(extrinsics_dir)}{re.escape(os.path.sep)}([Cc]amera.+?){re.escape(os.path.sep)}.+?\.mp4"
     )
     r = re.compile(search_re)
     matching_paths = filter(None, map(lambda x: r.fullmatch(x), all_files))
@@ -216,7 +216,7 @@ def get_extrinsics_video_paths(extrinsics_dir: str, camera_names: list[dict]):
     )
 
     # FIRST: look for `0.mp4` file
-    search_re_1 = f"{re.escape(extrinsics_dir)}{os.path.sep}({camera_names_regex}){os.path.sep}(0\.mp4)"
+    search_re_1 = f"{re.escape(extrinsics_dir)}{re.escape(os.path.sep)}({camera_names_regex}){re.escape(os.path.sep)}(0\.mp4)"
     r_1 = re.compile(search_re_1)
     matching_paths_1 = list(filter(None, map(lambda x: r_1.fullmatch(x), all_files)))
 
@@ -224,7 +224,7 @@ def get_extrinsics_video_paths(extrinsics_dir: str, camera_names: list[dict]):
         matches = matching_paths_1
     else:
         # OTHERWISE: look for `*.mp4` file
-        search_re_2 = f"{re.escape(extrinsics_dir)}{os.path.sep}{camera_names_regex}{os.path.sep}{FILENAME_CHARACTER_CLASS}+?\.mp4"
+        search_re_2 = f"{re.escape(extrinsics_dir)}{re.escape(os.path.sep)}{camera_names_regex}{re.escape(os.path.sep)}{FILENAME_CHARACTER_CLASS}+?\.mp4"
         r_2 = re.compile(search_re_2)
         matching_paths_2 = list(
             filter(None, map(lambda x: r_2.fullmatch(x), all_files))
@@ -277,14 +277,14 @@ def get_intrinsics_image_paths(intrinsics_dir, camera_names):
     camera_names_regex = "|".join(
         list(map(lambda x: f"(?:{re.escape(x)})", camera_names))
     )
-    search_re_1 = f"{re.escape(intrinsics_dir)}{os.path.sep}({camera_names_regex}){os.path.sep}({FILENAME_CHARACTER_CLASS}+?({extensions_regex}))"
+    search_re_1 = f"{re.escape(intrinsics_dir)}{re.escape(os.path.sep)}({camera_names_regex}){re.escape(os.path.sep)}({FILENAME_CHARACTER_CLASS}+?({extensions_regex}))"
     r_1 = re.compile(search_re_1)
     matching_paths_1 = list(filter(None, map(lambda x: r_1.fullmatch(x), all_files)))
 
     if matching_paths_1:
         matches = matching_paths_1
     else:
-        search_re_2 = f"{re.escape(intrinsics_dir)}{os.path.sep}({FILENAME_CHARACTER_CLASS}+){os.path.sep}({FILENAME_CHARACTER_CLASS}+?({extensions_regex}))"
+        search_re_2 = f"{re.escape(intrinsics_dir)}{re.escape(os.path.sep)}({FILENAME_CHARACTER_CLASS}+){re.escape(os.path.sep)}({FILENAME_CHARACTER_CLASS}+?({extensions_regex}))"
         r_2 = re.compile(search_re_2)
         matching_paths_2 = list(
             filter(None, map(lambda x: r_2.fullmatch(x), all_files))
