@@ -63,7 +63,6 @@ class CalibrationWindow(QMainWindow):
         if not ui_file.open(QIODevice.ReadOnly):
             print(f"Cannot open {self.ui_file_name}: {ui_file.errorString()}")
             sys.exit(-1)
-        loader = QUiLoader()
         loader.load(ui_file, self)
         ui_file.close()
 
@@ -198,6 +197,8 @@ class CalibrationWindow(QMainWindow):
 
 
 if __name__ == "__main__":
+    global loader
+    loader = QUiLoader()
     app = QApplication([])
     window = CalibrationWindow()
     window.show()
