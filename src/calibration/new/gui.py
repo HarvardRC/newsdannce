@@ -129,7 +129,7 @@ class CalibrationWindow(QMainWindow):
         project_dir = self.project_dir_edit.text()
         intrinsics_dir = self.intrinsics_dir_edit.text()
         output_dir = self.output_dir_edit.text()
-        intrinsics_enabled = self.intrinsics_group_box.isChecked()
+        use_existing_intrinsics = self.intrinsics_group_box.isChecked()
         method_idx = self.pick_method.currentIndex()
         method_options = {}
 
@@ -157,7 +157,7 @@ class CalibrationWindow(QMainWindow):
         self.progress_bar.setVisible(True)
         self.calibrateInThread(
             project_dir=project_dir,
-            intrinsics_dir=intrinsics_dir,
+            existing_intrinsics_dir=intrinsics_dir if use_existing_intrinsics else None,
             output_dir=output_dir,
             **method_options,
         )
@@ -203,6 +203,7 @@ class CalibrationWindow(QMainWindow):
 
 if __name__ == "__main__":
     init_logger()
+    logging.info("Running as GUI")
     global loader
     loader = QUiLoader()
     app = QApplication([])
