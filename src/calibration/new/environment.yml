@@ -14,4 +14,6 @@ dependencies:
   - imageio-ffmpeg
   - certifi
   - matplotlib
-prefix: /Users/caxon/miniforge3/envs/dannce-dev
+  - pip:
+    - opencv-python
+    - pyside6
