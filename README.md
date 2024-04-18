@@ -1,5 +1,7 @@
 # Social DANNCE
 
+To use the new calibration GUI for chesssboard targets, please read the calibration [README file](./src/calibration/new/README.md).
+
 ## Overview
 
 ## Installation
