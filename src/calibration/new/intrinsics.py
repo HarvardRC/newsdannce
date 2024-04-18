@@ -207,14 +207,19 @@ def calibrate_intrinsics(
 
     end = time.perf_counter()
 
-    print(f"Found all corners in {(end-start)*1000:.2f} ms [{n_images} images]")
+    print(f"Found all corners in {(end-start)*1000:.2f} ms [{n_images - len(failed_imgs)}/{n_images} images]")
+
+    start = time.perf_counter()
 
     # note: we ignore r_vecs & t_vecs because we don't care about location of calibration target in each frame
     reproject_err, camera_matrix, raw_dist, r_vecs, t_vecs = cv2.calibrateCamera(
         objpoints, imgpoints, gray.shape[::-1], None, None, flags=cv2.CALIB_FIX_K3
     )
+    end = time.perf_counter()
+    print(f"Intrinsics calculation took in {(end-start)*1000:.2f} ms")
 
-    print(reproject_err)
+
+    print("Intrinsics RPE", reproject_err)
 
     dist = raw_dist.squeeze()
 
