@@ -8,7 +8,9 @@ from functools import reduce
 from glob import iglob
 from scipy.io import savemat
 from src.calibration.new.calibration_data import CalibrationData
+from .intrinsics import IntrinsicsParams
 import logging
+from pathlib import Path
 
 INTRINSICS_IMAGE_EXTENSIONS = [".tiff", ".tif", ".jpeg", ".jpg", ".png"]
 """Possible file extensions for intrinsics calibration images"""
@@ -328,6 +330,26 @@ def get_intrinsics_image_paths(intrinsics_dir, camera_names):
     # group matches by camera_idx and camera_name
     matches_grouped.sort(key=lambda x: x["camera_name"])
     return matches_grouped
+
+
+# TODO: currently unused
+def load_existing_intrinsics(
+    existing_intrinsics_dir: str, n_cameras: int
+) -> list[IntrinsicsParams]:
+    """Load intrinsics specified by a directory containing hires_camX_params.mat files.
+    Useful for re-calculating extrinsics with existing intrinsics"""
+
+    logging.info(
+        f"Loading intrinsics from params files in directory: {existing_intrinsics_dir}"
+    )
+    # verify that directory contains hires_cameraX_params.mat files:
+    existing_intrinsics_dir = os.path.normpath(existing_intrinsics_dir)
+
+    for cam_idx in range(n_cameras):
+        target_filename = f"hires_cam{cam_idx+1}_params.mat"
+        target_path = Path(existing_intrinsics_dir, target_filename)
+        if not target_path.is_file():
+            raise Exception(f"Expected intrinsics file is missing: {target_path}")
 
 
 def write_calibration_params(

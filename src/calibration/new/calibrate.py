@@ -1,19 +1,18 @@
 ## intro module for new calibration script
 import argparse
+import logging
+import os
+import time
+
+from src.calibration.new.calibration_data import CalibrationData, CameraParams
+from src.calibration.new.extrinsics import calibrate_extrinsics
+from src.calibration.new.intrinsics import IntrinsicsParams, calibrate_intrinsics
+from src.calibration.new.logger import init_logger
 from src.calibration.new.project_utils import (
     get_calibration_paths,
     write_calibration_params,
 )
-from src.calibration.new.intrinsics import calibrate_intrinsics, IntrinsicsParams
-from src.calibration.new.extrinsics import calibrate_extrinsics
-from src.calibration.new.video_utils import get_video_stats, get_chessboard_coordinates
-from src.calibration.new.calibration_data import CalibrationData, CameraParams
-from src.calibration.new.logger import init_logger
-from dataclasses import asdict
-import time
-import os
-
-import logging
+from src.calibration.new.video_utils import get_chessboard_coordinates, get_video_stats
 
 # reasonable max no. of images for a single camera
 MAX_IMAGES_ACCEPTED = 400
@@ -26,19 +25,17 @@ def do_calibrate(
     rows: int,
     cols: int,
     square_size_mm: float,
-    intrinsics_dir: str = None,
     on_progress=None,
     save_rpe=False,
+    existing_intrinsics_dir: str = None,
     matlab_intrinsics=True,
     verbose=False,
 ) -> None:
     start = time.perf_counter()
     # TODO: improve this, but an empty string for intrinsics_dir is not None
-    if intrinsics_dir == "":
-        intrinsics_dir = None
 
     calibration_paths = get_calibration_paths(
-        project_dir=project_dir, skip_intrinsics=bool(intrinsics_dir)
+        project_dir=project_dir, skip_intrinsics=bool(existing_intrinsics_dir)
     )
 
     # generate chessboard object points
@@ -60,7 +57,7 @@ def do_calibrate(
         camera_name = f"Camera{camera_idx + 1}"
         logging.info(f"Camera {camera_name}")
 
-        if intrinsics_dir is None:
+        if existing_intrinsics_dir is None:
             ##### INTRINSICS #####
             intrinsics = calibrate_intrinsics(
                 image_paths=camera_files_single.intrinsics_image_paths,
@@ -72,9 +69,15 @@ def do_calibrate(
                 camera_idx=camera_idx,
             )
         else:
+            params_file = os.path.join(
+                existing_intrinsics_dir, f"hires_cam{camera_idx+1}_params.mat"
+            )
             # load intrinsics from existing hires file
+            logging.info(
+                f"Loading intrinsics for camera {camera_name} from file: {params_file}"
+            )
             intrinsics = IntrinsicsParams.load_from_mat_file(
-                os.path.join(intrinsics_dir, f"hires_cam{camera_idx+1}_params.mat"),
+                params_file,
                 cvt_matlab_to_cv2=matlab_intrinsics,
             )
 
@@ -128,53 +131,55 @@ def do_calibrate(
         return calibration_data
 
     ellapsed_seconds = time.perf_counter() - start
-    sec = ellapsed_seconds % 60
-    min = ellapsed_seconds // 60
-    logging.info(f"Finished calibration in {min}:{sec}")
+    sec = int(ellapsed_seconds % 60)
+    min = int(ellapsed_seconds // 60)
+    logging.info(f"Finished calibration in {min:02d}:{sec:02d} (mm:ss)")
 
 
 def parse_and_calibrate():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-p",
         "--project-dir",
+        "-p",
         required=True,
         help="Project directory for dannce calibration. Expected to contain a calibration directory with /intrinsics and /extrinsics directories",
     )
     parser.add_argument(
-        "-r",
         "--rows",
+        "-r",
         type=int,
         required=True,
         help="# of internal verticies in a row of the chessboard pattern (note this is 1- #of square per row). E.g. 6",
     )
     parser.add_argument(
-        "-c",
         "--cols",
+        "-c",
         type=int,
         required=True,
         help="# of internal verticies in a column of the chessboard pattern (note this is 1- #of square per column). E.g. 9",
     )
     parser.add_argument(
-        "-s",
         "--square-size-mm",
+        "-s",
         type=int,
         required=True,
         help="Length of a single chessboard pattern square in mm (e.g. 23)",
     )
     parser.add_argument(
-        "-o",
         "--output-dir",
+        "-o",
         required=False,
         default=None,
         help="Output directory to create hires_cam#_params.mat files. If not provided, will print calibration params to the console.",
     )
+
     parser.add_argument(
-        "--intrinsics-dir",
+        "--existing-intrinsics-dir",
         required=False,
         default=None,
-        help="If specified, load intrinsics from hires_camX.mat files instead of computing them directly",
+        help="If specified and a non-empty string, the app will use the extrinsics from an existing set of .mat calibration files in this specified directory, instead of recalcuating them.",
     )
+
     parser.add_argument(
         "--matlab-intrinsics",
         required=False,
@@ -183,8 +188,8 @@ def parse_and_calibrate():
         help="If provided, save intrinsics in matlab format (vs opencv). This means adjusting for matlab (1,1) origin from (0,0)",
     )
     parser.add_argument(
-        "-v",
         "--verbose",
+        "-v",
         required=False,
         default=False,
         action="count",

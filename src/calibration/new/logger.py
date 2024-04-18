@@ -43,6 +43,6 @@ def init_logger(log_level=logging.INFO, log_dir="./logs"):
         logfile_handler.setFormatter(logging.Formatter(logfile_fmt, date_fmt))
         logger.addHandler(logfile_handler)
 
-        logger.info(f"logging initiliazed with log level: {log_level}")
-        logger.info(f"Started at {datetime.datetime.now()}")
+        logger.debug(f"logger initiliazed with log level: {log_level}")
+        logger.debug(f"Log started at timestamp: {datetime.datetime.now()}")
         logger.debug(f"Log file: {logfile_path}")
