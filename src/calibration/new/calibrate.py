@@ -8,9 +8,12 @@ from src.calibration.new.intrinsics import calibrate_intrinsics, IntrinsicsParam
 from src.calibration.new.extrinsics import calibrate_extrinsics
 from src.calibration.new.video_utils import get_video_stats, get_chessboard_coordinates
 from src.calibration.new.calibration_data import CalibrationData, CameraParams
+from src.calibration.new.logger import init_logger
 from dataclasses import asdict
 import time
 import os
+
+import logging
 
 # reasonable max no. of images for a single camera
 MAX_IMAGES_ACCEPTED = 400
@@ -29,17 +32,7 @@ def do_calibrate(
     matlab_intrinsics=True,
     verbose=False,
 ) -> None:
-    print(
-        "ALL ARGS ARE:",
-        project_dir,
-        output_dir,
-        rows,
-        cols,
-        square_size_mm,
-        intrinsics_dir,
-        matlab_intrinsics,
-    )
-
+    start = time.perf_counter()
     # TODO: improve this, but an empty string for intrinsics_dir is not None
     if intrinsics_dir == "":
         intrinsics_dir = None
@@ -60,12 +53,12 @@ def do_calibrate(
     sample_video_path = calibration_paths.camera_files[0].extrinsics_video_path
     video_info = get_video_stats(sample_video_path)
 
-    print("Running calibration on all cameras")
+    logging.info("Running calibration on all cameras")
     n_cameras = len(calibration_paths.camera_files)
 
     for camera_idx, camera_files_single in enumerate(calibration_paths.camera_files):
         camera_name = f"Camera{camera_idx + 1}"
-        print(camera_name)
+        logging.info(f"Camera {camera_name}")
 
         if intrinsics_dir is None:
             ##### INTRINSICS #####
@@ -134,6 +127,11 @@ def do_calibrate(
     else:
         return calibration_data
 
+    ellapsed_seconds = time.perf_counter() - start
+    sec = ellapsed_seconds % 60
+    min = ellapsed_seconds // 60
+    logging.info(f"Finished calibration in {min}:{sec}")
+
 
 def parse_and_calibrate():
     parser = argparse.ArgumentParser()
@@ -189,7 +187,7 @@ def parse_and_calibrate():
         "--verbose",
         required=False,
         default=False,
-        action="store_true",
+        action="count",
         help="Additional logging output (useful for debugging)",
     )
 
@@ -204,16 +202,27 @@ def parse_and_calibrate():
     intrinsics_dir = args.intrinsics_dir
     verbose = args.verbose
 
+    match verbose:
+        case 0:
+            log_level = logging.INFO
+        case 1:
+            log_level = logging.DEBUG
+        case _:
+            raise ValueError(
+                "Verbose level must be between 0 and 1 ( e.g. 0: no -v flag, 1: -v)"
+            )
+
+    init_logger(log_level=log_level)
+
     # print all input args
-    if verbose:
-        print("VERBOSE PRINTING ENABLED\n----------\nARGUMENTS:")
-        print(f"CHESSBOARD (ROWS, COLS): ({rows}, {cols})")
-        print(f"SQUARE SIZE (mm): {square_size_mm}")
-        print(f"BASE PROJECT DIR: {project_dir}")
-        print(f"PARAM OUTPUT DIR: {output_dir}")
-        print(f"CONVERT INTRINSICS TO MATLAB?: {matlab_intrinsics}")
-        print(f"INTRINSICS DIR?: {intrinsics_dir}")
-        print("-----")
+    logging.info("ARGUMENTS")
+    logging.info(f"CHESSBOARD (ROWS, COLS): ({rows}, {cols})")
+    logging.info(f"SQUARE SIZE (mm): {square_size_mm}")
+    logging.info(f"BASE PROJECT DIR: {project_dir}")
+    logging.info(f"PARAM OUTPUT DIR: {output_dir}")
+    logging.info(f"CONVERT INTRINSICS TO MATLAB?: {matlab_intrinsics}")
+    logging.info(f"INTRINSICS DIR?: {intrinsics_dir}")
+    logging.info("-----")
 
     do_calibrate(
         project_dir=project_dir,

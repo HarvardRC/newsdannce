@@ -8,7 +8,7 @@ from functools import reduce
 from glob import iglob
 from scipy.io import savemat
 from src.calibration.new.calibration_data import CalibrationData
-
+import logging
 
 INTRINSICS_IMAGE_EXTENSIONS = [".tiff", ".tif", ".jpeg", ".jpg", ".png"]
 """Possible file extensions for intrinsics calibration images"""
@@ -147,7 +147,7 @@ def get_extrinsics_dir(project_dir):
     project_dir = os.path.normpath(project_dir)
     all_files = list(iglob(os.path.join(project_dir, "**", "*"), recursive=True))
     all_dirs = [a for a in all_files if os.path.isdir(a)]
-    search_re = (f"{re.escape(project_dir)}(?:{re.escape(os.path.sep)}[Cc]alibration)?{re.escape(os.path.sep)}[Ee]xtrinsics?")
+    search_re = f"{re.escape(project_dir)}(?:{re.escape(os.path.sep)}[Cc]alibration)?{re.escape(os.path.sep)}[Ee]xtrinsics?"
     r = re.compile(search_re)
     matching_paths = list(filter(r.fullmatch, all_dirs))
     return matching_paths[0]
@@ -178,9 +178,7 @@ def get_camera_names(extrinsics_dir) -> list[str]:
     extrinsics_dir = os.path.normpath(extrinsics_dir)
     all_files = list(iglob(os.path.join(extrinsics_dir, "**", "*"), recursive=True))
     # all_dirs = [a for a in all_files if os.path.isdir(a)]
-    search_re = (
-        f"{re.escape(extrinsics_dir)}{re.escape(os.path.sep)}([Cc]amera.+?){re.escape(os.path.sep)}.+?\.mp4"
-    )
+    search_re = f"{re.escape(extrinsics_dir)}{re.escape(os.path.sep)}([Cc]amera.+?){re.escape(os.path.sep)}.+?\.mp4"
     r = re.compile(search_re)
     matching_paths = filter(None, map(lambda x: r.fullmatch(x), all_files))
     camera_names = map(lambda x: x.groups(1)[0], matching_paths)
@@ -232,7 +230,7 @@ def get_extrinsics_video_paths(extrinsics_dir: str, camera_names: list[dict]):
         matches = matching_paths_2
 
     if not matches:
-        print("Unable to find extrinsic video files paths")
+        logging.warn("Unable to find extrinsic video files paths")
         return []
 
     matches = list(
@@ -371,4 +369,4 @@ def write_calibration_params(
             mdict=mdict,
         )
 
-        print(f"Saved calibration data to filename: {filename}")
+        logging.info(f"Saved to: {filename}")

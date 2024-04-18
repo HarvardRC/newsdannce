@@ -5,6 +5,7 @@ from src.calibration.new.video_utils import get_first_frame_video
 import cv2
 from .math_utils import calculate_rpe
 from scipy.io import loadmat
+import logging
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -86,7 +87,7 @@ def calibrate_extrinsics(
     cv2.imwrite(f"./out/ext_reproj_cam{camera_idx+1}.png", gray)
 
     rpe = calculate_rpe(ipts, re_ipts)
-    print(f"EXTRINSICS RPE: {rpe}")
+    logging.info(f"Extrinsics RPE: {rpe}")
 
     # TODO: END REMOVE
 

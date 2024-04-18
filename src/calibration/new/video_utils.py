@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import logging
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -46,7 +47,7 @@ def load_images(image_paths, image_width, image_height) -> np.ndarray:
     # intitialize np array
     raw_images = np.zeros((n_images, image_height, image_width, 3), dtype=np.uint8)
 
-    print(f"Loading {n_images} into memory. May take a few seconds")
+    logging.info(f"Loading {n_images} into memory. May take a few seconds")
     for idx, img_filepath in enumerate(image_paths):
         this_img = cv2.imread(img_filepath)
         raw_images[idx] = this_img
@@ -124,7 +125,6 @@ def imshow(img, scale=1):
 
 
 def imshow_cv2(img, timeout=5000):
-    print("DOPEß")
     cv2.imshow("img", img)
     cv2.waitKey(timeout)
     cv2.destroyAllWindows()

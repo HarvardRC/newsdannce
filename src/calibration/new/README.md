@@ -13,7 +13,7 @@ Goals:
 ## SETUP
 
 1. install conda/mamba (I prefer mamba)
-2. create conda environment
+2. create environment
     `mamba env create -f ./src/calibration/new/environment.yml`
 
 
@@ -44,12 +44,12 @@ GUI Options:
 7. Internal Chessboard Columns: # of columns made by intersections in the chessboard. This is 1 - # width in black/white squares.
 8. Square Size (mm): length one chessboard square in mm.
 
-After you click calibrate, it should take about 30 seconds to run. There should be a blue progress bar above the calibration button. The app will not close when it is finished, but you can tell it has completed when the progress bar is full (and verify by checking the existance of hires_camX_params.mat files in the output directory).
-
+After you click calibrate, it should take about 30 seconds to run. There should be a blue progress bar above the calibration button. The app will close automatically once it's finished, and you can check the python STDOUT for logs and calibration stats.
 
 ## Running without the GUI
 
 You can run the calibration pipeline directly as a python module (argparse). This will not launch the GUI.
+
 ```
 python -m src.calibration.new.calibrate -p "~/olveczky/dannce_data/setupCal11_010324" -r 6 -c 9 -s 23 -o "~/olveczky/dannce_data/setupCal11_010324/calibration_export"
 ```
