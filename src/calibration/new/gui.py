@@ -15,8 +15,10 @@ from PySide6.QtWidgets import (
 )
 import sys
 from pathlib import Path
+import logging
 
-from .calibrate import do_calibrate
+from src.calibration.new.calibrate import do_calibrate
+from src.calibration.new.logger import init_logger
 
 # constant enums representing "pick calibration method" comboBox
 METHOD_IDX_CHESSBOARD = 0
@@ -33,6 +35,7 @@ class CalibrateWorker(QObject):
         self.arg_dict = arg_dict
 
     def run(self):
+        logging.debug(f"Running calibration: Args: {self.arg_dict}")
         do_calibrate(on_progress=lambda pct: self.progress.emit(pct), **self.arg_dict)
         self.finished.emit()
 
@@ -61,7 +64,9 @@ class CalibrationWindow(QMainWindow):
     def loadUi(self):
         ui_file = QFile(self.ui_file_name)
         if not ui_file.open(QIODevice.ReadOnly):
-            print(f"Cannot open {self.ui_file_name}: {ui_file.errorString()}")
+            logging.critical(
+                f"Cannot open {self.ui_file_name}: {ui_file.errorString()}"
+            )
             sys.exit(-1)
         loader.load(ui_file, self)
         ui_file.close()
@@ -163,7 +168,7 @@ class CalibrationWindow(QMainWindow):
 
     @Slot(None)
     def handleCalibrateFinished(self):
-        print("Calibration done, exiting!")
+        logging.info("Calibration done, app is exiting!")
         QApplication.quit()
 
     def calibrateInThread(self, **arg_dict):
@@ -197,6 +202,7 @@ class CalibrationWindow(QMainWindow):
 
 
 if __name__ == "__main__":
+    init_logger()
     global loader
     loader = QUiLoader()
     app = QApplication([])

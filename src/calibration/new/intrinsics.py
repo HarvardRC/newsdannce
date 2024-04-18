@@ -8,11 +8,11 @@ from scipy.io import loadmat, savemat
 import pickle
 from .math_utils import calculate_rpe
 from pathlib import Path
+import logging
 
 import matplotlib
 from matplotlib import pyplot as plt
 
-import sys
 
 show_img = False
 write_one = True
@@ -27,7 +27,9 @@ class IntrinsicsParams:
     """
 
     camera_matrix: np.ndarray
-    dist: np.ndarray  # format: [k1 k2 (radial) p1 p2 (tangential) [k3 (radial)] ]. k3 ignored.
+    dist: (
+        np.ndarray
+    )  # format: [k1 k2 (radial) p1 p2 (tangential) [k3 (radial)] ]. k3 ignored.
 
     @property
     def r_distort(self) -> np.ndarray:  # k1 k2 [k3]
@@ -160,7 +162,7 @@ def load_images(image_paths, image_width, image_height) -> np.ndarray:
     # intitialize np array
     raw_images = np.zeros((n_images, image_height, image_width, 3), dtype=np.uint8)
 
-    print(f"Loading {n_images} into memory. May take a few seconds")
+    logging.info(f"Loading {n_images} images into memory. May take a few seconds")
     for idx, img_filepath in enumerate(image_paths):
         this_img = cv2.imread(img_filepath)
         raw_images[idx] = this_img
@@ -202,12 +204,15 @@ def calibrate_intrinsics(
             if show_img is True:
                 cv2.drawChessboardCorners(this_img, (cols, rows), corner_coords, True)
         else:
-            print("Failure: Image #", img_idx)
+            logging.warn(f"No pattern detected: Cam# {camera_idx}, Image# {img_idx}")
+            logging.debug(f"Image #{img_idx} path: {image_paths[img_idx]}")
             failed_imgs.append(img_idx)
 
     end = time.perf_counter()
 
-    print(f"Found all corners in {(end-start)*1000:.2f} ms [{n_images - len(failed_imgs)}/{n_images} images]")
+    logging.info(
+        f"Found all corners in {(end-start)*1000:.2f} ms [{n_images - len(failed_imgs)}/{n_images} images]"
+    )
 
     start = time.perf_counter()
 
@@ -216,10 +221,9 @@ def calibrate_intrinsics(
         objpoints, imgpoints, gray.shape[::-1], None, None, flags=cv2.CALIB_FIX_K3
     )
     end = time.perf_counter()
-    print(f"Intrinsics calculation took in {(end-start)*1000:.2f} ms")
+    logging.info(f"Intrinsics calculation took in {(end-start)*1000:.2f} ms")
 
-
-    print("Intrinsics RPE", reproject_err)
+    logging.info(f"Intrinsics RPE from calibrateCamera: {reproject_err}")
 
     dist = raw_dist.squeeze()
 
@@ -247,17 +251,22 @@ def calibrate_intrinsics(
         rpe = calculate_rpe(ipts, re_ipts)
         rpes.append(rpe)
 
-    print("INTRINSICS MEAN RPE:", np.mean(rpes))
-    print("INTRINSICS MAX  RPE:", np.max(rpes))
-    print("INTRINSICS MIN  RPE:", np.min(rpes))
+    logging.debug(f"Intrinsics mean RPE: {np.mean(rpes)}")
+    logging.debug(f"Intrinsics max  RPE: {np.max(rpes)}")
+    logging.debug(f"Intrinsics min  RPE: {np.min(rpes)}")
 
+    ### Plot intrinsics error
     # use non-interactive MPL backend
     matplotlib.use("agg")
     plt.figure()
     plt.bar(x=[i for i in range(len(rpes))], height=rpes)
     plt.title(f"Camera {camera_idx+1} Intrinsics RPE")
     Path("./out").mkdir(parents=True, exist_ok=True)
-    plt.savefig(f"./out/rpe-cam{camera_idx+1}.png")
+    plot_path = f"./out/rpe-cam{camera_idx+1}.png"
+    plt.savefig(plot_path)
+    logging.debug(
+        f"Saved intrinsics error plot for camera #{camera_idx} to path: {plot_path}"
+    )
 
     # TODO: END REMOVE
     return ret
