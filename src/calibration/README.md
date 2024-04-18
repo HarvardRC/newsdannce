@@ -13,15 +13,13 @@ Look at README files in each subfolder for more info.
 3. `old_dannce_calibration`: Original DANNCE calibration
    - **Intrinsic:** Matlab w. checkboard
    - **Extrinsic:** Matlab w. L-frame?
-4. `new_calibration`: Chris updates to calibration code - will be canonical calibration for newsdannce
+4. `new`: Chris updates to calibration code - will be canonical calibration for newsdannce
    - **Under development**
    - Goals:
      - Remove dependency on matlab
      - Possibly: GUI
      - Better error messages
      - Return calibration accuracy
-
-
 
 
 ## Other calibration solutions (not included here)
