@@ -204,7 +204,7 @@ def parse_and_calibrate():
     project_dir = args.project_dir
     output_dir = args.output_dir
     matlab_intrinsics = args.matlab_intrinsics
-    intrinsics_dir = args.intrinsics_dir
+    existing_intrinsics_dir = args.existing_intrinsics_dir
     verbose = args.verbose
 
     match verbose:
@@ -226,7 +226,7 @@ def parse_and_calibrate():
     logging.info(f"BASE PROJECT DIR: {project_dir}")
     logging.info(f"PARAM OUTPUT DIR: {output_dir}")
     logging.info(f"CONVERT INTRINSICS TO MATLAB?: {matlab_intrinsics}")
-    logging.info(f"INTRINSICS DIR?: {intrinsics_dir}")
+    logging.info(f"INTRINSICS DIR?: {existing_intrinsics_dir}")
     logging.info("-----")
 
     do_calibrate(
@@ -237,7 +237,7 @@ def parse_and_calibrate():
         square_size_mm=square_size_mm,
         matlab_intrinsics=matlab_intrinsics,
         verbose=args.verbose,
-        intrinsics_dir=intrinsics_dir,
+        existing_intrinsics_dir=existing_intrinsics_dir,
     )
 
 
