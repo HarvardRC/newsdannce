@@ -2,6 +2,9 @@
 
 To use the new calibration GUI for chesssboard targets, please read the calibration [README file](./src/calibration/new/README.md).
 
+
+ALL COMMANDS ASSUME YOU'RE RUNNING THEM FROM THE ROOT OF THE REPO, not one of the subfolders!
+
 ## Overview
 
 ## Installation
