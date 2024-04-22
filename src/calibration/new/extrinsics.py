@@ -67,8 +67,7 @@ def calibrate_extrinsics(
 
     ret = ExtrinsicsParams(rotation_matrix=rotation_matrix, translation_vector=t_vec)
 
-    # TODO: REMOVE
-    # COMPUTE RPE for testing
+    # TODO: START REMOVE (Compute RPE for testing)
 
     ipts = corner_coords.squeeze()
     re_ipts_raw, _jacobian = cv2.projectPoints(
@@ -81,14 +80,22 @@ def calibrate_extrinsics(
 
     re_ipts = re_ipts_raw.squeeze()
     cv2.drawChessboardCorners(
-        image=gray, corners=re_ipts, patternSize=(cols, rows), patternWasFound=True
+        image=img, corners=re_ipts, patternSize=(cols, rows), patternWasFound=True
+    )
+    cv2.drawChessboardCorners(
+        image=img,
+        corners=corner_coords,
+        patternSize=(cols, rows),
+        patternWasFound=False,
     )
 
-    cv2.imwrite(f"./out/ext_reproj_cam{camera_idx+1}.png", gray)
+    extrinsics_plot_output = f"./out/ext_reproj_cam{camera_idx+1}.png"
+    logging.debug(f"Saving extrinsics RPE image to file: {extrinsics_plot_output}")
+    cv2.imwrite(extrinsics_plot_output, img)
 
     rpe = calculate_rpe(ipts, re_ipts)
-    logging.info(f"Extrinsics RPE: {rpe}")
+    logging.info(f"Extrinsics RPE (single camera): {rpe}")
 
-    # TODO: END REMOVE
+    # TODO: END REMOVE (Compute RPE for testing)
 
     return ret
