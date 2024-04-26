@@ -5,11 +5,11 @@ import argparse
 
 import pathlib
 
-from .extrinsics import ExtrinsicsParams
-from .intrinsics import IntrinsicsParams
-from .video_utils import get_first_frame_video, get_chessboard_coordinates, load_image
+from ..extrinsics import ExtrinsicsParams
+from ..intrinsics import IntrinsicsParams
+from ..video_utils import get_first_frame_video, get_chessboard_coordinates, load_image
 
-from .math_utils import calculate_rpe
+from ..math_utils import calculate_rpe
 
 
 def test_matlab(
