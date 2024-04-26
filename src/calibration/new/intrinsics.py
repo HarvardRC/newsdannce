@@ -218,7 +218,12 @@ def calibrate_intrinsics(
 
     # note: we ignore r_vecs & t_vecs because we don't care about location of calibration target in each frame
     reproject_err, camera_matrix, raw_dist, r_vecs, t_vecs = cv2.calibrateCamera(
-        objpoints, imgpoints, gray.shape[::-1], None, None, flags=cv2.CALIB_FIX_K3
+        objpoints,
+        imgpoints,
+        gray.shape[::-1],
+        None,
+        None,
+        flags=cv2.CALIB_FIX_K3 | cv2.CALIB_USE_LU,
     )
     end = time.perf_counter()
     logging.info(f"Intrinsics calculation took in {(end-start)*1000:.2f} ms")
