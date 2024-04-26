@@ -1,4 +1,4 @@
-from PySide6.QtCore import QFile, QIODevice, Signal, Slot, QObject, QThread
+from PySide6.QtCore import QFile, QIODevice, Signal, Slot, QObject, QThread, QSettings
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (
     QWidget,
@@ -24,6 +24,12 @@ from src.calibration.new.logger import init_logger
 METHOD_IDX_CHESSBOARD = 0
 METHOD_IDX_APRILTAG = 1
 METHOD_IDX_CHARUCO = 2
+
+
+ORGANIZATION_NAME = "OlveczkyLab"
+APPLICATION_NAME = "CalibrationGui"
+
+settings = QSettings(ORGANIZATION_NAME, APPLICATION_NAME)
 
 
 class CalibrateWorker(QObject):
@@ -88,9 +94,31 @@ class CalibrationWindow(QMainWindow):
         self.chessboard_size: QDoubleSpinBox = self.findByName("squareSizeMM")
         self.progress_bar: QProgressBar = self.findByName("progressBar")
 
+        # mapping used to set/load widget state from settings
+        self.mappings = []
+        self.mappings.append(("project_dir", str, self.project_dir_edit))
+        self.mappings.append(("intrinsics_dir", str, self.intrinsics_dir_edit))
+        self.mappings.append(("output_dir", str, self.output_dir_edit))
+        self.mappings.append(("chessboard_rows", int, self.chessboard_rows))
+        self.mappings.append(("chessboard_cols", int, self.chessboard_cols))
+        self.mappings.append(("chessboard_size", float, self.chessboard_size))
+
     def setInitialState(self):
         """Set up any intitial state required to be done in python"""
         self.progress_bar.setVisible(False)
+
+        for key, type, object in self.mappings:
+            if settings.contains(key):
+                setting_value = settings.value(key, type)
+                print(
+                    f"LOADING SETTING FOR {key} of type: {type}. Value to be loaded: {setting_value}"
+                )
+                if type == str:
+                    object.setText(setting_value)
+                elif type == int or type == float:
+                    object.setValue(setting_value)
+                else:
+                    raise Exception(f"Not sure how to load setting of type: {type}")
 
     def makeConnections(self):
         """Connect all slots and signals"""
@@ -153,6 +181,14 @@ class CalibrationWindow(QMainWindow):
             raise Exception(
                 "Unsupported calibration index: pick_method.currentIndex. Check UI file."
             )
+
+        settings.setValue("project_dir", project_dir)
+        settings.setValue("intrinsics_dir", intrinsics_dir)
+        settings.setValue("output_dir", output_dir)
+        settings.setValue("chessboard_rows", method_options["rows"])
+        settings.setValue("chessboard_cols", method_options["cols"])
+        settings.setValue("chessboard_size", method_options["square_size_mm"])
+        settings.setValue("method_idx", method_idx)
 
         self.progress_bar.setVisible(True)
         self.calibrateInThread(
