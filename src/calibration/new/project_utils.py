@@ -232,7 +232,7 @@ def get_extrinsics_video_paths(extrinsics_dir: str, camera_names: list[dict]):
         matches = matching_paths_2
 
     if not matches:
-        logging.warn("Unable to find extrinsic video files paths")
+        logging.warning("Unable to find extrinsic video files paths")
         return []
 
     matches = list(

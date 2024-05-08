@@ -12,12 +12,15 @@ from PySide6.QtWidgets import (
     QComboBox,
     QSpinBox,
     QDoubleSpinBox,
+    QStackedWidget,
 )
 import sys
 from pathlib import Path
 import logging
 
-from src.calibration.new.calibrate import do_calibrate
+from src.calibration.new.calibrate import do_calibrate, CalibrationData
+from src.calibration.new.validate import do_validate
+
 from src.calibration.new.logger import init_logger
 
 # constant enums representing "pick calibration method" comboBox
@@ -25,6 +28,9 @@ METHOD_IDX_CHESSBOARD = 0
 METHOD_IDX_APRILTAG = 1
 METHOD_IDX_CHARUCO = 2
 
+# page indices for root stacked widget
+PAGE_IDX_CALIBRATE = 0
+PAGE_IDX_VALIDATE = 1
 
 ORGANIZATION_NAME = "OlveczkyLab"
 APPLICATION_NAME = "CalibrationGui"
@@ -33,7 +39,7 @@ settings = QSettings(ORGANIZATION_NAME, APPLICATION_NAME)
 
 
 class CalibrateWorker(QObject):
-    finished = Signal()
+    finished = Signal(object)
     progress = Signal(int)
 
     def __init__(self, **arg_dict):
@@ -42,14 +48,31 @@ class CalibrateWorker(QObject):
 
     def run(self):
         logging.debug(f"Running calibration: Args: {self.arg_dict}")
-        do_calibrate(on_progress=lambda pct: self.progress.emit(pct), **self.arg_dict)
-        self.finished.emit()
+        calibration_data = do_calibrate(
+            on_progress=lambda pct: self.progress.emit(pct), **self.arg_dict
+        )
+        self.finished.emit({"calibration_data": calibration_data})
+
+
+class ValidateWorker(QObject):
+    finished = Signal(object)
+
+    def __init__(self, **arg_dict):
+        super().__init__()
+        self.arg_dict = arg_dict
+
+    def run(self):
+        logging.debug(f"Running validation: Args: {self.arg_dict}")
+        do_validate(**self.arg_dict)
+        self.finished.emit("Too bad soo sad")
 
 
 class CalibrationWindow(QMainWindow):
+    calibration_data: CalibrationData = None
+
     def __init__(self):
         super().__init__()
-        self.ui_file_name = "src/calibration/new/ui/calibration.ui"
+        self.ui_file_name = "src/calibration/new/ui/calibration_stacked.ui"
         self.loadUi()
         # link self properties to useful widgets
         self.makeAliases()
@@ -79,7 +102,8 @@ class CalibrationWindow(QMainWindow):
 
     def makeAliases(self):
         """Link all important widgets to aliases on the main app object"""
-
+        # first page (CALIBRATE)
+        self.root_widget_stacked: QStackedWidget = self.findByName("rootWidgetStacked")
         self.calibrate_button: QPushButton = self.findByName("calibrateButton")
         self.project_dir_edit: QLineEdit = self.findByName("projectDirEdit")
         self.project_dir_browse: QPushButton = self.findByName("projectDirBrowse")
@@ -94,6 +118,20 @@ class CalibrationWindow(QMainWindow):
         self.chessboard_size: QDoubleSpinBox = self.findByName("squareSizeMM")
         self.progress_bar: QProgressBar = self.findByName("progressBar")
 
+        # TODO: DEBUG ITEM REMOVE
+        self.skip_calibration_button: QPushButton = self.findByName(
+            "skipCalibrationButton"
+        )
+        self.skip_calibration_button.setVisible(False)
+
+        # SECOND PAGE (VALIDATE)
+        self.params_dir_edit: QLineEdit = self.findByName("paramsDirEdit")
+        self.params_dir_browse: QPushButton = self.findByName("paramsDirBrowse")
+
+        self.validate_dir_edit: QLineEdit = self.findByName("validateDirEdit")
+        self.validate_dir_browse: QPushButton = self.findByName("validateDirBrowse")
+        self.validate_button: QPushButton = self.findByName("validateButton")
+
         # mapping used to set/load widget state from settings
         self.mappings = []
         self.mappings.append(("project_dir", str, self.project_dir_edit))
@@ -104,6 +142,7 @@ class CalibrationWindow(QMainWindow):
         self.mappings.append(("chessboard_size", float, self.chessboard_size))
 
     def setInitialState(self):
+        self.root_widget_stacked.setCurrentIndex(PAGE_IDX_CALIBRATE)
         """Set up any intitial state required to be done in python"""
         self.progress_bar.setVisible(False)
 
@@ -122,6 +161,7 @@ class CalibrationWindow(QMainWindow):
 
     def makeConnections(self):
         """Connect all slots and signals"""
+        # calibrate page
         self.calibrate_button.clicked.connect(self.handleCalibrate)
         self.project_dir_browse.clicked.connect(
             self.handleBrowseDirPartial(self.project_dir_edit, "Project")
@@ -133,7 +173,19 @@ class CalibrationWindow(QMainWindow):
             self.handleBrowseDirPartial(self.output_dir_edit, "Output")
         )
 
-    def validate(self):
+        # validate page
+        self.validate_dir_browse.clicked.connect(
+            self.handleBrowseDirPartial(self.validate_dir_edit, "Validation")
+        )
+        self.params_dir_browse.clicked.connect(
+            self.handleBrowseDirPartial(self.params_dir_edit, "Parameter folder")
+        )
+        self.validate_button.clicked.connect(self.handleValidate)
+
+        # DEBUG ITEMS : TODO: DEBUG METHOD REMOVE
+        self.skip_calibration_button.clicked.connect(self.handleSkipCalibration)
+
+    def checkCalibrationPage(self):
         if len(self.project_dir_edit.text()) == 0:
             return False
         if len(self.output_dir_browse.text()) == 0:
@@ -147,9 +199,22 @@ class CalibrationWindow(QMainWindow):
             return False
         return True
 
+    def switchStackToVerificationPage(self):
+        """Switch root stacked panel from the initial page (calibration) to the verification page.
+        Does this gracefully and update with calibration data if provided"""
+        self.root_widget_stacked.setCurrentIndex(PAGE_IDX_VALIDATE)
+
+        if self.calibration_data:
+            output_dir = self.calibration_data.output_dir
+            self.params_dir_edit.setText(output_dir)
+
+    @Slot(None)
+    def handleSkipCalibration(self):
+        self.switchStackToVerificationPage()
+
     @Slot(None)
     def handleCalibrate(self):
-        valid = self.validate()
+        valid = self.checkCalibrationPage()
         if not valid:
             return
         # disable the button immediately so it cannot be pressed multiple times
@@ -198,14 +263,47 @@ class CalibrationWindow(QMainWindow):
             **method_options,
         )
 
+    @Slot(None)
+    def handleValidate(self):
+        # briefly validate
+        if len(self.validate_dir_edit.text()) == 0:
+            logging.warning("Validate dir is empty: try again")
+            return False
+
+        if len(self.params_dir_edit.text()) == 0:
+            logging.warning("Params dir is empty: try again")
+            return False
+
+        # disable the button immediately so it cannot be pressed multiple times
+        self.validate_button.setEnabled(False)
+        validate_dir = self.validate_dir_edit.text()
+        params_dir = self.params_dir_edit.text()
+
+        self.validateInThread(
+            params_dir=params_dir,
+            validate_dir=validate_dir,
+            calibration_data=self.calibration_data,
+        )
+
     @Slot(int)
     def reportProgress(self, pct: int):
         self.progress_bar.setValue(pct)
 
-    @Slot(None)
-    def handleCalibrateFinished(self):
-        logging.info("Calibration done, app is exiting!")
-        QApplication.quit()
+    @Slot(object)
+    def handleCalibrateFinished(self, output_object):
+        self.calibration_data = output_object["calibration_data"]
+
+        logging.info("Calibration done")
+        self.switchStackToVerificationPage()
+        logging.debug("Telling thread1 to quit after calibration")
+        self.thread1.quit()
+        logging.debug("Waiting for thread1 to quit after calibration")
+        self.thread1.wait()
+        logging.debug(
+            "Killed thread1 and resuming main thread execution after calibrate"
+        )
+        del self.thread1
+        del self.worker
 
     def calibrateInThread(self, **arg_dict):
         if hasattr(self, "thread1"):
@@ -220,6 +318,32 @@ class CalibrationWindow(QMainWindow):
         self.worker.progress.connect(self.reportProgress)
         self.worker.finished.connect(self.handleCalibrateFinished)
         self.thread1.start()
+
+    def validateInThread(self, **arg_dict):
+        logging.warning("Trying to validate")
+        if hasattr(self, "thread1"):
+            raise Exception("Error: thread already exists [validation]")
+        self.thread1 = QThread()
+        self.worker = ValidateWorker(**arg_dict)
+        self.worker.moveToThread(self.thread1)
+        self.thread1.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread1.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread1.finished.connect(self.thread1.deleteLater)
+        self.worker.finished.connect(self.handleValidateFinished)
+        self.thread1.start()
+
+    @Slot(None)
+    def handleValidateFinished(self):
+        logging.info("Validation done")
+        logging.debug("Telling thread1 to quit after validation")
+        self.thread1.quit()
+        logging.debug("Waiting for thread1 to quit after validation")
+        self.thread1.wait()
+        logging.debug(
+            "Killed thread1 and resuming main thread execution after validation"
+        )
+        del self.thread1
 
     def handleBrowseDirPartial(self, target_edit, name):
         """function generator for any QLineEdit widget to open a directory browse OS window"""
