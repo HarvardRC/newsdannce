@@ -2,7 +2,9 @@
 import argparse
 import logging
 import os
+import pickle
 import time
+from pathlib import Path
 
 from src.calibration.new.calibration_data import CalibrationData, CameraParams
 from src.calibration.new.extrinsics import calibrate_extrinsics
@@ -29,7 +31,7 @@ def do_calibrate(
     save_rpe=False,
     existing_intrinsics_dir: str = None,
     matlab_intrinsics=True,
-    verbose=False,
+    pickle_to: str = None,  # optional argument for debugging: save the calibration_data object to this filepath as a pickle
 ) -> None:
     start = time.perf_counter()
     # TODO: improve this, but an empty string for intrinsics_dir is not None
@@ -119,6 +121,7 @@ def do_calibrate(
         chessboard_cols=cols,
         chessboard_rows=rows,
         chessboard_square_size_mm=square_size_mm,
+        output_dir=output_dir,
     )
 
     if output_dir:
@@ -127,13 +130,19 @@ def do_calibrate(
             output_dir=output_dir,
             matlab_intrinsics=matlab_intrinsics,
         )
-    else:
-        return calibration_data
+
+    if pickle_to is not None and len(pickle_to) > 0:
+        pickle_to_path = Path(pickle_to)
+        with open(pickle_to_path, "wb") as f:
+            pickle.dump(calibration_data, f)
+        logging.info(f"Saved calibration data to pickle file at path {pickle_to_path}")
 
     ellapsed_seconds = time.perf_counter() - start
     sec = int(ellapsed_seconds % 60)
     min = int(ellapsed_seconds // 60)
     logging.info(f"Finished calibration in {min:02d}:{sec:02d} (mm:ss)")
+
+    return calibration_data
 
 
 def parse_and_calibrate():
@@ -195,6 +204,12 @@ def parse_and_calibrate():
         action="count",
         help="Additional logging output (useful for debugging)",
     )
+    parser.add_argument(
+        "--pickle-to",
+        required=False,
+        default=None,
+        help="[DEBUG OPTION] If not None/arg not provided, save the created calibration_data object to a pickle file at this filepath specified",
+    )
 
     args = parser.parse_args()
 
@@ -206,6 +221,7 @@ def parse_and_calibrate():
     matlab_intrinsics = args.matlab_intrinsics
     existing_intrinsics_dir = args.existing_intrinsics_dir
     verbose = args.verbose
+    pickle_to = args.pickle_to
 
     match verbose:
         case 0:
@@ -236,8 +252,8 @@ def parse_and_calibrate():
         cols=cols,
         square_size_mm=square_size_mm,
         matlab_intrinsics=matlab_intrinsics,
-        verbose=args.verbose,
         existing_intrinsics_dir=existing_intrinsics_dir,
+        pickle_to=pickle_to,
     )
 
 

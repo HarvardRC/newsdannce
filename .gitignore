@@ -182,3 +182,8 @@ demo/weights
 # output files (logs, charts, etc.)
 /out/
 /logs/
+
+# test files including test data tarballs
+/workdir-test
+*.tar.gz
+*.tgz

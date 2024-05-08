@@ -75,8 +75,7 @@ class IntrinsicsParams:
             )
 
     def __repr__(self) -> str:
-        dist = np.hstack((self.r_distort, self.t_distort))
-        return f"camera_matrix={json.dumps(self.camera_matrix.tolist())}\ndist={json.dumps(dist.tolist())}\nr_distort={self.r_distort}, t_distort={self.t_distort}"
+        return f"camera_matrix={json.dumps(self.camera_matrix.tolist())}\ndist={json.dumps(self.dist.tolist())}\nr_distort={self.r_distort}, t_distort={self.t_distort}"
 
     def to_matlab(self) -> "IntrinsicsParamsMatlab":
         f_x = self.camera_matrix[0, 0]
@@ -204,7 +203,7 @@ def calibrate_intrinsics(
             if show_img is True:
                 cv2.drawChessboardCorners(this_img, (cols, rows), corner_coords, True)
         else:
-            logging.warn(f"No pattern detected: Cam# {camera_idx}, Image# {img_idx}")
+            logging.warning(f"No pattern detected: Cam# {camera_idx}, Image# {img_idx}")
             logging.debug(f"Image #{img_idx} path: {image_paths[img_idx]}")
             failed_imgs.append(img_idx)
 
