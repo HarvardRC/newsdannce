@@ -1,0 +1,1 @@
+# somehow the vscode keep saying that i have no access thus i had to use this stupid way to upload files. usually git is making life easier however it costs me a great several hours of attempting the exact same thing but then it just does not update/sync with the web. something is wrong yet i know not.
