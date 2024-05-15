@@ -23,6 +23,8 @@ setup(
         "tqdm",
         "pandas",
         "loguru",
+        "omegaconf",
+        "hydra-core"
     ],
     entry_points={
         "console_scripts": [
