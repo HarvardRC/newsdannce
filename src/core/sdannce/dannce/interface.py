@@ -1,4 +1,5 @@
 """Handle training and prediction for DANNCE and COM networks."""
+
 import os
 
 import numpy as np
@@ -44,7 +45,7 @@ def dannce_train(params: dict):
         shared_args,
         shared_args_train,
         shared_args_valid,
-    ) = config.setup_train(params)
+    ) = config.setup_dannce_train(params)
 
     spec_args = params["dataset_args"]
     spec_args = {} if spec_args is None else spec_args
@@ -89,7 +90,7 @@ def dannce_predict(params: dict):
         params (dict): Paremeters dictionary.
     """
     logger, device = experiment_setup(params, "dannce_predict")
-    params, valid_params = config.setup_predict(params)
+    params, valid_params = config.setup_dannce_predict(params)
     if params["dataset"] == "rat7m":
         predict_generator = dataset.RAT7MNPYDataset(train=False)
         predict_generator_sil = None
@@ -158,7 +159,7 @@ def sdannce_train(params: dict):
         shared_args,
         shared_args_train,
         shared_args_valid,
-    ) = config.setup_train(params)
+    ) = config.setup_dannce_train(params)
 
     # handle specific params
     custom_model_params = params["graph_cfg"]
@@ -231,7 +232,7 @@ def sdannce_predict(params: dict):
     """
     logger, device = experiment_setup(params, "dannce_predict")
 
-    params, valid_params = config.setup_predict(params)
+    params, valid_params = config.setup_dannce_predict(params)
 
     # handle specific params
     # load in params saved in checkpoint to ensure consistency

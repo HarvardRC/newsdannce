@@ -37,7 +37,23 @@ def grab_predict_label3d_file(defaultdir: str = "", index: int = 0):
 def infer_params(params: dict, dannce_net: bool, prediction: bool):
     """
     Some parameters that were previously specified in configs can just be inferred
-        from others, thus relieving config bloat
+        from others, thus relieving config bloat.
+
+    Specifically:
+    1. camnames (from dannce.mat file)
+    2. vid_dir_flag
+    3. n_channels_in
+    4. chunks
+    5. video file extension
+    6. raw_im_h
+    7. raw_im_w
+    8. crop_height
+    9. crop_width
+    10. maxbatch [ max_num_samples/batch_size]
+    11. start_batch
+    12. vol_size
+    13. n_rand_views
+
     """
     # Grab the camnames from *dannce.mat if not in config
     if params["camnames"] is None:
@@ -431,7 +447,7 @@ def adjust_loss_params(params: dict):
     return params
 
 
-def setup_train(params: dict):
+def setup_dannce_train(params: dict):
     # turn off currently unavailable features
     params["multi_mode"] = False
     params["depth"] = False
@@ -551,7 +567,7 @@ def setup_train(params: dict):
     return params, base_params, shared_args, shared_args_train, shared_args_valid
 
 
-def setup_predict(params: dict):
+def setup_dannce_predict(params: dict):
     # Depth disabled until next release.
     params["depth"] = False
     # Make the prediction directory if it does not exist.
