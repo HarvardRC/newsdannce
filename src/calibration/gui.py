@@ -184,20 +184,24 @@ class CalibrationWindow(QMainWindow):
         monofont.setStyleHint(QFont.StyleHint.Monospace)
         self.calibration_log.setFont(monofont)
 
-        for key, type, object in self.mappings:
-            if settings.contains(key):
-                setting_value = settings.value(key, type)
-                print(
-                    f"LOADING SETTING FOR {key} of type: {type}. Value to be loaded: {setting_value}"
-                )
-                if type == str:
-                    object.setText(setting_value)
-                elif type == int or type == float:
-                    object.setValue(setting_value)
-                elif type == bool:
-                    object.setChecked(setting_value)
-                else:
-                    raise Exception(f"Not sure how to load setting of type: {type}")
+        try:
+            for key, type, object in self.mappings:
+                if settings.contains(key):
+                    setting_value = settings.value(key, type)
+                    print(
+                        f"LOADING SETTING FOR {key} of type: {type}. Value to be loaded: {setting_value}"
+                    )
+                    if type == str:
+                        object.setText(setting_value)
+                    elif type == int or type == float:
+                        object.setValue(setting_value)
+                    elif type == bool:
+                        object.setChecked(setting_value)
+                    else:
+                        raise Exception(f"Not sure how to load setting of type: {type}")
+        except Exception:
+            logging.error("Unable to load previous settings. Clearing settings.")
+            settings.clear()
 
     def makeConnections(self):
         """Connect all slots and signals. E.g. Button presses, etc."""
