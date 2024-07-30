@@ -408,7 +408,8 @@ class CalibrationWindow(QMainWindow):
                 # Open the user's home directory by default. This should work on mac/windows.
                 default_dir,
             )
-            target_edit.setText(folder_path)
+            if folder_path is not None and folder_path != "":
+                target_edit.setText(folder_path)
 
         return _handleBrowseDir
 
