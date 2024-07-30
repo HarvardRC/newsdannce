@@ -1,0 +1,22 @@
+name: dannce-dev
+channels:
+  - defaults
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.11
+  - numpy
+  - ca-certificates
+  - openssl
+  - scipy
+  - ipykernel
+  - jupyterlab
+  - imageio-ffmpeg
+  - certifi
+  - matplotlib
+  - pip
+  - gitpython
+  - jinja2
+  - pip:
+      - opencv-python
+      - pyside6

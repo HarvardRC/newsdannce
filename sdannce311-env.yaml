@@ -1,0 +1,19 @@
+name: sdannce311
+channels:
+  - conda-forge
+  - nvidia
+dependencies:
+  - python=3.11
+  - pip
+  - wheel
+  - cuda-toolkit
+  - ca-certificates
+  - openssl
+  - pytorch
+  - torchvision
+  - torchaudio
+  - pytorch-cuda=12.1
+  - cudnn
+  - certifi
+  - pip:
+    - setuptools
