@@ -393,6 +393,9 @@ class CalibrationWindow(QMainWindow):
     def handleBrowseDirPartial(self, target_edit, name, default_dir=None):
         """function generator for any QLineEdit widget to open a directory browse OS window"""
 
+        # default to current value of field if not specified
+        if default_dir is None:
+            default_dir = target_edit.text()
         # try to load deafult_dir, if it does not exist then deafult to user's home directory
         if default_dir is None or default_dir == "" or not Path(default_dir).is_dir():
             default_dir = str(Path.home())
