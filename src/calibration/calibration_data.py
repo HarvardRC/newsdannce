@@ -65,6 +65,31 @@ class CameraParams:
         ]
         return all(sames)
 
+    def make_projection_matrix(self):
+        # rt_mtx = [ R | T ] -- (size: 3x4)
+        rt_mtx = np.zeros((3, 4), dtype=np.float64)
+        rt_mtx[0:3, 0:3] = self.rotation_matrix
+        rt_mtx[0:3, 3:4] = self.translation_vector
+        proj_mtx = self.camera_matrix @ rt_mtx
+        return proj_mtx
+
+    def project_world_point(self, world_point):
+        """Projection of world point in image-space.
+        World point should be a 3d (non-homogeneous) np array
+
+        Returns a numpy vector with size 2: (u,v) in pixels
+        """
+        assert world_point.size == 3, "world point must have 3 entries (x,y,z)"
+        world_point = world_point.reshape((3, 1))
+        # use homogeneous world point: (x , y , z , 1).T
+        world_point = np.vstack([world_point, 1])
+        proj_mtx = self.make_projection_matrix()
+        x_homog = proj_mtx @ world_point
+        # convert to non-homogeneous by dividing by last entry (w)
+        x = x_homog[0:2, 0] / [x_homog[2, 0]]
+        x = x.reshape((2,))  # return a vector instead of a 2d matrix
+        return x
+
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class CalibrationData:

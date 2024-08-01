@@ -142,6 +142,7 @@ def calibrate_intrinsics(
     image_width: int,  # image width in px
     image_height: int,  # image height in px
     camera_idx: int = None,  # optionally provide the camera idx (only useful for logging/debugging)
+    plot_rpe=False,
 ) -> IntrinsicsParams:
     """Primary method to calibrate camera intrinsics given a set of images paths and metadata
 
@@ -242,18 +243,19 @@ def calibrate_intrinsics(
     logging.debug(f"Intrinsics max  RPE: {np.max(rpes)}")
     logging.debug(f"Intrinsics min  RPE: {np.min(rpes)}")
 
-    ### Plot intrinsics error
-    # use non-interactive MPL backend
-    matplotlib.use("agg")
-    plt.figure()
-    plt.bar(x=[i for i in range(len(rpes))], height=rpes)
-    plt.title(f"Camera {camera_idx+1} Intrinsics RPE")
-    Path("./out").mkdir(parents=True, exist_ok=True)
-    plot_path = f"./out/rpe_cam{camera_idx+1}.png"
-    plt.savefig(plot_path)
-    logging.debug(
-        f"Saved intrinsics error plot for camera #{camera_idx} to path: {plot_path}"
-    )
+    if plot_rpe:
+        ### Plot intrinsics error
+        # use non-interactive MPL backend
+        matplotlib.use("agg")
+        plt.figure()
+        plt.bar(x=[i for i in range(len(rpes))], height=rpes)
+        plt.title(f"Camera {camera_idx+1} Intrinsics RPE")
+        Path("./out").mkdir(parents=True, exist_ok=True)
+        plot_path = f"./out/rpe_cam{camera_idx+1}.png"
+        plt.savefig(plot_path)
+        logging.debug(
+            f"Saved intrinsics error plot for camera #{camera_idx} to path: {plot_path}"
+        )
 
     # TODO: END REMOVE
     return ret

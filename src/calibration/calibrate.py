@@ -32,7 +32,6 @@ def do_calibrate(
     cols: int,
     square_size_mm: float,
     on_progress=None,
-    existing_intrinsics_dir: str | None = None,
     disable_label3d_format=False,
     extrinsics_format=ExtrinsicsMediaFormat,
     pickle_to: str = None,  # optional argument for debugging: save the calibration_data object to this filepath as a pickle

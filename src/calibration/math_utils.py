@@ -28,7 +28,6 @@ def triangulate(imgpoints, view_matrices):
         A[3 * i + 0, :] = u[1] * P[2, :] - P[1, :]
         A[3 * i + 1, :] = -1 * u[0] * P[2, :] + P[0, :]
         A[3 * i + 2, :] = u[0] * P[1, :] - u[1] * P[0, :]
-    print("MATRIX A\n", A)
 
     U, S_vec, Vh = np.linalg.svd(A)
     V = Vh.T
@@ -36,5 +35,4 @@ def triangulate(imgpoints, view_matrices):
     X_homog = V[:, -1]  # final column of V: value for x where Ax is closest to 0
     X = X_homog[:3] / X_homog[3]  # homogoneous (4D) to non-homogenous (3D) coords
     min_sigma = S_vec[-1]  # minimum value of sigma - some metric of error?
-    print("Min sigma", min_sigma)
     return X

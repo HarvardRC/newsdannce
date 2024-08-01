@@ -16,7 +16,7 @@ from src.calibration.calibration_data import CalibrationData
 from .extrinsics import ExtrinsicsMediaFormat
 from .intrinsics import IntrinsicsParams
 
-INTRINSICS_IMAGE_EXTENSIONS = [".tiff", ".tif", ".jpeg", ".jpg", ".png"]
+IMAGE_EXTENSIONS = [".tiff", ".tif", ".jpeg", ".jpg", ".png"]
 """Possible file extensions for intrinsics calibration images"""
 EXTRINSICS_EXTENSIONS = [".mp4", ".tiff", ".tif", ".jpeg", ".jpg", ".png"]
 
@@ -342,7 +342,7 @@ def get_intrinsics_image_paths(intrinsics_dir, camera_names):
     all_files = list(iglob(os.path.join(intrinsics_dir, "**", "*"), recursive=True))
     # create regex to match any camera folder name
 
-    extensions_regex = or_regex(INTRINSICS_IMAGE_EXTENSIONS)
+    extensions_regex = or_regex(IMAGE_EXTENSIONS)
     camera_names_regex = or_regex(camera_names)
 
     search_re_1 = f"{re.escape(intrinsics_dir)}{SEP}({camera_names_regex}){SEP}({FILENAME_CHARACTER_CLASS}+?({extensions_regex}))"
@@ -470,8 +470,8 @@ def write_calibration_params(
 
         logging.info(f"Saved to: {filename}")
 
-        if include_calibration_json:
-            calibration_data.DEV_export_to_file(Path(output_dir, "calibration.json"))
+    if include_calibration_json:
+        calibration_data.DEV_export_to_file(Path(output_dir, "calibration.json"))
 
 
 def get_repo_commit_sha():
@@ -483,3 +483,58 @@ def get_repo_commit_sha():
         return "UNAVAILABLE"
     sha = repo.head.object.hexsha
     return sha
+
+
+def get_verification_files(base_dir, camera_names):
+    """Return a list of verification images from a folder: e.g.
+    root-folder:
+        /Camera1
+            /0.png
+        ...
+        /Camera6
+            /0.png
+    """
+    base_dir = Path(base_dir)
+    assert base_dir.is_dir(), "base path must be a directory"
+
+    dirnames = []
+    for child in base_dir.iterdir():
+        dirnames.append(child.name)
+
+    assert set(dirnames) >= set(
+        camera_names
+    ), "base directory must have a subdirectory for each camera name"
+
+    # general rules: match 1. png, 2.tiff, 3.j
+    file_preference_order = [
+        r"0\.png",
+        r"0\.bmp",
+        r"0\.(?:tiff|tif)",
+        r"0\.(?:jpg|jpeg)",
+        r"(?!\.).+\.png",
+        r"(?!\.).+\.bmp",
+        r"(?!\.).+\.(?:tiff|tif)",
+        r"(?!\.).+?\.(?:jpg|jpeg)",
+    ]
+
+    def test_filenames(filenames):
+        for r in file_preference_order:
+            for filename in filenames:
+                if re.fullmatch(r, filename):
+                    return filename
+        return None
+
+    verification_files = []
+
+    for camera_name in sorted(camera_names):
+        # return the first filename match alphanumerically
+        filenames = sorted([x.name for x in Path(base_dir, camera_name).iterdir()])
+        match = test_filenames(filenames)
+        if match is None:
+            raise Exception(
+                "Camera folders do not contain valid image files for verification"
+            )
+        fullpath = str(Path(base_dir, camera_name, match))
+        verification_files.append(fullpath)
+
+    return verification_files

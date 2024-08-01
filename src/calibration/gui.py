@@ -1,21 +1,21 @@
-import numpy as np
 import argparse
 import logging
 import sys
 from enum import Enum
 from pathlib import Path
 
+import numpy as np
+
+# from matplotlib.backends.qt_compat import QtWidgets
 from PySide6.QtCore import QFile, QIODevice, QObject, QSettings, QThread, Signal, Slot
 from PySide6.QtGui import QFont
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (
-    QFrame,
     QApplication,
-    QLabel,
-    QComboBox,
     QDoubleSpinBox,
     QFileDialog,
-    QGroupBox,
+    QFrame,
+    QLabel,
     QLineEdit,
     QMainWindow,
     QProgressBar,
@@ -23,19 +23,14 @@ from PySide6.QtWidgets import (
     QRadioButton,
     QSpinBox,
     QStackedWidget,
-    QWidget,
     QTextBrowser,
-    QVBoxLayout,
+    QWidget,
 )
-from src.calibration.mpl_tools import setup_validation_window
 
-# from matplotlib.backends.qt_compat import QtWidgets
-from matplotlib.figure import Figure
-
+from src.calibration.validate_page import setup_validation_window
 from src.calibration.calibrate import CalibrationData, do_calibrate
 from src.calibration.extrinsics import ExtrinsicsMediaFormat
 from src.calibration.logger import init_logger
-from src.calibration.validate import do_validate
 from src.calibration.report_utils import get_calibration_report
 
 
@@ -43,7 +38,6 @@ class GuiPage(Enum):
     CALIBRATE = 0
     CALIBRATE_FINISHED = 1
     VALIDATE = 2
-    VALIDATE_FINISHED = 3
 
 
 ORGANIZATION_NAME = "OlveczkyLab"
@@ -69,19 +63,6 @@ class CalibrateWorker(QObject):
             on_progress=lambda pct: self.progress.emit(pct), **self.arg_dict
         )
         self.finished.emit({"calibration_data": calibration_data})
-
-
-class ValidateWorker(QObject):
-    finished = Signal(object)
-
-    def __init__(self, **arg_dict):
-        super().__init__()
-        self.arg_dict = arg_dict
-
-    def run(self):
-        logging.debug(f"Running validation: Args: {self.arg_dict}")
-        do_validate(**self.arg_dict)
-        self.finished.emit("Too bad soo sad")
 
 
 class CalibrationWindow(QMainWindow):
@@ -158,8 +139,6 @@ class CalibrationWindow(QMainWindow):
 
         # Validation Page
         self.image_frame: QFrame = self.findByName("imageWidget")
-
-        # self.run_validate_button: QPushButton = self.findByName("runValidateButton")
 
         # mapping used to set/load widget state from settings
         self.mappings = []
@@ -244,12 +223,10 @@ class CalibrationWindow(QMainWindow):
 
     @Slot(None)
     def handleGoToValidatePage(self):
-        print("GOING TO VALIDATION PAGE")
         self.switchStackToValidatePage()
 
     @Slot(None)
     def handleSkipCalibration(self):
-        print("SKIPPING TO CALIBRATION")
         self.switchStackToCalibrationFinishedPage()
 
     @Slot(None)
@@ -300,29 +277,6 @@ class CalibrationWindow(QMainWindow):
             **method_options,
         )
 
-    @Slot(None)
-    def handleValidate(self):
-        # TODO UPDATE FOR NEW VALIDATION PAGE
-        # briefly validate
-        # if len(self.validate_dir_edit.text()) == 0:
-        #     logging.warning("Validate dir is empty: try again")
-        #     return False
-
-        # if len(self.params_dir_edit.text()) == 0:
-        #     logging.warning("Params dir is empty: try again")
-        #     return False
-
-        # # disable the button immediately so it cannot be pressed multiple times
-        # self.validate_button.setEnabled(False)
-        # validate_dir = self.validate_dir_edit.text()
-        # params_dir = self.params_dir_edit.text()
-
-        self.validateInThread(
-            # params_dir=params_dir,
-            # validate_dir=validate_dir,
-            calibration_data=self.calibration_data,
-        )
-
     @Slot(int)
     def reportProgress(self, pct: int):
         self.progress_bar.setValue(pct)
@@ -364,44 +318,24 @@ class CalibrationWindow(QMainWindow):
         self.worker.finished.connect(self.handleCalibrateFinished)
         self.thread1.start()
 
-    def validateInThread(self, **arg_dict):
-        logging.warning("Trying to validate")
-        if hasattr(self, "thread1"):
-            raise Exception("Error: thread already exists [validation]")
-        self.thread1 = QThread()
-        self.worker = ValidateWorker(**arg_dict)
-        self.worker.moveToThread(self.thread1)
-        self.thread1.started.connect(self.worker.run)
-        self.worker.finished.connect(self.thread1.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.thread1.finished.connect(self.thread1.deleteLater)
-        self.worker.finished.connect(self.handleValidateFinished)
-        self.thread1.start()
-
-    @Slot(None)
-    def handleValidateFinished(self):
-        logging.info("Validation done")
-        logging.debug("Telling thread1 to quit after validation")
-        self.thread1.quit()
-        logging.debug("Waiting for thread1 to quit after validation")
-        self.thread1.wait()
-        logging.debug(
-            "Killed thread1 and resuming main thread execution after validation"
-        )
-        del self.thread1
-
     def handleBrowseDirPartial(self, target_edit, name, default_dir=None):
         """function generator for any QLineEdit widget to open a directory browse OS window"""
 
-        # default to current value of field if not specified
-        if default_dir is None:
-            default_dir = target_edit.text()
-        # try to load deafult_dir, if it does not exist then deafult to user's home directory
-        if default_dir is None or default_dir == "" or not Path(default_dir).is_dir():
-            default_dir = str(Path.home())
-
         @Slot(None)
         def _handleBrowseDir():
+            # default to current value of field if not specified
+            if default_dir is None:
+                new_default_dir = target_edit.text()
+            else:
+                new_default_dir = default_dir
+            # try to load deafult_dir, if it does not exist then deafult to user's home directory
+            if (
+                new_default_dir is None
+                or new_default_dir == ""
+                or not Path(new_default_dir).is_dir()
+            ):
+                new_default_dir = str(Path.home())
+
             folder_path = QFileDialog.getExistingDirectory(
                 self,
                 f"Select {name} Folder",
@@ -426,5 +360,7 @@ if __name__ == "__main__":
     loader = QUiLoader()
     app = QApplication([])
     window = CalibrationWindow()
+    # start window as a larger size inititally
+    window.resize(1200, 900)
     window.show()
     sys.exit(app.exec())
