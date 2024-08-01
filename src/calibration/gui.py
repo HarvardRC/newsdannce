@@ -3,6 +3,7 @@ import logging
 import sys
 from enum import Enum
 from pathlib import Path
+import signal
 
 import numpy as np
 
@@ -47,6 +48,9 @@ APPLICATION_NAME = "CalibrationGui"
 UI_FILE_NAME = "src/calibration/ui_files/calibration.ui"
 
 settings = QSettings(ORGANIZATION_NAME, APPLICATION_NAME)
+
+# close application immediately on SIGINT (CTRL + C)
+signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 
 class CalibrateWorker(QObject):
