@@ -2,7 +2,7 @@
 
 ## Options for acquisition
 
-**Suggestion**: use campy for now
+**Suggestion**: use campy for camera recording
 
 1. Campy ([link to repo](https://github.com/ksseverson57/campy))
    - CLI tool
