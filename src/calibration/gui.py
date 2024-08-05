@@ -364,6 +364,7 @@ if __name__ == "__main__":
     loader = QUiLoader()
     app = QApplication([])
     window = CalibrationWindow()
+    window.setWindowTitle("DANNCE Calibration GUI")
     # start window as a larger size inititally
     window.resize(1200, 900)
     window.show()
