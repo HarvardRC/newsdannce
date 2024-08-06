@@ -13,7 +13,6 @@ from scipy.io import savemat
 
 from src.calibration.calibration_data import CalibrationData
 
-from .extrinsics import ExtrinsicsMediaFormat
 from .intrinsics import IntrinsicsParams
 
 IMAGE_EXTENSIONS = [".tiff", ".tif", ".jpeg", ".jpg", ".png"]
@@ -62,7 +61,6 @@ class CalibrationPathsData:
 def get_calibration_paths(
     intrinsics_dir: str,
     extrinsics_dir: str,
-    extrinsics_format: ExtrinsicsMediaFormat,
 ):
     """
     Given a project directory, return a list of:
@@ -104,15 +102,9 @@ def get_calibration_paths(
 
     camera_names = get_camera_names(extrinsics_dir=extrinsics_dir)
 
-    if extrinsics_format == ExtrinsicsMediaFormat.VIDEO:
-        extrinsics_video_paths = get_extrinsics_video_paths(
-            extrinsics_dir=extrinsics_dir, camera_names=camera_names
-        )
-    else:
-        # Image format: ExtrinsicsMediaFormat.IMAGE
-        extrinsics_video_paths = get_extrinsics_image_paths(
-            extrinsics_dir=extrinsics_dir, camera_names=camera_names
-        )
+    extrinsics_video_paths = get_extrinsics_media_paths(
+        extrinsics_dir=extrinsics_dir, camera_names=camera_names
+    )
 
     extrinsics_simplified = list(map(lambda x: x["full_path"], extrinsics_video_paths))
 
@@ -197,8 +189,12 @@ def get_camera_names(extrinsics_dir) -> list[str]:
     return camera_names_unique
 
 
-def get_extrinsics_video_paths(extrinsics_dir: str, camera_names: list[dict]):
+def get_extrinsics_media_paths(
+    extrinsics_dir: str, camera_names: list[str]
+) -> list[str]:
     """
+    Generic version of function works with images or videos. Return paths for extrinsics images/videos x n_cameras.
+
     Camera_names is a list of camera folder names within extrinsics dir.
     See return list from :func:`get_camera_names()`.
     Search in the extrinsics directory and return a single file (e.g. `0.mp4`)
@@ -221,71 +217,9 @@ def get_extrinsics_video_paths(extrinsics_dir: str, camera_names: list[dict]):
     all_files = list(iglob(os.path.join(extrinsics_dir, "**", "*"), recursive=True))
     # create regex to match any camera folder name
     camera_names_regex = or_regex(camera_names)
-
-    # FIRST: look for `0.mp4` file
-    search_re_1 = (
-        f"{re.escape(extrinsics_dir)}{SEP}({camera_names_regex}){SEP}(0\\.mp4)"
-    )
-    r_1 = re.compile(search_re_1)
-    matching_paths_1 = list(filter(None, map(lambda x: r_1.fullmatch(x), all_files)))
-
-    if matching_paths_1:
-        matches = matching_paths_1
-    else:
-        # OTHERWISE: look for `*.mp4` file
-        search_re_2 = f"{re.escape(extrinsics_dir)}{SEP}{camera_names_regex}{SEP}{FILENAME_CHARACTER_CLASS}+?\\.mp4"
-        r_2 = re.compile(search_re_2)
-        matching_paths_2 = list(
-            filter(None, map(lambda x: r_2.fullmatch(x), all_files))
-        )
-        matches = matching_paths_2
-
-    if not matches:
-        logging.warning("Unable to find extrinsic video files paths")
-        return []
-
-    matches = list(
-        map(
-            lambda x: {
-                "full_path": x.group(0),
-                "camera_name": x.group(1),
-                "file_name": x.group(2),
-            },
-            matches,
-        )
-    )
-    matches.sort(key=lambda x: x["camera_name"])
-    return matches
-    # match.group(0) = full_path, match.group(1) = camera_name, match.group(2) =
-
-
-def get_extrinsics_image_paths(extrinsics_dir: str, camera_names: list[dict]):
-    """
-    Camera_names is a list of camera folder names within extrinsics dir.
-    See return list from :func:`get_camera_names()`.
-    Search in the extrinsics directory and return a single file (e.g. `0.png`)
-    Try the following paths, in order, until files are found:
-    - $extrinsics_dir/$CAMERA_NAME/0.png
-    - $extrinsics_dir/$CAMERA_NAME/*.png
-
-    Return format:
-    ```
-    list[{
-        "camera_name": str,
-        "file_name": str,
-        "full_path": str
-    }]
-    ```
-    Note: return list is sorted by camera name alphabetically
-    """
-    extrinsics_dir = os.path.normpath(extrinsics_dir)
-    # Note: don't recurse - assume first-level files
-    all_files = list(iglob(os.path.join(extrinsics_dir, "**", "*"), recursive=True))
-    # create regex to match any camera folder name
-    camera_names_regex = or_regex(camera_names)
     extensions_regex = or_regex(EXTRINSICS_EXTENSIONS)
 
-    # FIRST: look for `0.png` file
+    # FIRST: look for `0.ext` file
     search_re_1 = f"{re.escape(extrinsics_dir)}{SEP}({camera_names_regex}){SEP}(0{extensions_regex})"
     r_1 = re.compile(search_re_1)
     matching_paths_1 = list(filter(None, map(lambda x: r_1.fullmatch(x), all_files)))
@@ -293,8 +227,8 @@ def get_extrinsics_image_paths(extrinsics_dir: str, camera_names: list[dict]):
     if matching_paths_1:
         matches = matching_paths_1
     else:
-        # OTHERWISE: look for `*.png` file
-        search_re_2 = f"{re.escape(extrinsics_dir)}{SEP}{camera_names_regex}{SEP}{FILENAME_CHARACTER_CLASS}+?\\.png"
+        # OTHERWISE: look for `*.ext` file
+        search_re_2 = f"{re.escape(extrinsics_dir)}{SEP}{camera_names_regex}{SEP}{FILENAME_CHARACTER_CLASS}+?{extensions_regex}"
         r_2 = re.compile(search_re_2)
         matching_paths_2 = list(
             filter(None, map(lambda x: r_2.fullmatch(x), all_files))
@@ -302,7 +236,7 @@ def get_extrinsics_image_paths(extrinsics_dir: str, camera_names: list[dict]):
         matches = matching_paths_2
 
     if not matches:
-        logging.warning("Unable to find extrinsic video files paths")
+        logging.warning("Unable to find extrinsic media files paths")
         return []
 
     matches = list(

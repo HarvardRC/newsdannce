@@ -8,14 +8,9 @@ import numpy as np
 from scipy.io import loadmat
 
 from src.calibration.intrinsics import IntrinsicsParams
-from src.calibration.video_utils import get_first_frame_video, load_image
+from src.calibration.video_utils import load_image_or_video, ImageFormat
 
 from .math_utils import calculate_rpe
-
-
-class ExtrinsicsMediaFormat(Enum):
-    VIDEO = "video"
-    IMAGE = "image"
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -51,13 +46,10 @@ def calibrate_extrinsics(
     image_width: int,
     image_height: int,
     camera_idx: int,
-    extrinsics_format=ExtrinsicsMediaFormat.VIDEO,
 ):
-    if extrinsics_format == ExtrinsicsMediaFormat.VIDEO:
-        # load distorted image from video frame
-        img = get_first_frame_video(video_path=media_path)
-    else:
-        img = load_image(media_path)
+    img = load_image_or_video(
+        media_path=media_path, output_image_format=ImageFormat.CV2_BGR
+    )
 
     ## undistorting not necessary for solvePnP
 

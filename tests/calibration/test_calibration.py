@@ -9,7 +9,6 @@ from pathlib import Path
 from pprint import pp
 
 from src.calibration.calibrate import do_calibrate
-from src.calibration.extrinsics import ExtrinsicsMediaFormat
 from src.calibration.project_utils import (
     get_calibration_paths,
 )
@@ -34,7 +33,6 @@ def nofixture_test_calibration_paths_png(root_dir):
     calibration_paths = get_calibration_paths(
         intrinsics_dir=str(Path(root_dir, "intrinsics")),
         extrinsics_dir=str(Path(root_dir, "extrinsics")),
-        extrinsics_format=ExtrinsicsMediaFormat.IMAGE,
     )
 
     assert calibration_paths.n_cameras == 6
@@ -60,7 +58,8 @@ def test_calibration_paths_jpg():
 )
 def nofixture_test_calibration_paths_jpg(root_dir):
     calibration_paths = get_calibration_paths(
-        root_dir, skip_intrinsics=False, extrinsics_format=ExtrinsicsMediaFormat.IMAGE
+        root_dir,
+        skip_intrinsics=False,
     )
 
     assert calibration_paths.n_cameras == 6
@@ -99,7 +98,6 @@ def nofixture_calibration_e2e(root_dir):
     rows = params_dict["rows"]
     cols = params_dict["cols"]
     square_size_mm = params_dict["square_size_mm"]
-    extrinsics_format = ExtrinsicsMediaFormat(params_dict["extrinsics_format"])
 
     do_calibrate(
         intrinsics_dir=intrinsics_dir,
@@ -108,7 +106,6 @@ def nofixture_calibration_e2e(root_dir):
         rows=rows,
         cols=cols,
         square_size_mm=square_size_mm,
-        extrinsics_format=extrinsics_format,
     )
 
     output_files = os.listdir(output_dir)

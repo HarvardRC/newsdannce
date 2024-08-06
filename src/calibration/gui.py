@@ -21,7 +21,6 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QProgressBar,
     QPushButton,
-    QRadioButton,
     QSpinBox,
     QStackedWidget,
     QTextBrowser,
@@ -30,7 +29,6 @@ from PySide6.QtWidgets import (
 
 from src.calibration.validate_page import setup_validation_window
 from src.calibration.calibrate import CalibrationData, do_calibrate
-from src.calibration.extrinsics import ExtrinsicsMediaFormat
 from src.calibration.logger import init_logger
 from src.calibration.report_utils import get_calibration_report
 
@@ -120,12 +118,6 @@ class CalibrationWindow(QMainWindow):
         self.chessboard_rows: QSpinBox = self.findByName("chessboardRows")
         self.chessboard_cols: QSpinBox = self.findByName("chessboardColumns")
         self.chessboard_size: QDoubleSpinBox = self.findByName("squareSizeMM")
-        self.extrinsics_format_radio_video: QRadioButton = self.findByName(
-            "extrinsicsFormatRadio_video"
-        )
-        self.extrinsics_format_radio_image: QRadioButton = self.findByName(
-            "extrinsicsFormatRadio_image"
-        )
         self.progress_bar: QProgressBar = self.findByName("progressBar")
 
         # TODO: DEBUG ITEM REMOVE
@@ -152,12 +144,6 @@ class CalibrationWindow(QMainWindow):
         self.mappings.append(("chessboard_rows", int, self.chessboard_rows))
         self.mappings.append(("chessboard_cols", int, self.chessboard_cols))
         self.mappings.append(("chessboard_size", float, self.chessboard_size))
-        self.mappings.append(
-            ("extrinsics_format_radio_video", bool, self.extrinsics_format_radio_video)
-        )
-        self.mappings.append(
-            ("extrinsics_format_radio_image", bool, self.extrinsics_format_radio_image)
-        )
 
     def setInitialState(self):
         self.root_widget_stacked.setCurrentIndex(GuiPage.CALIBRATE.value)
@@ -244,12 +230,6 @@ class CalibrationWindow(QMainWindow):
         extrinsics_dir = self.extrinsics_dir_edit.text()
         output_dir = self.output_dir_edit.text()
 
-        extrinsics_format = None
-        if self.extrinsics_format_radio_image.isChecked():
-            extrinsics_format = ExtrinsicsMediaFormat.IMAGE
-        else:
-            extrinsics_format = ExtrinsicsMediaFormat.VIDEO
-
         method_options = {}
 
         # chessboard calibration
@@ -263,21 +243,12 @@ class CalibrationWindow(QMainWindow):
         settings.setValue("chessboard_rows", method_options["rows"])
         settings.setValue("chessboard_cols", method_options["cols"])
         settings.setValue("chessboard_size", method_options["square_size_mm"])
-        settings.setValue(
-            "extrinsics_format_radio_image",
-            extrinsics_format == ExtrinsicsMediaFormat.IMAGE,
-        )
-        settings.setValue(
-            "extrinsics_format_radio_video",
-            extrinsics_format == ExtrinsicsMediaFormat.VIDEO,
-        )
 
         self.progress_bar.setVisible(True)
         self.calibrateInThread(
             intrinsics_dir=intrinsics_dir,
             extrinsics_dir=extrinsics_dir,
             output_dir=output_dir,
-            extrinsics_format=extrinsics_format,
             **method_options,
         )
 

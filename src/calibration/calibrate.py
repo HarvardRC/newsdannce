@@ -7,7 +7,6 @@ from pathlib import Path
 
 from src.calibration.calibration_data import CalibrationData, CameraParams
 from src.calibration.extrinsics import (
-    ExtrinsicsMediaFormat,
     calibrate_extrinsics,
 )
 from src.calibration.intrinsics import calibrate_intrinsics
@@ -33,7 +32,6 @@ def do_calibrate(
     square_size_mm: float,
     on_progress=None,
     disable_label3d_format=False,
-    extrinsics_format=ExtrinsicsMediaFormat,
     pickle_to: str = None,  # optional argument for debugging: save the calibration_data object to this filepath as a pickle
 ) -> None:
     start = time.perf_counter()
@@ -42,7 +40,6 @@ def do_calibrate(
     calibration_paths = get_calibration_paths(
         intrinsics_dir=intrinsics_dir,
         extrinsics_dir=extrinsics_dir,
-        extrinsics_format=extrinsics_format,
     )
 
     # generate chessboard object points
@@ -100,7 +97,6 @@ def do_calibrate(
             image_height=video_info.height,
             intrinsics=intrinsics,
             camera_idx=camera_idx,
-            extrinsics_format=extrinsics_format,
         )
 
         if on_progress:
@@ -250,7 +246,6 @@ def parse_and_calibrate():
     existing_intrinsics_dir = args.existing_intrinsics_dir
     verbose = args.verbose
     pickle_to = args.pickle_to
-    extrinsics_format = ExtrinsicsMediaFormat(args.extrinsics_format)
 
     match verbose:
         case 0:
@@ -274,7 +269,6 @@ def parse_and_calibrate():
     logging.info(f"CONVERT INTRINSICS TO MATLAB?: {disable_label3d_format}")
 
     logging.info(f"INTRINSICS DIR?: {existing_intrinsics_dir}")
-    logging.info(f"INTRINSICS FORMAT?: {extrinsics_format}")
 
     logging.info("-----")
 
@@ -288,7 +282,6 @@ def parse_and_calibrate():
         disable_label3d_format=disable_label3d_format,
         existing_intrinsics_dir=existing_intrinsics_dir,
         pickle_to=pickle_to,
-        extrinsics_format=extrinsics_format,
     )
 
 

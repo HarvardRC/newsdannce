@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 
 from src.calibration.calibrate import do_calibrate
-from src.calibration.extrinsics import ExtrinsicsMediaFormat
 from tests.calibration.helpers import with_real_calib_data
 
 
@@ -27,7 +26,6 @@ def run_example(root_dir):
     rows = params_dict["rows"]
     cols = params_dict["cols"]
     square_size_mm = params_dict["square_size_mm"]
-    extrinsics_format = ExtrinsicsMediaFormat(params_dict["extrinsics_format"])
 
     do_calibrate(
         project_dir=project_dir,
@@ -35,7 +33,6 @@ def run_example(root_dir):
         rows=rows,
         cols=cols,
         square_size_mm=square_size_mm,
-        extrinsics_format=extrinsics_format,
     )
 
 

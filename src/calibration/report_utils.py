@@ -29,8 +29,10 @@ class _CalibrationReport:
         )
         summary_string = f"Finished in: {self.calibration_time_seconds:.2f} seconds\n"
         summary_string += f"Extrinsics images detected: {self.successful_intrinsics_images} / {self.total_intrinsics_images}\n"
-        summary_string += f"Avg. RPE from extrinsics: {avg_extrinsics_rpe:.3f}\n"
-        summary_string += f"Avg. Intrinsics RPE per camera: {intrinsics_rpe_string}\n"
+        summary_string += f"Avg. RPE from extrinsics (px): {avg_extrinsics_rpe:.3f}\n"
+        summary_string += (
+            f"Avg. Intrinsics RPE per camera (px): {intrinsics_rpe_string}\n"
+        )
         return summary_string
 
 
