@@ -157,13 +157,15 @@ class CalibrationWindow(QMainWindow):
             for key, type, object in self.mappings:
                 if settings.contains(key):
                     setting_value = settings.value(key, type)
-                    print(
+                    logging.debug(
                         f"LOADING SETTING FOR {key} of type: {type}. Value to be loaded: {setting_value}"
                     )
                     if type == str:
                         object.setText(setting_value)
-                    elif type == int or type == float:
-                        object.setValue(setting_value)
+                    elif type == int:
+                        object.setValue(int(setting_value))
+                    elif type == float:
+                        object.setValue(float(setting_value))
                     elif type == bool:
                         object.setChecked(setting_value)
                     else:
@@ -242,6 +244,7 @@ class CalibrationWindow(QMainWindow):
         settings.setValue("output_dir", output_dir)
         settings.setValue("chessboard_rows", method_options["rows"])
         settings.setValue("chessboard_cols", method_options["cols"])
+
         settings.setValue("chessboard_size", method_options["square_size_mm"])
 
         self.progress_bar.setVisible(True)

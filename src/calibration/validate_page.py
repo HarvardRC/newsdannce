@@ -68,7 +68,7 @@ class ValidationManager:
             img = load_image_or_video(
                 media_path=img_path, output_image_format=ImageFormat.RGB
             )
-            # UNDISTORT THE IMAGE to undo lens distortions
+            # UNDISTORT THE IMAGE to undo lens distortions (e.g. radial, tangential dist parameters)
             img_undistorted = cv2.undistort(
                 img,
                 self.calibration_data.camera_params[camera_idx].camera_matrix,
