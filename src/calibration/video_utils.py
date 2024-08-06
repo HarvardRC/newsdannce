@@ -2,10 +2,19 @@
 
 import logging
 from dataclasses import dataclass
+from pathlib import Path
 
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+from enum import Enum
+
+
+class ImageFormat(Enum):
+    CV2_BGR = "cv2_bgr"
+    """OpenCV BGR (blue,green,red) image"""
+    RGB = "rgb"
+    """Standard RGB image (e.g. matplotlib, PIL)"""
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -66,6 +75,24 @@ def get_first_frame_video(video_path: str):
     if not success:
         raise Exception(f"Failed to read video at {video_path}")
     return image
+
+
+def load_image_or_video(media_path: str, output_image_format=ImageFormat.RGB):
+    """If the media path is an image, load the image using cv2. If it is a video, load the first frame"""
+    suffix = Path(media_path).suffix
+    if suffix in [".mp4"]:
+        img = get_first_frame_video(media_path)
+    elif suffix in [".jpeg", ".jpg", ".bmp", ".tif", ".tiff"]:
+        img = load_image(media_path)
+    else:
+        raise Exception(
+            f"Image or video path suffix is not in the list of image or video file extensions: {suffix}"
+        )
+    # possibly convert BGR to RGB
+    if output_image_format == ImageFormat.RGB:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+    return img
 
 
 def get_chessboard_coordinates(

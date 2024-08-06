@@ -12,7 +12,6 @@ from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as Navigation
 
 # from matplotlib.backends.qt_compat import QtWidgets
 from matplotlib.figure import Figure
-from PIL import Image
 
 # from matplotlib.backends.qt_compat import QtWidgets
 from PySide6.QtCore import Slot
@@ -20,6 +19,7 @@ from PySide6.QtCore import Slot
 from src.calibration.calibration_data import CalibrationData
 from src.calibration.math_utils import triangulate
 from src.calibration.project_utils import get_verification_files
+from src.calibration.video_utils import load_image_or_video, ImageFormat
 
 
 class CustomNavToolbar(NavigationToolbar):
@@ -64,17 +64,19 @@ class ValidationManager:
             f"Loading image at filepath: {img_path} for camera idx: {camera_idx}"
         )
         try:
-            with Image.open(img_path) as image_f:
-                img = np.asarray(image_f)
-                # UNDISTORT THE IMAGE to undo lens distortions
-                img_undistorted = cv2.undistort(
-                    img,
-                    self.calibration_data.camera_params[camera_idx].camera_matrix,
-                    distCoeffs=self.calibration_data.camera_params[camera_idx].dist,
-                )
+            # img = np.asarray(image_f)
+            img = load_image_or_video(
+                media_path=img_path, output_image_format=ImageFormat.RGB
+            )
+            # UNDISTORT THE IMAGE to undo lens distortions
+            img_undistorted = cv2.undistort(
+                img,
+                self.calibration_data.camera_params[camera_idx].camera_matrix,
+                distCoeffs=self.calibration_data.camera_params[camera_idx].dist,
+            )
 
-                self.validation_image_paths[camera_idx] = img_path
-                axes.imshow(img_undistorted)
+            self.validation_image_paths[camera_idx] = img_path
+            axes.imshow(img_undistorted)
 
         except Exception:
             logging.warning(f"Unable to load image at path: {img_path}")

@@ -515,6 +515,8 @@ def get_verification_files(base_dir, camera_names):
         r"(?!\.).+\.bmp",
         r"(?!\.).+\.(?:tiff|tif)",
         r"(?!\.).+?\.(?:jpg|jpeg)",
+        r"0\.mp4",
+        r"(?!\.).+\.mp4",
     ]
 
     def test_filenames(filenames):
