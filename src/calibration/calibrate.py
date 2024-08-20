@@ -16,7 +16,8 @@ from src.calibration.project_utils import (
     write_calibration_params,
 )
 from src.calibration.report_utils import get_calibration_report, init_calibration_report
-from src.calibration.video_utils import get_chessboard_coordinates, get_video_stats
+from src.calibration.video_utils import get_video_stats
+from src.calibration.math_utils import get_chessboard_coordinates
 
 # reasonable max no. of images for a single camera
 MAX_IMAGES_ACCEPTED = 400
@@ -144,7 +145,7 @@ def do_calibrate(
 
     # TODO: TEMP REMOVE
     report = get_calibration_report()
-    print(report.intrinsics_no_pattern_list)
+    report.calibration_data = calibration_data
 
     ellapsed_seconds = time.perf_counter() - start
     report.calibration_time_seconds = ellapsed_seconds
@@ -226,12 +227,6 @@ def parse_and_calibrate():
         required=False,
         default=None,
         help="[DEBUG OPTION] If not None/arg not provided, save the created calibration_data object to a pickle file at this filepath specified",
-    )
-    parser.add_argument(
-        "--extrinsics-format",
-        required=False,
-        default="image",
-        help="Optionally provide extrinsics as images instead of videos. Can be 'image' or 'video'",
     )
 
     args = parser.parse_args()

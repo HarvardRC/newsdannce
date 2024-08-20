@@ -1,8 +1,6 @@
-from jinja2 import Environment, FileSystemLoader
-
-environment = Environment(
-    loader=FileSystemLoader("src/calibration/templates"),
-)
+from src.calibration import (
+    calibration_data,
+)  # import this way to use types without circular ref.
 
 
 class _CalibrationReport:
@@ -12,6 +10,7 @@ class _CalibrationReport:
     calibration_time_seconds: int = 0
     extrinsics_rpes: list[float] = []
     intrinsics_rpes: list[float] = []
+    calibration_data: "calibration_data.CalibrationData" = None
 
     """Dict for intrinsics images where chessboard pattern was not found. key is camera index (number); value is list of paths"""
 
@@ -31,8 +30,12 @@ class _CalibrationReport:
         summary_string += f"Extrinsics images detected: {self.successful_intrinsics_images} / {self.total_intrinsics_images}\n"
         summary_string += f"Avg. RPE from extrinsics (px): {avg_extrinsics_rpe:.3f}\n"
         summary_string += (
-            f"Avg. Intrinsics RPE per camera (px): {intrinsics_rpe_string}\n"
+            f"Avg. intrinsics RPE per camera (px): {intrinsics_rpe_string}\n"
         )
+
+        summary_string += f"\nParameters have been saved to directory: {self.calibration_data.output_dir}"
+
+        summary_string += "\n\nYou can safely close this GUI.\n"
         return summary_string
 
 

@@ -8,7 +8,8 @@ def calculate_rpe(imgpoints, re_imgpoints):
     return avg
 
 
-def triangulate(imgpoints, view_matrices):
+def triangulate(imgpoints, view_matrices) -> np.ndarray:
+    """Returns a 1D array of shape (3,) containing the X, Y, Z coordinates"""
     # imgpoints: list of either np.ndarray((2,1)) or np.ndarray((2,));
     #     of length n
     # view_matrices: 3x4 camera projection matrices for each view
@@ -36,3 +37,38 @@ def triangulate(imgpoints, view_matrices):
     X = X_homog[:3] / X_homog[3]  # homogoneous (4D) to non-homogenous (3D) coords
     min_sigma = S_vec[-1]  # minimum value of sigma - some metric of error?
     return X
+
+
+# new version fixes upside-down world points
+def get_chessboard_coordinates(
+    chessboard_rows: int, chessboard_cols: int, square_size_mm: float
+) -> np.ndarray:
+    """Return chessboard internal vertex coordinates for calibration.
+    Assume that the origin of the chessboard is (0,0,0).
+
+    Rows are y-coordinate
+    Columns are the x-coordinate.
+    Assume z is zero for chessboard plane.
+
+    Returns a numpy array in the shape (#rows * #cols, 3), scaled by square_size_mm.
+
+    E.g. np.ndarray(
+        [0,0,0],
+        [1,0,0],
+        ...
+        [5,0,0],
+        [0,1,0],
+        ...
+        [5,8,0]
+    )
+
+    Args:
+        square_size_mm: size of each square in mm
+        chessboard_rows: number of rows of internal verticies in the chessboard (1 - # squares in a row)
+        chessboard_cols: number of columns of internal verticies in the chessboard (1 - # squares in a columns)
+    """
+    x = np.repeat(np.arange(0, chessboard_rows), chessboard_cols)  # [a a b b c c ...]
+    y = np.tile(np.arange(0, chessboard_cols), chessboard_rows)  # [a b c ... a b c ...]
+    z = np.zeros(chessboard_rows * chessboard_cols)
+
+    return np.column_stack((x, y, z)).astype(np.float32) * square_size_mm

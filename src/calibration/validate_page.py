@@ -301,7 +301,8 @@ def do_validation_samethread(
     avg_rpe = sum(reproj_errs) / len(reproj_errs)
 
     results_label.setText(
-        f"Avg. Reprojection error: {avg_rpe:.2f} px\n\nClick on other camera tabs to see original keypoint (red dot) and reprojected point (blue dot)"
+        f"Avg. Reprojection error: {avg_rpe:.2f} px\n\nClick on other camera tabs to see original keypoint (red dot) and reprojected point (blue dot).\n"
+        + f"World point: [x, y, z] => [{world_pt[0]:.3f}, {world_pt[1]:.3f}, {world_pt[2]:.3f}]"
     )
 
     # show the final page which has results

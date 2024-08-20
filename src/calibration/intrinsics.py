@@ -180,8 +180,9 @@ def calibrate_intrinsics(
             report.add_no_pattern_detected(
                 camera_idx=camera_idx, image_path=image_paths[img_idx]
             )
-            logging.warning(f"No pattern detected: Cam# {camera_idx}, Image# {img_idx}")
-            logging.debug(f"Image idx={img_idx} path: {image_paths[img_idx]}")
+            logging.warning(
+                f"No pattern detected: Cam# {camera_idx}, path:{image_paths[img_idx]}"
+            )
             failed_imgs.append(img_idx)
 
     end = time.perf_counter()

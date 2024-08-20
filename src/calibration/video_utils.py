@@ -82,7 +82,7 @@ def load_image_or_video(media_path: str, output_image_format=ImageFormat.RGB):
     suffix = Path(media_path).suffix
     if suffix in [".mp4"]:
         img = get_first_frame_video(media_path)
-    elif suffix in [".jpeg", ".jpg", ".bmp", ".tif", ".tiff"]:
+    elif suffix in [".jpeg", ".jpg", ".bmp", ".tif", ".tiff", ".png"]:
         img = load_image(media_path)
     else:
         raise Exception(
@@ -93,42 +93,6 @@ def load_image_or_video(media_path: str, output_image_format=ImageFormat.RGB):
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     return img
-
-
-def get_chessboard_coordinates(
-    chessboard_rows: int, chessboard_cols: int, square_size_mm: float
-) -> np.ndarray:
-    """Return chessboard internal vertex coordinates for calibration.
-    Assume that the origin of the chessboard is (0,0,0).
-
-    Rows are y-coordinate
-    Columns are the x-coordinate.
-    Assume z is zero for chessboard plane.
-
-    Returns a numpy array in the shape (#rows * #cols, 3), scaled by square_size_mm.
-
-    E.g. np.ndarray(
-        [0,0,0],
-        [1,0,0],
-        ...
-        [5,0,0],
-        [0,1,0],
-        ...
-        [5,8,0]
-    )
-
-    Args:
-        square_size_mm: size of each square in mm
-        chessboard_rows: number of rows of internal verticies in the chessboard (1 - # squares in a row)
-        chessboard_cols: number of columns of internal verticies in the chessboard (1 - # squares in a columns)
-    """
-    x = np.repeat(np.arange(0, chessboard_rows), chessboard_cols)  # [a a b b c c ...]
-    y = np.tile(np.arange(0, chessboard_cols), chessboard_rows)  # [a b c ... a b c ...]
-    z = np.zeros(chessboard_rows * chessboard_cols)
-
-    # Note: col_stack(y,x,...) instead of col_stack(x,y...) means that the returning list will increase the first
-    # dimension first, then the second, etc. Shouldn't make a difference, but maintains consistency with old cal.py code
-    return np.column_stack((y, x, z)).astype(np.float32) * square_size_mm
 
 
 # helper funciton to quickly show an image

@@ -56,9 +56,10 @@ def calibrate_extrinsics(
     # find corner positions
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     success, corner_coords = cv2.findChessboardCorners(gray, (cols, rows), None)
-
     if success is False:
-        raise Exception("Chessboard corners not found - unable to calibrate extrinsics")
+        raise Exception(
+            f"Chessboard corners not found - unable to calibrate extrinsics (camera {camera_idx})"
+        )
 
     # solve for camera position using solvePnp instead of camera calibration function
     # ransac version fo solvePNP makes it more stable with possible outlier points
