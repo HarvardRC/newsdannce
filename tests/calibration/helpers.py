@@ -187,6 +187,6 @@ def compare_calibration_output(folder_a, folder_b):
         return True
     else:
         logging.debug(
-            "Folder A and Folder B differ on the following filenames" + comparison_array
+            f"Folder A and Folder B differ on the following filenames {comparison_array}"
         )
         return False
