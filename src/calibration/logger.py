@@ -33,7 +33,7 @@ def init_logger(log_level=logging.INFO, log_dir="./logs"):
         logfile_fmt = (
             "%(asctime)s [%(levelname)s] (%(filename)s:%(lineno)2d) %(message)s"
         )
-        date_prefix = datetime.datetime.now().strftime("%Y%M%d_%H%M%S")
+        date_prefix = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         logfile_name = f"calibrate_{date_prefix}.out"
         logfile_path = os.path.join(log_dir, logfile_name)
         logfile_handler = logging.FileHandler(logfile_path)
