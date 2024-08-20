@@ -38,6 +38,3 @@ You can run the calibration pipeline directly as a python module (argparse). Thi
 python -m src.calibration.calibrate -p "~/olveczky/dannce_data/setupCal11_010324" -r 6 -c 9 -s 23 -o "~/olveczky/dannce_data/setupCal11_010324/calibration_export"
 ```
 
-## Pytest (WIP)
-
-`python -m pytest src/calibration/new`
