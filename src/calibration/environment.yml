@@ -20,3 +20,4 @@ dependencies:
   - pip:
       - opencv-python
       - pyside6
+      - ruamel.yaml

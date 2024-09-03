@@ -192,3 +192,6 @@ demo/weights
 
 # ignore all files + dirs starting with /tmp
 /tmp-*
+/tmp_*
+/TMP_*
+/TMP-*

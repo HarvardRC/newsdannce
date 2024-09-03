@@ -1,0 +1,9 @@
+### SOCIAL COM EXPERIMENTS **
+com_train_dir: ./COM/train01
+com_predict_dir: ./COM/predict01
+com_predict_weights:
+
+### SDANNCE EXPERIMENTS **
+dannce_train_dir: ./SDANNCE/train01/
+dannce_predict_dir: ./SDANNCE/predict01/
+dannce_predict_model: 

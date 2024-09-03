@@ -15,5 +15,6 @@ dependencies:
   - pytorch-cuda=12.1
   - cudnn
   - certifi
+  - ruamel.yaml
   - pip:
     - setuptools
