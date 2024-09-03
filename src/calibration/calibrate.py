@@ -1,7 +1,6 @@
 ## intro module for new calibration script
 import argparse
 import logging
-import pickle
 import time
 from pathlib import Path
 
@@ -33,7 +32,6 @@ def do_calibrate(
     square_size_mm: float,
     on_progress=None,
     disable_label3d_format=False,
-    pickle_to: str = None,  # optional argument for debugging: save the calibration_data object to this filepath as a pickle
 ) -> None:
     start = time.perf_counter()
     # TODO: improve this, but an empty string for intrinsics_dir is not None
@@ -137,13 +135,6 @@ def do_calibrate(
             disable_label3d_format=disable_label3d_format,
         )
 
-    if pickle_to is not None and len(pickle_to) > 0:
-        pickle_to_path = Path(pickle_to)
-        with open(pickle_to_path, "wb") as f:
-            pickle.dump(calibration_data, f)
-        logging.info(f"Saved calibration data to pickle file at path {pickle_to_path}")
-
-    # TODO: TEMP REMOVE
     report = get_calibration_report()
     report.calibration_data = calibration_data
 
@@ -240,7 +231,6 @@ def parse_and_calibrate():
     disable_label3d_format = args.disable_label3d_format
     existing_intrinsics_dir = args.existing_intrinsics_dir
     verbose = args.verbose
-    pickle_to = args.pickle_to
 
     match verbose:
         case 0:
@@ -276,7 +266,6 @@ def parse_and_calibrate():
         square_size_mm=square_size_mm,
         disable_label3d_format=disable_label3d_format,
         existing_intrinsics_dir=existing_intrinsics_dir,
-        pickle_to=pickle_to,
     )
 
 
