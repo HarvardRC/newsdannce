@@ -61,7 +61,7 @@ class CalibrationPathsData:
 def get_calibration_paths(
     intrinsics_dir: str,
     extrinsics_dir: str,
-):
+) -> CalibrationPathsData:
     """
     Given a project directory, return a list of:
     - n_cameras
@@ -190,8 +190,8 @@ def get_camera_names(extrinsics_dir) -> list[str]:
 
 
 def get_extrinsics_media_paths(
-    extrinsics_dir: str, camera_names: list[str]
-) -> list[str]:
+    extrinsics_dir: str, camera_names: list[str], ret_dict=False
+) -> list[dict]:
     """
     Generic version of function works with images or videos. Return paths for extrinsics images/videos x n_cameras.
 
@@ -202,6 +202,7 @@ def get_extrinsics_media_paths(
     - $extrinsics_dir/$CAMERA_NAME/0.mp4
     - $extrinsics_dir/$CAMERA_NAME/*.mp4
 
+    If ret_dict is true, return a dict where the key is "camera_name" and the value is the extrinsic path [str].
     Return format:
     ```
     list[{
@@ -249,19 +250,34 @@ def get_extrinsics_media_paths(
             matches,
         )
     )
+
+    if ret_dict:
+        # optionally return a key/value dict where key=camname, value=extrinsics_path
+        d = {}
+        for i in matches:
+            extrinsics_file = i["full_path"]
+            camera_name = i["camera_name"]
+            d[camera_name] = extrinsics_file
+        return d
+
     matches.sort(key=lambda x: x["camera_name"])
     return matches
 
 
-def get_intrinsics_image_paths(intrinsics_dir, camera_names):
+def get_intrinsics_image_paths(
+    intrinsics_dir, camera_names, ret_dict=False
+) -> list[dict]:
     """
     Get file paths of intrinsics calibration images
     Try the following paths, in order:
      - $intrinsics_dir/$CAMERA_NAME/*($EXTENSION_REGEX)
      - $intrinsics_dir/*/*($EXTENSION_REGEX)
+
      e.g. $intrinsics_dir/Camera1/12.tiff
 
     Assumes that all image files are the same extension.
+
+    If ret_dict is true, return a dict where the key is "camera_name" and the value is the list of intrinsics paths ( list[str]).
 
     Return format:
     ```
@@ -270,6 +286,7 @@ def get_intrinsics_image_paths(intrinsics_dir, camera_names):
         "full_paths": list[str]
     }]
     ```
+    NOTE: return list is sorted alphabetically by camera_name
     """
 
     intrinsics_dir = os.path.normpath(intrinsics_dir)
@@ -315,7 +332,7 @@ def get_intrinsics_image_paths(intrinsics_dir, camera_names):
             f"Multiple image extensions found in intrinsics folder: {list(unique_extensions)}"
         )
 
-    # group matches reduce function
+    # group matches by camera name using the following reducer function
     def group_matches(acc_dict, cur_item):
         if cur_item["camera_name"] not in acc_dict:
             acc_dict[cur_item["camera_name"]] = []
@@ -323,6 +340,9 @@ def get_intrinsics_image_paths(intrinsics_dir, camera_names):
         return acc_dict
 
     matches_dict = reduce(group_matches, matches, {})
+    if ret_dict:
+        return matches_dict
+
     matches_grouped = list(
         map(
             lambda item: {"camera_name": item[0], "full_paths": sorted(item[1])},
@@ -335,24 +355,24 @@ def get_intrinsics_image_paths(intrinsics_dir, camera_names):
     return matches_grouped
 
 
-# TODO: currently unused
-def load_existing_intrinsics(
-    existing_intrinsics_dir: str, n_cameras: int
-) -> list[IntrinsicsParams]:
+def get_hires_files(hires_file_dir: str, n_cameras: int) -> list[IntrinsicsParams]:
     """Load intrinsics specified by a directory containing hires_camX_params.mat files.
     Useful for re-calculating extrinsics with existing intrinsics"""
 
-    logging.info(
-        f"Loading intrinsics from params files in directory: {existing_intrinsics_dir}"
+    logging.debug(
+        f"Loading intrinsics from params files in directory: {hires_file_dir}"
     )
-    # verify that directory contains hires_cameraX_params.mat files:
-    existing_intrinsics_dir = os.path.normpath(existing_intrinsics_dir)
+
+    hires_file_dir = os.path.normpath(hires_file_dir)
+    allfiles = []
 
     for cam_idx in range(n_cameras):
         target_filename = f"hires_cam{cam_idx+1}_params.mat"
-        target_path = Path(existing_intrinsics_dir, target_filename)
+        target_path = Path(hires_file_dir, target_filename)
         if not target_path.is_file():
             raise Exception(f"Expected intrinsics file is missing: {target_path}")
+        allfiles.append(str(target_path))
+    return allfiles
 
 
 def write_calibration_params(
@@ -369,7 +389,7 @@ def write_calibration_params(
     - t [1x3 double] (camera pose translation
 
     ARGS:
-    disable_label3d_format: if true, DO NOT convert the intrinsics matrix to matlab format, and transpose the intrinsics matrix (K) for compatibility with Label3D
+    disable_label3d_format [default=False]: if true, DO NOT convert the intrinsics matrix to matlab format, and transpose the intrinsics matrix (K) for compatibility with Label3D
     """
     os.makedirs(output_dir, exist_ok=True)
 
@@ -380,7 +400,10 @@ def write_calibration_params(
         k_modified = camera_param.camera_matrix.copy()
         rotation_matrix_modified = camera_param.rotation_matrix.copy()
 
-        if not disable_label3d_format:
+        if disable_label3d_format:
+            # make no changes to intrinsics
+            pass
+        else:
             # convert to matlab intrinsics format:
             # this means add 1 to fx, fy because matlab image origin is (1, 1)
             k_modified[0, 2] += 1

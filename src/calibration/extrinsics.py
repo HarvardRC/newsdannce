@@ -1,7 +1,6 @@
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from src.calibration.report_utils import get_calibration_report
 
 import cv2
 import numpy as np
@@ -104,6 +103,8 @@ def calibrate_extrinsics(
     logging.info(f"Extrinsics RPE (single camera): {rpe}")
 
     # TODO: END REMOVE (Compute RPE for testing)
+
+    from src.calibration.report_utils import get_calibration_report
 
     report = get_calibration_report()
     report.extrinsics_rpes.append(rpe)

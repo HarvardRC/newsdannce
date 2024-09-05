@@ -124,7 +124,7 @@ def browse_validation_folder(parentWidget, manager: ValidationManager):
     return handleBrowse
 
 
-def setup_validation_window(
+def setup_point_validation_window(
     root_frame: QtWidgets.QFrame, calibration_data: CalibrationData
 ):
     window = root_frame.window()

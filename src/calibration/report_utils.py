@@ -3,7 +3,7 @@ from src.calibration import (
 )  # import this way to use types without circular ref.
 
 
-class _CalibrationReport:
+class CalibrationReport:
     intrinsics_no_pattern_list: list[list[str]]
     total_intrinsics_images: int = 0
     successful_intrinsics_images: int = 0
@@ -23,9 +23,13 @@ class _CalibrationReport:
 
     def make_summary(self):
         avg_extrinsics_rpe = sum(self.extrinsics_rpes) / len(self.extrinsics_rpes)
-        intrinsics_rpe_string = ", ".join(
-            map(lambda x: f"{x:.3f}", self.intrinsics_rpes)
-        )
+        if not self.intrinsics_rpes.values()[0]:
+            intrinsics_rpe_string = ", ".join(
+                map(lambda x: f"{x:.3f}", self.intrinsics_rpes)
+            )
+        else:
+            intrinsics_rpe_string = "N/A"
+
         summary_string = f"Finished in: {self.calibration_time_seconds:.2f} seconds\n"
         summary_string += f"Extrinsics images detected: {self.successful_intrinsics_images} / {self.total_intrinsics_images}\n"
         summary_string += f"Avg. RPE from extrinsics (px): {avg_extrinsics_rpe:.3f}\n"
@@ -45,7 +49,7 @@ _calibration_report = None
 
 def init_calibration_report(*args, **kwargs):
     global _calibration_report
-    _calibration_report = _CalibrationReport(*args, **kwargs)
+    _calibration_report = CalibrationReport(*args, **kwargs)
 
 
 def get_calibration_report():

@@ -17,7 +17,7 @@
    <enum>QFrame::NoFrame</enum>
   </property>
   <property name="currentIndex">
-   <number>0</number>
+   <number>3</number>
   </property>
   <widget class="QWidget" name="calibratePage">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -49,7 +49,7 @@
          </spacer>
         </item>
         <item>
-         <widget class="QLabel" name="projectDirLabel">
+         <widget class="QLabel" name="intrinsicsDirLabel">
           <property name="text">
            <string>Intrinsics Directory</string>
           </property>
@@ -315,6 +315,82 @@
      </widget>
     </item>
     <item>
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="intrinsicsHiresToggle">
+      <property name="title">
+       <string>Use existing intrinsics data from hires files (Not recommended)</string>
+      </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <layout class="QHBoxLayout" name="advancedSettingsLayout" stretch="1,2,0">
+         <item>
+          <layout class="QHBoxLayout" name="intrinsicsHiresLayout">
+           <item>
+            <spacer name="intrinsicsHiresSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QLabel" name="intrinsicsHIresLabel">
+             <property name="text">
+              <string>Hires File Directory</string>
+             </property>
+             <property name="buddy">
+              <cstring>extrinsicsDirEdit</cstring>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="intrinsicsHiresEdit">
+           <property name="minimumSize">
+            <size>
+             <width>250</width>
+             <height>0</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="intrinsicsHiresBrowse">
+           <property name="text">
+            <string>...</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
      <spacer name="verticalSpacer_2">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
@@ -507,9 +583,16 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="continueToValidationButton">
+       <widget class="QPushButton" name="pointValidationButton">
         <property name="text">
-         <string>Continue to Validation</string>
+         <string>Point Validation</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="chessboardValidationButton">
+        <property name="text">
+         <string>Chessboard Validation</string>
         </property>
        </widget>
       </item>
@@ -619,9 +702,9 @@
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_10">
        <item>
-        <widget class="QLabel" name="label_5">
+        <widget class="QPushButton" name="pointValidationBackButton">
          <property name="text">
-          <string/>
+          <string>Back</string>
          </property>
         </widget>
        </item>
@@ -660,7 +743,112 @@
     </item>
    </layout>
   </widget>
+  <widget class="QWidget" name="page">
+   <widget class="QLabel" name="label_11">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>31</y>
+      <width>1016</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string># Verify Calibration Results</string>
+    </property>
+    <property name="textFormat">
+     <enum>Qt::MarkdownText</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_12">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>70</y>
+      <width>1016</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="text">
+     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;For each camera, select one image and choose a keypoint on the image. You can create a keypoint if no graph tools are selected (pan/zoom). You can create an additional keypoint to overwrite and relocate the previous keypoint.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+    </property>
+    <property name="wordWrap">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="chessboardValidationBackButton">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>690</y>
+      <width>60</width>
+      <height>32</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Back</string>
+    </property>
+   </widget>
+  </widget>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>intrinsicsHiresToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>intrinsicsDirEdit</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>519</x>
+     <y>515</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>658</x>
+     <y>65</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>intrinsicsHiresToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>intrinsicsDirLabel</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>519</x>
+     <y>515</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>273</x>
+     <y>65</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>intrinsicsHiresToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>intrinsicsDirBrowse</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>519</x>
+     <y>515</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1005</x>
+     <y>67</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

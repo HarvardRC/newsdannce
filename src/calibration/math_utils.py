@@ -39,6 +39,20 @@ def triangulate(imgpoints, view_matrices) -> np.ndarray:
     return X
 
 
+def triangulate_simple(points, camera_mats):
+    num_cams = len(camera_mats)
+    A = np.zeros((num_cams * 2, 4))
+    for i in range(num_cams):
+        x, y = points[i]
+        mat = camera_mats[i]
+        A[(i * 2) : (i * 2 + 1)] = x * mat[2] - mat[0]
+        A[(i * 2 + 1) : (i * 2 + 2)] = y * mat[2] - mat[1]
+    u, s, vh = np.linalg.svd(A, full_matrices=True)
+    p3d = vh[-1]
+    p3d = p3d[:3] / p3d[3]
+    return p3d
+
+
 # new version fixes upside-down world points
 def get_chessboard_coordinates(
     chessboard_rows: int, chessboard_cols: int, square_size_mm: float

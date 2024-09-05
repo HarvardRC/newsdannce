@@ -30,7 +30,7 @@ class VideoFileStats:
         return f"VideoInfo <\n  n_frames: {self.n_frames}\n  (width, height): ({self.width}, {self.height})\n>"
 
 
-def get_video_stats(video_path: str):
+def get_video_stats(video_path: str) -> VideoFileStats:
     """
     Return stats given a video file
     E.g. n_frames, width, height, n_channels
@@ -53,10 +53,23 @@ def load_image(image_path) -> np.ndarray:
     return this_img
 
 
-def load_images(image_paths, image_width, image_height) -> np.ndarray:
+def load_images(image_paths, image_width=-1, image_height=-1) -> np.ndarray:
     """Load a list of images with uniform width, height into a numpy array
-    of dimension [n_images, height, width, 3]"""
+    of dimension [n_images, height, width, 3]
+    If image_width or image_height are not specified, then infer them by loading the first image in image_paths.
+    """
     n_images = len(image_paths)
+
+    if image_width == -1 or image_height == -1:
+        # load a single image and infer the width and height
+        im0 = cv2.imread(image_paths[0])
+        # CV2 convention: ROWS (HEIGHT), COLUMNS (WIDTH)
+        image_height, image_width, channels = im0.shape
+        if channels != 3:
+            raise Exception(
+                "Trying to load an image with channels != 3 . 3-channel is e.g. RGB"
+            )
+
     # intitialize np array
     raw_images = np.zeros((n_images, image_height, image_width, 3), dtype=np.uint8)
 

@@ -61,7 +61,7 @@ test_com_exp_list = [
 
 _TRAINING_DIRS = ["calibration", "COM", "DANNCE", "videos"]
 _TRAINING_EMPTY_FILES = ["./tmp_empty_dannce.mat"]
-N_CAMERAS = 6
+_N_CAMERAS = 6
 
 
 def make_io_yaml_data(com_exp_list, dannce_exp_list):
@@ -135,7 +135,7 @@ def make_training_dir(
         p = Path(base_dir, s)
         p.touch()
 
-    for cam_idx in range(N_CAMERAS):
+    for cam_idx in range(_N_CAMERAS):
         camera_name = f"Camera{cam_idx+1}"
         p_dir = Path(base_dir, "videos", camera_name)
         p_dir.mkdir(parents=True)

@@ -37,13 +37,9 @@ class CameraParams:
         return rotation_vector
 
     @staticmethod
-    def load_from_hires_file(filename):
-        """Generate a CaemraParams matrix from a file path to a hires file"""
-        intrinsics = IntrinsicsParams.load_from_mat_file(
-            filename, cvt_matlab_to_cv2=False
-        )
-        extrinsics = ExtrinsicsParams.load_from_mat_file(filename)
-
+    def from_intrinsics_extrinsics(
+        intrinsics: IntrinsicsParams, extrinsics: ExtrinsicsParams
+    ):
         return CameraParams(
             r_distort=intrinsics.r_distort,
             t_distort=intrinsics.t_distort,
@@ -51,6 +47,16 @@ class CameraParams:
             rotation_matrix=extrinsics.rotation_matrix,
             translation_vector=extrinsics.translation_vector,
         )
+
+    @staticmethod
+    def load_from_hires_file(filename):
+        """Generate a CaemraParams matrix from a file path to a hires file"""
+        intrinsics = IntrinsicsParams.load_from_mat_file(
+            filename, cvt_matlab_to_cv2=False
+        )
+        extrinsics = ExtrinsicsParams.load_from_mat_file(filename)
+
+        return CameraParams.from_intrinsics_extrinsics(intrinsics, extrinsics)
 
     @staticmethod
     def compare(A: "CameraParams", B: "CameraParams"):

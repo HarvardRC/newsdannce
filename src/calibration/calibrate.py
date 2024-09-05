@@ -73,18 +73,6 @@ def do_calibrate(
             image_height=video_info.height,
             camera_idx=camera_idx,
         )
-        # else:
-        #     params_file = os.path.join(
-        #         existing_intrinsics_dir, f"hires_cam{camera_idx+1}_params.mat"
-        #     )
-        #     # load intrinsics from existing hires file
-        #     logging.info(
-        #         f"Loading intrinsics for camera {camera_name} from file: {params_file}"
-        #     )
-        #     intrinsics = IntrinsicsParams.load_from_mat_file(
-        #         params_file,
-        #         False,
-        #     )
 
         ##### EXTRINSICS #####
         extrinsics = calibrate_extrinsics(

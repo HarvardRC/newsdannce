@@ -13,6 +13,7 @@ from PySide6.QtGui import QFont
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtWidgets import (
     QApplication,
+    QGroupBox,
     QDoubleSpinBox,
     QFileDialog,
     QFrame,
@@ -27,16 +28,19 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.calibration.validate_page import setup_validation_window
-from src.calibration.calibrate import CalibrationData, do_calibrate
+from src.calibration.calibrate_stateful import CustomCalibrationData
+from src.calibration.validate_page import setup_point_validation_window
+
+# from src.calibration.calibrate import CalibrationData
+from src.calibration.do_calibrate_stateful import do_calibrate_stateful
 from src.calibration.logger import init_logger
-from src.calibration.report_utils import get_calibration_report
 
 
 class GuiPage(Enum):
     CALIBRATE = 0
     CALIBRATE_FINISHED = 1
-    VALIDATE = 2
+    POINT_VALIDATE = 2
+    CHESSBOARD_VALIDATE = 3
 
 
 ORGANIZATION_NAME = "OlveczkyLab"
@@ -61,14 +65,14 @@ class CalibrateWorker(QObject):
 
     def run(self):
         logging.debug(f"Running calibration: Args: {self.arg_dict}")
-        calibration_data = do_calibrate(
+        calibration_data = do_calibrate_stateful(
             on_progress=lambda pct: self.progress.emit(pct), **self.arg_dict
         )
         self.finished.emit({"calibration_data": calibration_data})
 
 
 class CalibrationWindow(QMainWindow):
-    calibration_data: CalibrationData = None
+    calibration_data: CustomCalibrationData = None
 
     def __init__(self):
         super().__init__()
@@ -120,6 +124,14 @@ class CalibrationWindow(QMainWindow):
         self.chessboard_size: QDoubleSpinBox = self.findByName("squareSizeMM")
         self.progress_bar: QProgressBar = self.findByName("progressBar")
 
+        self.intrinsics_hires_toggle: QGroupBox = self.findByName(
+            "intrinsicsHiresToggle"
+        )
+        self.intrinsics_hires_browse: QPushButton = self.findByName(
+            "intrinsicsHiresBrowse"
+        )
+        self.intrinsics_hires_edit: QLineEdit = self.findByName("intrinsicsHiresEdit")
+
         # TODO: DEBUG ITEM REMOVE
         self.skip_calibration_button: QPushButton = self.findByName(
             "skipCalibrationButton"
@@ -129,8 +141,17 @@ class CalibrationWindow(QMainWindow):
         # CALIBRATION FINISHED PAGE:
         self.calibration_log: QTextBrowser = self.findByName("calibrationLog")
         self.calibration_report: QLabel = self.findByName("calibrationReport")
-        self.continue_to_validation_button: QPushButton = self.findByName(
-            "continueToValidationButton"
+        self.point_validation_button: QPushButton = self.findByName(
+            "pointValidationButton"
+        )
+        self.chessboard_validation_button: QPushButton = self.findByName(
+            "chessboardValidationButton"
+        )
+        self.point_validation_back_button: QPushButton = self.findByName(
+            "pointValidationBackButton"
+        )
+        self.chessboard_validation_back_button: QPushButton = self.findByName(
+            "chessboardValidationBackButton"
         )
 
         # Validation Page
@@ -144,6 +165,12 @@ class CalibrationWindow(QMainWindow):
         self.mappings.append(("chessboard_rows", int, self.chessboard_rows))
         self.mappings.append(("chessboard_cols", int, self.chessboard_cols))
         self.mappings.append(("chessboard_size", float, self.chessboard_size))
+        self.mappings.append(
+            ("override_intrinsics_enabled", bool, self.intrinsics_hires_toggle)
+        )
+        self.mappings.append(
+            ("override_intrinsics_dir", str, self.intrinsics_hires_edit)
+        )
 
     def setInitialState(self):
         self.root_widget_stacked.setCurrentIndex(GuiPage.CALIBRATE.value)
@@ -170,8 +197,9 @@ class CalibrationWindow(QMainWindow):
                         object.setChecked(setting_value)
                     else:
                         raise Exception(f"Not sure how to load setting of type: {type}")
-        except Exception:
+        except Exception as e:
             logging.error("Unable to load previous settings. Clearing settings.")
+            logging.error(e)
             settings.clear()
 
     def makeConnections(self):
@@ -188,8 +216,20 @@ class CalibrationWindow(QMainWindow):
         self.extrinsics_dir_browse.clicked.connect(
             self.handleBrowseDirPartial(self.extrinsics_dir_edit, "Extrinsics")
         )
+        self.intrinsics_hires_browse.clicked.connect(
+            self.handleBrowseDirPartial(self.intrinsics_hires_edit, "Hires Folder")
+        )
 
-        self.continue_to_validation_button.clicked.connect(self.handleGoToValidatePage)
+        self.point_validation_button.clicked.connect(self.handleGoToPointValidatePage)
+        self.chessboard_validation_button.clicked.connect(
+            self.handleGoToChessboardValidatePage
+        )
+        self.chessboard_validation_back_button.clicked.connect(
+            self.switchStackToCalibrationFinishedPage
+        )
+        self.point_validation_back_button.clicked.connect(
+            self.switchStackToCalibrationFinishedPage
+        )
 
     def checkCalibrationPage(self):
         if len(self.output_dir_edit.text()) == 0:
@@ -207,15 +247,25 @@ class CalibrationWindow(QMainWindow):
         Does this gracefully and update with calibration data if provided"""
         self.root_widget_stacked.setCurrentIndex(GuiPage.CALIBRATE_FINISHED.value)
 
-    def switchStackToValidatePage(self):
-        self.root_widget_stacked.setCurrentIndex(GuiPage.VALIDATE.value)
-        setup_validation_window(
+    def switchStackToPointValidatePage(self):
+        self.root_widget_stacked.setCurrentIndex(GuiPage.POINT_VALIDATE.value)
+        setup_point_validation_window(
+            self.image_frame, calibration_data=self.calibration_data
+        )
+
+    def switchStackToChessboardValidatePage(self):
+        self.root_widget_stacked.setCurrentIndex(GuiPage.CHESSBOARD_VALIDATE.value)
+        setup_point_validation_window(
             self.image_frame, calibration_data=self.calibration_data
         )
 
     @Slot(None)
-    def handleGoToValidatePage(self):
-        self.switchStackToValidatePage()
+    def handleGoToPointValidatePage(self):
+        self.switchStackToPointValidatePage()
+
+    @Slot(None)
+    def handleGoToChessboardValidatePage(self):
+        self.switchStackToChessboardValidatePage()
 
     @Slot(None)
     def handleSkipCalibration(self):
@@ -231,6 +281,8 @@ class CalibrationWindow(QMainWindow):
         intrinsics_dir = self.intrinsics_dir_edit.text()
         extrinsics_dir = self.extrinsics_dir_edit.text()
         output_dir = self.output_dir_edit.text()
+        override_intrinsics_dir = self.intrinsics_hires_edit.text()
+        override_intrinsics_enabled = self.intrinsics_hires_toggle.isChecked()
 
         method_options = {}
 
@@ -244,14 +296,20 @@ class CalibrationWindow(QMainWindow):
         settings.setValue("output_dir", output_dir)
         settings.setValue("chessboard_rows", method_options["rows"])
         settings.setValue("chessboard_cols", method_options["cols"])
-
         settings.setValue("chessboard_size", method_options["square_size_mm"])
+
+        settings.setValue("override_intrinsics_dir", override_intrinsics_dir)
+        settings.setValue("override_intrinsics_enabled", override_intrinsics_enabled)
+
+        if not override_intrinsics_enabled:
+            override_intrinsics_dir = None
 
         self.progress_bar.setVisible(True)
         self.calibrateInThread(
             intrinsics_dir=intrinsics_dir,
             extrinsics_dir=extrinsics_dir,
             output_dir=output_dir,
+            override_intrinsics_dir=override_intrinsics_dir,
             **method_options,
         )
 
@@ -269,7 +327,7 @@ class CalibrationWindow(QMainWindow):
         logs_text = logging.getLogger().log_stream.getvalue()
 
         self.calibration_log.setText(logs_text)
-        report_text = get_calibration_report().make_summary()
+        report_text = self.calibration_data.report_summary
         self.calibration_report.setText(report_text)
 
         logging.debug("Telling thread1 to quit after calibration")
