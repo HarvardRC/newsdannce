@@ -66,6 +66,7 @@ class CustomCalibrationData:
     n_cameras: int
     output_dir: Optional[str] = None
     report_summary: Optional[str] = None
+    calibrator: "Calibrator" = None
 
 
 @dataclass
@@ -101,6 +102,9 @@ class Calibrator(Generic[T_Int, T_Ext]):
     def set_extrinsics_method(self, ext_method: T_Ext):
         self._extrinsics_method = ext_method
         self._extrinsics_method.bind_calibrator(self)
+
+    def get_extrinsics_method(self) -> T_Ext:
+        return self._extrinsics_method
 
     def init_report(self, camera_names: list[str]):
         self.report = CustomCalibrationReport(camera_names)

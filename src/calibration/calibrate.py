@@ -34,7 +34,6 @@ def do_calibrate(
     disable_label3d_format=False,
 ) -> None:
     start = time.perf_counter()
-    # TODO: improve this, but an empty string for intrinsics_dir is not None
 
     calibration_paths = get_calibration_paths(
         intrinsics_dir=intrinsics_dir,

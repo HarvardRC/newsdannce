@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 
 
@@ -8,15 +9,32 @@ def calculate_rpe(imgpoints, re_imgpoints):
     return avg
 
 
-def triangulate(imgpoints, view_matrices) -> np.ndarray:
-    """Returns a 1D array of shape (3,) containing the X, Y, Z coordinates"""
+def triangulate(
+    imgpoints: list[np.ndarray], view_matrices: list[np.ndarray]
+) -> np.ndarray:
+    """Triangulate a single point in 3D, for N_VIEWS views.
+
+    Returns a 1D array of shape (3,) containing the X, Y, Z coordinates
+
+    imgpoints is a list of length N_VIEWS, containing one point for each view. The point can be shape (2,) or (2,1).
+    view_matrices is a list of length N_VIEWS containing one 3x4 matrix for each view.
+    view
+    """
     # imgpoints: list of either np.ndarray((2,1)) or np.ndarray((2,));
     #     of length n
     # view_matrices: 3x4 camera projection matrices for each view
+    logging.info(
+        f"imgpoints len: {len(imgpoints)}; imgpoints[0] shape: {imgpoints[0].shape}"
+    )
+    logging.info(
+        f"view_matrices len {len(view_matrices)}; view_matrices[0] shape: {view_matrices[0].shape}"
+    )
 
-    assert len(imgpoints) == len(view_matrices)
-    assert imgpoints[0].size == 2
-    assert view_matrices[0].shape == (3, 4)
+    assert len(imgpoints) == len(
+        view_matrices
+    ), "imgpoints and view_matrices must have the same length (first dimension size)"
+    assert imgpoints[0].size == 2, "imgpoints must contain 2D elements"
+    assert view_matrices[0].shape == (3, 4), "view_matrices must contain 3x4 elements"
 
     for ipt in imgpoints:
         ipt.reshape((2, 1))
@@ -37,6 +55,32 @@ def triangulate(imgpoints, view_matrices) -> np.ndarray:
     X = X_homog[:3] / X_homog[3]  # homogoneous (4D) to non-homogenous (3D) coords
     min_sigma = S_vec[-1]  # minimum value of sigma - some metric of error?
     return X
+
+
+def triangulate_all(imgpoints_all: np.ndarray, view_matrices: np.ndarray) -> np.ndarray:
+    """Triangulate M points in 3D using N cameras/views.
+
+    `imgpoints_all` must have shape: (N, M, 2)
+    `view_matrices` must have shape: (N, 3, 4)
+
+
+    Returns an array of worldpoints in the shape: (M, 3)
+    """
+    assert (
+        imgpoints_all.shape[0] == view_matrices.shape[0]
+    ), "imgpoints_all and view_matrices must have same # of views (same first dimension size)"
+    n_cameras = imgpoints_all.shape[0]
+
+    m_points = imgpoints_all.shape[1]
+
+    # imgpoints: list of either np.ndarray((2,1)) or np.ndarray((2,));
+    #     of length n
+    # view_matrices: 3x4 camera projection matrices for each view
+    worldpoint_out = np.zeros((m_points, 3))
+    for i in range(m_points):
+        this_impts = imgpoints_all[:, i, :]
+        worldpoint_out[i, :] = triangulate(this_impts, view_matrices)
+    return worldpoint_out
 
 
 def triangulate_simple(points, camera_mats):

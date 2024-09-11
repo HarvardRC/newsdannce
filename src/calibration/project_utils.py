@@ -442,7 +442,7 @@ def get_repo_commit_sha():
     return sha
 
 
-def get_verification_files(base_dir, camera_names):
+def get_verification_files(base_dir, camera_names, ret_dict=False):
     """Return a list of verification images from a folder: e.g.
     root-folder:
         /Camera1
@@ -450,6 +450,8 @@ def get_verification_files(base_dir, camera_names):
         ...
         /Camera6
             /0.png
+
+    If ret_dict is true, return a dictionary where the key is the camera name and the value is the path to a verificaiton file
     """
     base_dir = Path(base_dir)
     assert base_dir.is_dir(), "base path must be a directory"
@@ -496,4 +498,10 @@ def get_verification_files(base_dir, camera_names):
         fullpath = str(Path(base_dir, camera_name, match))
         verification_files.append(fullpath)
 
-    return verification_files
+    if not ret_dict:
+        return verification_files
+    else:
+        d = {}
+        for idx, camera_name in enumerate(sorted(camera_names)):
+            d[camera_name] = verification_files[idx]
+        return d

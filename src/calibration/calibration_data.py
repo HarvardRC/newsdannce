@@ -85,7 +85,7 @@ class CameraParams:
 
         Returns a numpy vector with size 2: (u,v) in pixels
         """
-        assert world_point.size == 3, "world point must have 3 entries (x,y,z)"
+        assert world_point.size == 3, "world point must have 3 fields (x,y,z)"
         world_point = world_point.reshape((3, 1))
         # use homogeneous world point: (x , y , z , 1).T
         world_point = np.vstack([world_point, 1])
@@ -95,6 +95,20 @@ class CameraParams:
         x = x_homog[0:2, 0] / [x_homog[2, 0]]
         x = x.reshape((2,))  # return a vector instead of a 2d matrix
         return x
+
+    def project_multiple_world_points(self, world_points: np.ndarray):
+        """Project M world_points from world coords to this camera image coords.
+
+        World points ndarray shape: (M, 3)
+        Returns an ndarray of shape: (M, 2)
+
+        """
+
+        m_world_points = world_points.shape[0]
+        proj_points = np.zeros((m_world_points, 2))
+        for i in range(m_world_points):
+            proj_points[i, :] = self.project_world_point(world_points[i, :])
+        return proj_points
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)

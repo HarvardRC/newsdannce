@@ -93,5 +93,6 @@ def do_calibrate_stateful(
     results = cal.get_results()
     results.output_dir = output_dir
     results.report_summary = cal.report.make_summary()
+    results.calibrator = cal
 
     return results

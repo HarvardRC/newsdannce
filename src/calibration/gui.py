@@ -29,7 +29,8 @@ from PySide6.QtWidgets import (
 )
 
 from src.calibration.calibrate_stateful import CustomCalibrationData
-from src.calibration.validate_page import setup_point_validation_window
+from src.calibration.chessboard_validate_page import setup_chessboard_validation_window
+from src.calibration.point_validate_page import setup_point_validation_window
 
 # from src.calibration.calibrate import CalibrationData
 from src.calibration.do_calibrate_stateful import do_calibrate_stateful
@@ -154,7 +155,7 @@ class CalibrationWindow(QMainWindow):
             "chessboardValidationBackButton"
         )
 
-        # Validation Page
+        # point verification page
         self.image_frame: QFrame = self.findByName("imageWidget")
 
         # mapping used to set/load widget state from settings
@@ -250,13 +251,13 @@ class CalibrationWindow(QMainWindow):
     def switchStackToPointValidatePage(self):
         self.root_widget_stacked.setCurrentIndex(GuiPage.POINT_VALIDATE.value)
         setup_point_validation_window(
-            self.image_frame, calibration_data=self.calibration_data
+            self, self.image_frame, calibration_data=self.calibration_data
         )
 
     def switchStackToChessboardValidatePage(self):
         self.root_widget_stacked.setCurrentIndex(GuiPage.CHESSBOARD_VALIDATE.value)
-        setup_point_validation_window(
-            self.image_frame, calibration_data=self.calibration_data
+        setup_chessboard_validation_window(
+            self, None, calibration_data=self.calibration_data
         )
 
     @Slot(None)

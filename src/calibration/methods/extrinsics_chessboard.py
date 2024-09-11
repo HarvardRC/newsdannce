@@ -34,7 +34,6 @@ class ExtrinsicsChessboard(ExtrinsicsMethod):
         camdata: Camdata,
         intrinsics_params: IntrinsicsParams,
     ) -> ExtrinsicsParams:
-        print("INTRINSICS PARAMS ARE", intrinsics_params)
         img = load_image_or_video(
             media_path=camdata.extrinsics_path, output_image_format=ImageFormat.CV2_BGR
         )
