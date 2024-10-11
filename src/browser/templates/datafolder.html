@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+
+<head>
+    <script type="module">
+        const df_input = document.getElementById('datafolder-input');
+        const find_df = document.getElementById("find-df-btn");
+        const output_div = document.getElementById("return-area");
+
+        const url = window.URL
+        find_df.onclick = async () => {
+            const url = `${window.location.href}../api/df-info/${encodeURIComponent(df_input.value)}`
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        path: df_input.value
+                    })
+                });
+                if (!response.ok) {
+                    throw new Error("Response not ok")
+                }
+                const json = await response.json();
+                console.log("JSON is", json)
+                const firstframe_img = `<img width="400px" src="${window.location.href}../static/${json.data.image}"/>`
+                const matfile_divs = json.data.matfile_data.map((x, i) =>
+                    `<li><p>File ${i + 1}</p><ul><li>${x.path}</li><li>#frames: ${x.n_labeled_frames}</li></ul></li>`).join('')
+
+                output_div.innerHTML = `<div>Mat files are <ul>${matfile_divs}</ul><h3>First frame from Camera1</h3>${firstframe_img}<div>`
+            }
+            catch (error) {
+                console.error(error.message)
+            }
+        }
+
+    </script>
+</head>
+
+<body>
+    <div>
+        <h2>Search for data folder</h2>
+        <label>
+            Enter a data folder path
+            <input id="datafolder-input"></input>
+        </label>
+    </div>
+    <div>
+        <button id="find-df-btn">Search for Data Folder</button>
+    </div>
+    <div>
+        <h2>Return values</h2>
+        <div id="return-area"></div>
+    </div>
+</body>
+
+</html>
