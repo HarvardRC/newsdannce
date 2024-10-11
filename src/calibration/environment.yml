@@ -21,3 +21,7 @@ dependencies:
       - opencv-python
       - pyside6
       - ruamel.yaml
+      - fastapi[standard]
+      - SQLAlchemy
+      - sqlmodel
+      - ruamel.yaml.string
