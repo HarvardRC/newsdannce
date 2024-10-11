@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     # Links relative to CODE FOLDER
     SQL_FOLDER: Path = Path(CODE_FOLDER, "sql")
     INIT_SQL_FILE: Path = Path(SQL_FOLDER, "schema.sql")
-    POPULATE_SQL_FILE: Path = Path(SQL_FOLDER "populate_db.sql")
+    POPULATE_SQL_FILE: Path = Path(SQL_FOLDER, "populate_db.sql")
     USER_DATA_SQL_FILE: Path = Path(SQL_FOLDER, "user_data.sql")
 
     DATA_FOLDER: Path = Path(

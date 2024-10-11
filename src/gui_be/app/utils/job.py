@@ -12,7 +12,6 @@ import app.core.db as db
 
 from app.models import (
     JobStatusDataObject,
-    SubmitPredictJobModel,
 )
 from app.utils.make_io_yaml import ComPredictModel, ComTrainModel
 from app.utils.make_sbatch import make_sbatch_str
@@ -108,15 +107,6 @@ def bg_submit_com_train_job(
         )
 
         insert_slurm_job_row(conn, slurm_job_id, train_job_id, db.TABLE_TRAIN_JOB)
-
-
-def submit_predict_job_slurm(data: SubmitPredictJobModel, predict_job_id: int):
-    with db.SessionContext() as conn:
-        row = conn.execute(
-            "SELECT * FROM train_job WHERE id=?", (predict_job_id,)
-        ).fetchone()
-
-    print("ROW IS ", dict(row))
 
 
 def submit_sbatch_to_slurm(sbatch_str, current_dir=None):
