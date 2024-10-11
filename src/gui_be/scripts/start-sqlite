@@ -1,0 +1,7 @@
+#!/bin/bash
+
+SQLITE3_DB="/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/newsdannce/src/gui_be/instance_data/db.sqlite3"
+
+conda run -n dannce-dev --no-capture-output sqlite3 $SQLITE3_DB
+
+
