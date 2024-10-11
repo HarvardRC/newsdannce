@@ -199,3 +199,8 @@ demo/weights
 # npm things
 
 node_modules
+
+
+# Secret files
+
+secrets.json
