@@ -12,7 +12,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.io import loadmat
 
-from src.calibration.video_utils import load_images
+from caldannce.video_utils import load_images
 
 from .math_utils import calculate_rpe
 
@@ -159,7 +159,7 @@ def calibrate_intrinsics(
     start = time.perf_counter()
 
     # calibration report
-    from src.calibration.report_utils import get_calibration_report
+    from caldannce.report_utils import get_calibration_report
 
     report = get_calibration_report()
 

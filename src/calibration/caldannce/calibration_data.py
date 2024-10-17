@@ -171,7 +171,7 @@ class CalibrationData:
         }
         """
         # import inside fn to avoid circular import
-        from src.calibration.project_utils import get_repo_commit_sha
+        from caldannce.project_utils import get_repo_commit_sha
 
         camera_params_list = []
         for p in self.camera_params:

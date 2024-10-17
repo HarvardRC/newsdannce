@@ -4,20 +4,20 @@ from typing import TYPE_CHECKING
 import cv2
 import numpy as np
 
-from src.calibration.calibrate_stateful import CustomCalibrationData
-from src.calibration.math_utils import calculate_rpe, triangulate_all
-from src.calibration.methods.extrinsics_chessboard import ExtrinsicsChessboard
-from src.calibration.project_utils import get_verification_files
-from src.calibration.video_utils import load_image_or_video
+from caldannce.calibrate_stateful import CustomCalibrationData
+from caldannce.math_utils import calculate_rpe, triangulate_all
+from caldannce.methods.extrinsics_chessboard import ExtrinsicsChessboard
+from caldannce.project_utils import get_verification_files
+from caldannce.video_utils import load_image_or_video
 
 if TYPE_CHECKING:
-    from src.calibration.gui import CalibrationWindow
+    from caldannce.gui import CalibrationWindow
 import PySide6.QtWidgets as QtWidgets
 
 # matplotlib tools
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 
-from src.calibration.calibration_data import CalibrationData
+from caldannce.calibration_data import CalibrationData
 
 
 class CustomNavToolbar(NavigationToolbar):

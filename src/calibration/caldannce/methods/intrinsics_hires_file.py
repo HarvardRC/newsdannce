@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from src.calibration.methods import IntrinsicsMethod
-from src.calibration.intrinsics import IntrinsicsParams
+from caldannce.methods import IntrinsicsMethod
+from caldannce.intrinsics import IntrinsicsParams
 
 
 class IntrinsicsHiresFile(IntrinsicsMethod):

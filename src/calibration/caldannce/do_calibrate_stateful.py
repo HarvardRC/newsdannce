@@ -2,11 +2,11 @@ import logging
 import time
 
 
-from src.calibration.calibrate_stateful import Calibrator
-from src.calibration.methods.extrinsics_chessboard import ExtrinsicsChessboard
-from src.calibration.methods.intrinsics_chessboard import IntrinsicsChessboard
-from src.calibration.methods.intrinsics_hires_file import IntrinsicsHiresFile
-from src.calibration.project_utils import (
+from caldannce.calibrate_stateful import Calibrator
+from caldannce.methods.extrinsics_chessboard import ExtrinsicsChessboard
+from caldannce.methods.intrinsics_chessboard import IntrinsicsChessboard
+from caldannce.methods.intrinsics_hires_file import IntrinsicsHiresFile
+from caldannce.project_utils import (
     get_camera_names,
     get_extrinsics_media_paths,
     get_hires_files,

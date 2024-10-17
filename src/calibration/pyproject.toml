@@ -1,3 +1,11 @@
+[project]
+name = "calibration"
+version = "0.0.1"
+
+
+[tool.setuptools]
+# py-modules=['calibration']
+
 # pyproject can include Ruff lint/format configurations too.
 
 [tool.ruff]

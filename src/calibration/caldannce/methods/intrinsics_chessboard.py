@@ -4,10 +4,10 @@ import time
 import cv2
 import numpy as np
 
-from src.calibration.methods import IntrinsicsMethod
-from src.calibration.intrinsics import IntrinsicsParams
-from src.calibration.math_utils import calculate_rpe, get_chessboard_coordinates
-from src.calibration.video_utils import load_images
+from caldannce.methods import IntrinsicsMethod
+from caldannce.intrinsics import IntrinsicsParams
+from caldannce.math_utils import calculate_rpe, get_chessboard_coordinates
+from caldannce.video_utils import load_images
 
 
 class IntrinsicsChessboard(IntrinsicsMethod):

@@ -3,11 +3,11 @@ import logging
 import cv2
 import numpy as np
 
-from src.calibration.methods import ExtrinsicsMethod
-from src.calibration.extrinsics import ExtrinsicsParams
-from src.calibration.intrinsics import IntrinsicsParams
-from src.calibration.math_utils import calculate_rpe, get_chessboard_coordinates
-from src.calibration.video_utils import ImageFormat, load_image_or_video
+from caldannce.methods import ExtrinsicsMethod
+from caldannce.extrinsics import ExtrinsicsParams
+from caldannce.intrinsics import IntrinsicsParams
+from caldannce.math_utils import calculate_rpe, get_chessboard_coordinates
+from caldannce.video_utils import ImageFormat, load_image_or_video
 
 
 class ExtrinsicsChessboard(ExtrinsicsMethod):

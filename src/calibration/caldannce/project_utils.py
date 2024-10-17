@@ -11,7 +11,7 @@ from pathlib import Path
 import git
 from scipy.io import savemat
 
-from src.calibration.calibration_data import CalibrationData
+from caldannce.calibration_data import CalibrationData
 
 from .intrinsics import IntrinsicsParams
 

@@ -16,10 +16,10 @@ from matplotlib.figure import Figure
 # from matplotlib.backends.qt_compat import QtWidgets
 from PySide6.QtCore import Slot
 
-from src.calibration.calibration_data import CalibrationData
-from src.calibration.math_utils import triangulate
-from src.calibration.project_utils import get_verification_files
-from src.calibration.video_utils import load_image_or_video, ImageFormat
+from caldannce.calibration_data import CalibrationData
+from caldannce.math_utils import triangulate
+from caldannce.project_utils import get_verification_files
+from caldannce.video_utils import load_image_or_video, ImageFormat
 
 
 class CustomNavToolbar(NavigationToolbar):

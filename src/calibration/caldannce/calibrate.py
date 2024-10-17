@@ -2,21 +2,20 @@
 import argparse
 import logging
 import time
-from pathlib import Path
 
-from src.calibration.calibration_data import CalibrationData, CameraParams
-from src.calibration.extrinsics import (
+from caldannce.calibration_data import CalibrationData, CameraParams
+from caldannce.extrinsics import (
     calibrate_extrinsics,
 )
-from src.calibration.intrinsics import calibrate_intrinsics
-from src.calibration.logger import init_logger
-from src.calibration.project_utils import (
+from caldannce.intrinsics import calibrate_intrinsics
+from caldannce.logger import init_logger
+from caldannce.project_utils import (
     get_calibration_paths,
     write_calibration_params,
 )
-from src.calibration.report_utils import get_calibration_report, init_calibration_report
-from src.calibration.video_utils import get_video_stats
-from src.calibration.math_utils import get_chessboard_coordinates
+from caldannce.report_utils import get_calibration_report, init_calibration_report
+from caldannce.video_utils import get_video_stats
+from caldannce.math_utils import get_chessboard_coordinates
 
 # reasonable max no. of images for a single camera
 MAX_IMAGES_ACCEPTED = 400

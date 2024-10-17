@@ -28,13 +28,13 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from src.calibration.calibrate_stateful import CustomCalibrationData
-from src.calibration.chessboard_validate_page import setup_chessboard_validation_window
-from src.calibration.point_validate_page import setup_point_validation_window
+from caldannce.calibrate_stateful import CustomCalibrationData
+from caldannce.chessboard_validate_page import setup_chessboard_validation_window
+from caldannce.point_validate_page import setup_point_validation_window
 
-# from src.calibration.calibrate import CalibrationData
-from src.calibration.do_calibrate_stateful import do_calibrate_stateful
-from src.calibration.logger import init_logger
+# from calibration.calibrate import CalibrationData
+from caldannce.do_calibrate_stateful import do_calibrate_stateful
+from caldannce.logger import init_logger
 
 
 class GuiPage(Enum):

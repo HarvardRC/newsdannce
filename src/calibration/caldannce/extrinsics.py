@@ -6,8 +6,8 @@ import cv2
 import numpy as np
 from scipy.io import loadmat
 
-from src.calibration.intrinsics import IntrinsicsParams
-from src.calibration.video_utils import load_image_or_video, ImageFormat
+from caldannce.intrinsics import IntrinsicsParams
+from caldannce.video_utils import load_image_or_video, ImageFormat
 
 from .math_utils import calculate_rpe
 
@@ -104,7 +104,7 @@ def calibrate_extrinsics(
 
     # TODO: END REMOVE (Compute RPE for testing)
 
-    from src.calibration.report_utils import get_calibration_report
+    from caldannce.report_utils import get_calibration_report
 
     report = get_calibration_report()
     report.extrinsics_rpes.append(rpe)

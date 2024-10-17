@@ -7,10 +7,10 @@ E.g. you can have different chessboard sizes for intrinsics and extrinsics, or y
 from dataclasses import dataclass
 import time
 from typing import Generic, Optional, TypeVar
-from src.calibration.calibration_data import CameraParams
-from src.calibration.methods import ExtrinsicsMethod, IntrinsicsMethod
+from caldannce.calibration_data import CameraParams
+from caldannce.methods import ExtrinsicsMethod, IntrinsicsMethod
 
-from src.calibration.project_utils import (
+from caldannce.project_utils import (
     write_calibration_params,
 )
 

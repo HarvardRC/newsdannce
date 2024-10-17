@@ -12,6 +12,7 @@ dependencies:
   - ipykernel
   - jupyterlab
   - imageio-ffmpeg
+  - x264
   - certifi
   - matplotlib
   - pip
@@ -25,3 +26,6 @@ dependencies:
       - SQLAlchemy
       - sqlmodel
       - ruamel.yaml.string
+      - av
+
+

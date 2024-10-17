@@ -1,9 +1,9 @@
 from pprint import pp
-from src.calibration.calibrate_stateful import Calibrator
-from src.calibration.logger import init_logger
-from src.calibration.methods.extrinsics_chessboard import ExtrinsicsChessboard
-from src.calibration.methods.intrinsics_hires_file import IntrinsicsHiresFile
-from src.calibration.project_utils import (
+from caldannce.calibrate_stateful import Calibrator
+from caldannce.logger import init_logger
+from caldannce.methods.extrinsics_chessboard import ExtrinsicsChessboard
+from caldannce.methods.intrinsics_hires_file import IntrinsicsHiresFile
+from caldannce.project_utils import (
     get_extrinsics_media_paths,
     get_hires_files,
     get_intrinsics_image_paths,

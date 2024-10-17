@@ -4,12 +4,12 @@ from typing import TYPE_CHECKING
 
 from attr import dataclass
 
-from src.calibration.extrinsics import ExtrinsicsParams
-from src.calibration.intrinsics import IntrinsicsParams
+from caldannce.extrinsics import ExtrinsicsParams
+from caldannce.intrinsics import IntrinsicsParams
 
 # import only for the type checker - avoid circular imports
 if TYPE_CHECKING:
-    from src.calibration.calibrate_stateful import Calibrator
+    from caldannce.calibrate_stateful import Calibrator
 
 
 # Abstract class for all intrinsics methods
