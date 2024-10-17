@@ -505,3 +505,33 @@ def get_verification_files(base_dir, camera_names, ret_dict=False):
         for idx, camera_name in enumerate(sorted(camera_names)):
             d[camera_name] = verification_files[idx]
         return d
+
+
+@dataclass
+class HiresFileData:
+    path: Path
+    cam_idx: int
+    cam_name: str
+
+def load_camera_folder(calibration_folder: Path):
+    all_calib_files = calibration_folder.glob("hires_cam*_params.mat")
+
+    hires_files = []
+
+    for p in all_calib_files:
+        m = re.match("hires_cam(\d+)_params.mat", p.name)
+        cam_number = int(m.group(1))
+        cam_idx = cam_number - 1
+        cam_name = f"Camera{cam_idx}"
+    
+        hires_files.append(HiresFileData(
+            path=p,
+            cam_idx=cam_idx,
+            cam_name=cam_name,
+        ))
+
+    hires_files = sorted(hires_files, key=lambda x: x.cam_idx)
+
+    print("HIRES FILES ARE", hires_files)
+
+

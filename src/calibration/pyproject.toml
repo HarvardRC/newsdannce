@@ -1,7 +1,9 @@
 [project]
-name = "calibration"
+name = "caldannce"
 version = "0.0.1"
 
+[project.scripts]
+calibration_gui = "caldannce:main"
 
 [tool.setuptools]
 # py-modules=['calibration']
