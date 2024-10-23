@@ -53,6 +53,7 @@ CREATE TABLE video_folder (
     path TEXT UNIQUE,
     com_labels_file TEXT, --path to dannce.mat file with COM labels
     dannce_labels_file TEXT, -- path to dannce.mat file with DANNCE labels
+    calibration_params JSON,
     created_at INTEGER DEFAULT (STRFTIME('%s', 'now'))  
 );
 

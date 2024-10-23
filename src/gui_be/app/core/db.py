@@ -8,6 +8,12 @@ from contextlib import closing
 from app.core.config import settings
 
 
+def does_db_file_exist():
+    if Path(settings.DB_FILE).exists():
+        return True
+    return False
+
+
 # Database Utility Functions
 def get_db() -> typing.Generator[sqlite3.Connection, None, None]:
     conn = sqlite3.connect(settings.DB_FILE, check_same_thread=False)

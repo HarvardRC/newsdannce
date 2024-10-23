@@ -75,3 +75,11 @@ class PredictionDataObjet(BaseModel):
     prediction_id: int
     prediction_status: PredictionStatus
 
+
+class ImportVideoFoldersModel(BaseModel):
+    paths: list[str]
+
+
+class MakePredictionPreviewModel(BaseModel):
+    frames: list[int]
+    camera_name: str

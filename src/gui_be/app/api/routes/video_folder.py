@@ -1,7 +1,11 @@
 # from sqlite3 import Connection
 # from typing import Any, Annotated
-from typing import Any
-from fastapi import APIRouter, HTTPException, Request
+import logging
+import os
+from pathlib import Path
+from typing import Any, BinaryIO
+import uuid
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from app.api.deps import SessionDep
 from app.core.db import (
@@ -9,12 +13,16 @@ from app.core.db import (
     TABLE_SLURM_JOB,
     TABLE_VIDEO_FOLDER,
 )
-from app.models import CreateVideoFolderModel
+from app.models import CreateVideoFolderModel, ImportVideoFoldersModel
 
 from app.utils.dannce_mat_processing import (
     get_labeled_data_in_dir,
     get_predicted_data_in_dir,
 )
+from app.utils.video import get_one_frame
+from app.utils.video_folders import import_video_folders_from_paths
+from app.core.config import settings
+import subprocess
 
 
 router = APIRouter()
@@ -40,21 +48,101 @@ def create_video_folder(data: CreateVideoFolderModel, session: SessionDep) -> An
     return {"id": insert_id}
 
 
-@router.get("/{id}/video")
-async def stream_video(id: int, session: SessionDep, request: Request) -> Any:
+@router.post("/import_from_paths")
+def import_video_folders_route(session: SessionDep, data: ImportVideoFoldersModel):
+    return import_video_folders_from_paths(session, data)
+
+
+# TEST_VIDEO_PATH = "/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/newsdannce/src/gui_be/instance_data/test-video/W2D2M5_Camera1_FRAMENOS_2.mp4"
+
+
+# @router.get("/test_video_stream")
+# def get_video(request: Request):
+#     return range_requests_response(
+#         request, file_path=TEST_VIDEO_PATH, content_type="video/mp4"
+#     )
+
+
+@router.get("/{id}/frame")
+def get_frame_route(
+    id: int, frame_index: int, camera_name: str, session: SessionDep
+) -> Any:
     row = session.execute(
-        f"SELECT path FROM {TABLE_VIDEO_FOLDER} WHERE ID=?", (id,)
+        f"SELECT * FROM {TABLE_VIDEO_FOLDER} WHERE ID=?", (id,)
     ).fetchone()
     if not row:
         raise HTTPException(status_code=404)
 
-    # video_path = Path(row["path"], "videos", "Camera1", "0.mp4")
+    row = dict(row)
+    video_path = Path(row["path"], "videos", camera_name, "0.mp4")
+    if not video_path.exists():
+        return HTTPException(404, "Video does not exist")
 
-    video_path = "/n/olveczky_lab_tier1/Lab/dannce_rig2/data/M1-M7_photometry/Alone/Day1_wk2/240624_135840_M4/stats_com_predict.log"
+    out_filename = f"frame_{id}_{frame_index}_{camera_name}-{uuid.uuid4().hex}.png"
 
-    #
-    # return HTTPResponse
-    return FileResponse(path=video_path)
+    try:
+        get_one_frame(
+            video_path=video_path, frame_index=frame_index, output_name=out_filename
+        )
+    except BaseException as e:
+        raise HTTPException(400, f"Unable to extract frame from video {e}")
+
+    return FileResponse(out_filename, status_code=200)
+
+
+@router.get("/{id}/preview")
+def get_preview_route(id: int, camera_name: str, session: SessionDep) -> Any:
+    row = session.execute(
+        f"SELECT * FROM {TABLE_VIDEO_FOLDER} WHERE ID=?", (id,)
+    ).fetchone()
+    if not row:
+        raise HTTPException(status_code=404)
+
+    row = dict(row)
+    video_path = Path(row["path"], "videos", camera_name, "0.mp4")
+    if not video_path.exists():
+        return HTTPException(404, "Video does not exist")
+
+    out_filename = f"preview_{id}_{camera_name}-{uuid.uuid4().hex}.mp4"
+    out_path = Path(settings.STATIC_TMP_FOLDER, out_filename).resolve()
+
+    # 50 FPS = 0.02 Sec/Frame = 20ms/frame
+    # timestamp = f"{frame_index*20}ms"
+    max_time = "5s"
+
+    # With FAST SEEKING
+    output = subprocess.run(
+        [
+            "ffmpeg",
+            "-ss",
+            "00:00:00.00",
+            "-i",
+            str(video_path),
+            "-an",  # disable audio processing
+            "-t",
+            max_time,
+            "-abort_on",
+            "empty_output",
+            str(out_path),  # output path
+        ],
+        capture_output=True,
+        text=True,
+    )
+    # ffmpeg -accurate_seek -ss 0.00 -i "/net/holy-nfsisilon/ifs/rc_labs/olveczky_lab_tier1/Lab/dannce_rig2/data/M1-M7_photometry/Alone/Day2_wk2/240625_143814_M5/videos/Camera1/0.mp4" -frames:v 1 instance_data/tmp/out
+
+    logging.warning(f"SUB OUT:{output.stdout}")
+
+    logging.warning(f"SUB ERR:{output.stderr}")
+
+    # logging.warning(f"SUB CODE:{output.returncode}")
+    try:
+        output.check_returncode()
+    except subprocess.CalledProcessError:
+        raise HTTPException(
+            400, "FFMPEG frame extraction failed. Perhaps the frame number is invalid?"
+        )
+    # return {"path": str(out_path)}
+    return FileResponse(out_path, status_code=200)
 
 
 @router.get("/{id}")

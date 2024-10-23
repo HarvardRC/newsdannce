@@ -40,6 +40,7 @@ class MatFileInfo:
     n_frames: int
     n_joints: int
     params: dict
+    """Calibration params"""
     path: str
     filename: str
     is_com: bool
@@ -89,6 +90,7 @@ def process_label_mat_file(matfile_path):
     )
     return info
 
+
 def get_labeled_data_in_dir(video_folder_id, video_folder_path):
     maybe_label_data = []
     for i in Path(video_folder_path).glob("*dannce.mat"):
@@ -109,3 +111,19 @@ def get_predicted_data_in_dir(video_folder_id, video_folder_path):
         dannce_folders.append(str(i))
 
     return {"com_predictions": com_folders, "dannce_predictions": dannce_folders}
+
+
+def get_com_pred_data_3d(com3d_file: Path, frames: list[int]) -> np.ndarray:
+    """Get 3d data from COM predictions file.
+
+    Return (n_frames x 3) ndarray. Rows=n_frames; Cols=3"""
+    mat = loadmat(com3d_file)
+    # now you have a VIDOE_FRAMES x 3 shaped ndarray
+    # index by frames list
+    com_data = mat["com"][frames, :]
+    return com_data
+
+
+# def get_pred_3d_data(prediction_file: Path) -> np.ndarray:
+#     mat = loadmat(matfile_path)
+#     n_joints = mat["pred"][0, 0]["data_3d"][0, 0].shape[1] // 3

@@ -128,7 +128,7 @@ def config_com_predict(conn: sqlite3.Connection, data: PredictJobSubmitComModel)
     )
     blank_io_yaml_file = Path(settings.SLURM_TRAIN_FOLDER, "io.yaml")
 
-    prediction_path.mkdir(exist_ok=False)
+    prediction_path.mkdir(exist_ok=False, mode=0o770)
 
     cfg = ComPredictModel(
         META_cwd=video_folder_path,

@@ -48,16 +48,16 @@ def make_project(base_dir: str):
     com_config_yaml = Path(configs_dir, "com_config.yaml")
 
     # make directories
-    base_dir.mkdir(exist_ok=True)
-    configs_dir.mkdir()
-    calibration_dir.mkdir()
-    videos_dir.mkdir()
+    base_dir.mkdir(exist_ok=True, mode=0o770)
+    configs_dir.mkdir(mode=0o770)
+    calibration_dir.mkdir(mode=0o770)
+    videos_dir.mkdir(mode=0o770)
 
     # make files
-    io_yaml_file.touch()
-    label3d_file.touch()
-    dannce_config_yaml.touch()
-    com_config_yaml.touch()
+    io_yaml_file.touch(mode=0o770)
+    label3d_file.touch(mode=0o770)
+    dannce_config_yaml.touch(mode=0o770)
+    com_config_yaml.touch(mode=0o770)
 
     shutil.copy(COM_CONFIG_BASE, com_config_yaml)
     shutil.copy(DANNCE_CONFIG_BASE, dannce_config_yaml)

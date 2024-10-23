@@ -3,7 +3,7 @@ from pathlib import Path
 import os
 
 
-class Settings(BaseSettings):
+class _Settings(BaseSettings):
     CODE_FOLDER: Path = Path(
         "/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/newsdannce/src/gui_be"
     )
@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     PREDICTIONS_FOLDER: Path = Path(DATA_FOLDER, "predictions")
     CONFIGS_FOLDER: Path = Path(DATA_FOLDER, "configs")
     LOGS_FOLDER: Path = Path(DATA_FOLDER, "logs")
+    STATIC_TMP_FOLDER: Path = Path(DATA_FOLDER, "static-tmp")
+    """A folder to store temporary server resources E.g. generated images, etc."""
 
     # name of slurm node the backend is running on
     NODE_NAME: str = os.environ["SLURM_NODELIST"]
@@ -31,6 +33,8 @@ class Settings(BaseSettings):
         f"https://rcood.rc.fas.harvard.edu/rnode/{NODE_NAME}.rc.fas.harvard.edu/8000"
     )
     FRONTEND_HOST: str = "http://localhost:5173"
+    STATIC_URL: str = f"{FRONTEND_HOST}/static"
+    N_CAMERAS: int = 6
 
 
-settings = Settings()
+settings = _Settings()
