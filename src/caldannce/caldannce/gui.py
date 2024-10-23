@@ -6,6 +6,7 @@ from pathlib import Path
 import signal
 
 import numpy as np
+from importlib.resources import files
 
 # from matplotlib.backends.qt_compat import QtWidgets
 from PySide6.QtCore import QFile, QIODevice, QObject, QSettings, QThread, Signal, Slot
@@ -48,7 +49,7 @@ ORGANIZATION_NAME = "OlveczkyLab"
 APPLICATION_NAME = "CalibrationGui"
 
 # path the QT Designer UI file
-UI_FILE_NAME = "./caldannce/ui_files/calibration.ui"
+UI_FILE_NAME=str(files('caldannce.ui_files').joinpath('calibration.ui'))
 
 settings = QSettings(ORGANIZATION_NAME, APPLICATION_NAME)
 
@@ -384,6 +385,7 @@ class CalibrationWindow(QMainWindow):
 
         return _handleBrowseDir
 
+
 def start_gui():
     parser = argparse.ArgumentParser()
     parser.add_argument("-v", "--verbose", action="store_true", default=False)
@@ -405,4 +407,3 @@ def start_gui():
 
 if __name__ == "__main__":
     start_gui()
- 

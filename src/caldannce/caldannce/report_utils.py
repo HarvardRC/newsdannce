@@ -1,4 +1,4 @@
-from src.calibration import (
+from caldannce import (
     calibration_data,
 )  # import this way to use types without circular ref.
 
