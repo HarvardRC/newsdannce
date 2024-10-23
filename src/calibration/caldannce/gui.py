@@ -5,7 +5,6 @@ from enum import Enum
 from pathlib import Path
 import signal
 
-import numpy as np
 from importlib.resources import files
 
 # from matplotlib.backends.qt_compat import QtWidgets
@@ -49,7 +48,7 @@ ORGANIZATION_NAME = "OlveczkyLab"
 APPLICATION_NAME = "CalibrationGui"
 
 # path the QT Designer UI file
-UI_FILE_NAME=str(files('caldannce.ui_files').joinpath('calibration.ui'))
+UI_FILE_NAME=str(files('caldannce').joinpath('ui_files/calibration.ui'))
 
 settings = QSettings(ORGANIZATION_NAME, APPLICATION_NAME)
 
