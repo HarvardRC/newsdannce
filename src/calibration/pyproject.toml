@@ -2,9 +2,6 @@
 name = "caldannce"
 version = "0.0.1"
 
-[project.scripts]
-calibration_gui = "caldannce:main"
-
 [tool.setuptools.package-data]
 caldannce = ["ui_files/*.ui"]
 
