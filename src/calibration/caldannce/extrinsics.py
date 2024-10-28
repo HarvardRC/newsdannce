@@ -30,9 +30,15 @@ class ExtrinsicsParams:
 
     @staticmethod
     def load_from_mat_file(path) -> "ExtrinsicsParams":
+        """Load extrinsics from a single hires_camX_params.mat file
+        If cvt_from_label3d_format is true: transpose the rotation matrix"""
         mat_file = loadmat(path)
         r = mat_file["r"]
         t = mat_file["t"].reshape(3, 1)  # make sure it's a column vector
+        
+        # Convert from label3d format
+        r = r.T
+
         return ExtrinsicsParams(rotation_matrix=r, translation_vector=t)
 
 

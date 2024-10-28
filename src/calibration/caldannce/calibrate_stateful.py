@@ -5,6 +5,9 @@ This allows more control of how intrinsics and extrinsics are calculated.
 E.g. you can have different chessboard sizes for intrinsics and extrinsics, or you can load intrinsics from hires files instead of raw images"""
 
 from dataclasses import dataclass
+import json
+import logging
+from importlib.metadata import version
 import time
 from typing import Generic, Optional, TypeVar
 from caldannce.calibration_data import CameraParams
@@ -61,12 +64,49 @@ class CustomCalibrationReport:
 
 @dataclass
 class CustomCalibrationData:
+    """Class similar to CalibrationData in caldannce/calibration_data.py which is more abstract for stateful calibrator"""
     camera_params: list[CameraParams]
     camera_names: list[str]
     n_cameras: int
     output_dir: Optional[str] = None
     report_summary: Optional[str] = None
     calibrator: "Calibrator" = None
+
+    def DEV_export_to_file(self, dest_file):
+        version_string = None
+        try:
+            version_string =version("caldannce")
+        except BaseException:
+            logging.error("Unable to get version of caldannce package")
+            version_string = ""
+
+        json_data = {
+            "camera_params": [x.as_dict() for x in self.camera_params],
+            "n_cameras": self.n_cameras,
+            "camera_names": self.camera_names,
+            "metadata": {
+                # "intrinsics_dir": str(self.intrinsics_dir),
+                # "extrinsics_dir": str(self.extrinsics_dir),
+                "output_dir": str(self.output_dir),
+                "timestamp": time.time(), # seconds since unix epoch
+                "caldannce_version": version_string,
+                # "target_info": {
+                #     "method": "CHESSBOARD",
+                #     "chessboard_rows": self.chessboard_rows,
+                #     "chessboard_cols": self.chessboard_cols,
+                #     "chessboard_square_size_mm": self.chessboard_square_size_mm,
+                # },
+            },
+        }
+
+        with open(dest_file, "wt") as f:
+            logging.debug(f"About to save to file {dest_file}")
+            try:
+                json.dump(json_data, f)
+            except BaseException as e:
+                logging.error(f"Unable to save json calibration file. Error= {e}" )
+            logging.info(f"Saved calibration.json to file:{dest_file}")
+
 
 
 @dataclass
@@ -167,5 +207,5 @@ class Calibrator(Generic[T_Int, T_Ext]):
             calibration_data=self._calibrate_results,
             output_dir=output_dir,
             disable_label3d_format=False,
-            include_calibration_json=False,
+            include_calibration_json=True,
         )
