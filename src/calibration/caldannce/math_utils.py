@@ -130,3 +130,12 @@ def get_chessboard_coordinates(
     z = np.zeros(chessboard_rows * chessboard_cols)
 
     return np.column_stack((x, y, z)).astype(np.float32) * square_size_mm
+
+def is_upper(x:np.ndarray):
+    """Small helper method - determine if a square matrix is upper triangular
+    Input must be 2-dimensional, square, and n>0"""
+    shape = x.shape
+    assert len(shape) == 2 # 2 dimensional
+    assert shape[0] == shape[1]
+    assert shape[0] >= 1
+    return np.all(np.tril(x, k=-1)==0)

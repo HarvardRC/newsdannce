@@ -13,7 +13,7 @@ import numpy as np
 
 from .extrinsics import ExtrinsicsParams
 from .intrinsics import IntrinsicsParams
-
+from .math_utils import is_upper
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class CameraParams:
@@ -27,11 +27,12 @@ class CameraParams:
     """3x1 ndarray matrix"""
 
     def __post_init__(self):
-        assert self.r_distort.shape == (2,)
-        assert self.t_distort.shape == (2,)
-        assert self.camera_matrix.shape == (3, 3)
-        assert self.rotation_matrix.shape == (3, 3)
-        assert self.translation_vector.shape == (3, 1)
+        assert self.r_distort.shape == (2,), "r_distort must be 1d np array of size 2"
+        assert self.t_distort.shape == (2,), "t_distort must be 1d np array of size 2"
+        assert self.camera_matrix.shape == (3, 3), "camera matrix [k] must be 3x3 np array"
+        assert self.rotation_matrix.shape == (3, 3), "Rotation matrix [r] must be 3x3 np array"
+        assert self.translation_vector.shape == (3, 1), "Translation vector [t] must be a 3x1 column array"
+        assert is_upper(self.camera_matrix), "Camera matrix must be upper-triangular"
 
     @property
     def dist(self) -> np.ndarray:
