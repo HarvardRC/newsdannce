@@ -56,7 +56,6 @@ class IntrinsicsParams:
         k = k.T
         k[0, 2] -= 1
         k[1, 2] -= 1
-
         return IntrinsicsParams(camera_matrix=k, dist=dist)
 
     def __eq__(self, other: "IntrinsicsParams") -> bool:
