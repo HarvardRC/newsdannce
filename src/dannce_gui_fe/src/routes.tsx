@@ -1,13 +1,10 @@
 import { createBrowserRouter } from 'react-router-dom';
 import RootLayout from './components/Layout';
 import Root from './pages/Home';
-import SettingsPage from './pages/SettingsPage';
 import MonitorJobs from './pages/MonitorJobsPage';
 import CreateRuntimePage from './pages/MakeRuntimePage';
 import MakeVideoFolderPage from './pages/MakeVideoFolderPage';
 import RuntimesPage from './pages/RuntimesPage';
-import MakeTrainingFolderPage from './pages/MakeTrainingFolderPage';
-import TrainingFoldersPage from './pages/TrainingFoldersPage';
 import VideoFoldersPage from './pages/VideoFoldersPage';
 import VideoFolderDetailsPage from './pages/VideoFolderDetailsPage';
 import PredictJobDetailsPage from './pages/PredictJobDetailsPage';
@@ -16,6 +13,9 @@ import ComTrainPage from './pages/ComTrainPage';
 import DannceTrainPage from './pages/DannceTrainPage';
 import ComPredictPage from './pages/ComPredictPage';
 import PredictionsPage from './pages/PredictionsPage';
+import PredictionDetailsPage from './pages/PredictionDetailsPage';
+import WeightsPage from './pages/WeightsPage';
+import ImportVideoFoldersPage from './pages/ImportVideoFoldersPage';
 
 type AppPage = {
   path: string;
@@ -29,21 +29,16 @@ export const appPages = {
     element: <Root />,
     title: 'Home',
   },
-  makeTrainingFolder: {
-    path: '/make-training-folder',
-    element: <MakeTrainingFolderPage />,
-    title: 'Make Training Folder',
-  },
   makeVideoFolder: {
     path: '/make-video-folder',
     element: <MakeVideoFolderPage />,
     title: 'Make Video Folder',
   },
-  settings: {
-    path: '/settings',
-    element: <SettingsPage />,
-    title: 'Settings',
-  },
+  // settings: {
+  //   path: '/settings',
+  //   element: <SettingsPage />,
+  //   title: 'Settings',
+  // },
   monitorJobs: {
     path: '/jobs',
     element: <MonitorJobs />,
@@ -64,20 +59,20 @@ export const appPages = {
     element: <VideoFoldersPage />,
     title: 'Video Folders',
   },
-  trainingFolders: {
-    path: '/training-folders',
-    element: <TrainingFoldersPage />,
-    title: 'Train Folders',
-  },
   models: {
-    path: '/models',
-    element: <TrainingFoldersPage />,
-    title: 'Models',
+    path: '/weights',
+    element: <WeightsPage />,
+    title: 'Trained Weights',
   },
   videoFolderDetails: {
     path: '/video-folder/:id',
     element: <VideoFolderDetailsPage />,
     title: 'Video Folder Details',
+  },
+  importVideoFolderPage: {
+    path: '/video-folder/import',
+    element: <ImportVideoFoldersPage />,
+    title: 'Import Video Folders',
   },
   predictJobDetails: {
     path: '/predict-job/:id',
@@ -105,9 +100,14 @@ export const appPages = {
     title: 'Train DANNCE Model',
   },
   predictionsPage: {
-    path: 'predictions/:id',
+    path: '/predictions',
     element: <PredictionsPage />,
     title: 'Predictions',
+  },
+  predictionDetailsPage: {
+    path: '/predictions/:id',
+    element: <PredictionDetailsPage />,
+    title: 'Prediction Details',
   },
 } as const satisfies Record<string, AppPage>;
 
@@ -125,7 +125,7 @@ export const headerLinks: AppPage[] = [
   appPages.runtimes,
   appPages.videoFolders,
   appPages.monitorJobs,
-  appPages.settings,
+  // appPages.settings,
   appPages.predictionsPage,
 ];
 

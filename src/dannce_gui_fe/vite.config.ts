@@ -38,6 +38,35 @@ export default defineConfig({
           });
         },
       },
+      '/static': {
+        target: secrets.base_api_url,
+        rewrite: (path) => path.replace(/^\/v1/, 'static'),
+        changeOrigin: false,
+        secure: false,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.log('[static] proxy error', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            console.log(
+              '[static] Sending Request to the Target:',
+              req.method,
+              req.url
+            );
+            proxyReq.appendHeader(
+              'Authorization',
+              `Basic ${secrets.basic_auth_token}`
+            );
+          });
+          proxy.on('proxyRes', (proxyRes, req, _res) => {
+            console.log(
+              '[static] Received Response from the Target:',
+              proxyRes.statusCode,
+              req.url
+            );
+          });
+        },
+      },
     },
   },
 });
