@@ -1,4 +1,3 @@
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -28,8 +27,11 @@ export default function PredictionsPage() {
   return (
     <div>
       <h1 className="text-2xl font-semibold mb-4">Predictions</h1>
-      <Table>
-        <TableCaption>Predictions</TableCaption>
+      <Table className="mb-4">
+        <TableCaption>
+          Predictions from COM and DANNCE models. Click on name for more
+          details.
+        </TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead className="w-[20px]">ID</TableHead>
@@ -45,7 +47,16 @@ export default function PredictionsPage() {
             return (
               <TableRow key={x.prediction_id}>
                 <TableCell className="font-medium">{x.prediction_id}</TableCell>
-                <TableCell>{x.prediction_name}</TableCell>
+                <TableCell>
+                  <Link
+                    to={appPages.predictionDetailsPage.path.replace(
+                      /:id/,
+                      `${x.prediction_id}`
+                    )}
+                  >
+                    {x.prediction_name}
+                  </Link>
+                </TableCell>
                 <TableCell>{x.mode}</TableCell>
                 <TableCell>{x.status}</TableCell>
                 <TableCell>{timestampString(x.created_at)}</TableCell>
@@ -57,9 +68,6 @@ export default function PredictionsPage() {
           })}
         </TableBody>
       </Table>
-      <Link to={appPages.makeRuntime.path}>
-        <Button>Create New Runtime</Button>
-      </Link>
     </div>
   );
 }

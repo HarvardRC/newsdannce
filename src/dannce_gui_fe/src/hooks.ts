@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   listRuntimes,
-  listTrainingFolders,
   listVideoFolders,
   makeVideoFolder,
   videoFolderDetails,
@@ -16,6 +15,9 @@ import {
   submitComPredictJob,
   listWeights,
   listPredictions,
+  importVideoFolders,
+  getPredictionDetails,
+  previewPrediction,
 } from './api';
 
 /* #######################
@@ -46,8 +48,14 @@ export function useTrainJobDetailsQuery(trainJobId: number) {
 export function useListPredictJobsQuery() {
   return useQuery({
     queryKey: ['listPredictJobs'],
-    // TODO: add query FN
     queryFn: listPredictJobs,
+  });
+}
+
+export function usePredictionDetailsQuery(predictionId: number) {
+  return useQuery({
+    queryKey: ['predictionDetails', predictionId],
+    queryFn: () => getPredictionDetails(predictionId),
   });
 }
 
@@ -73,14 +81,6 @@ export function useListWeightsQuery() {
   });
 }
 
-export function useListTrainingFoldersQuery() {
-  return useQuery({
-    queryKey: ['listTrainingFolders'],
-    // TODO: add query FN
-    queryFn: listTrainingFolders,
-  });
-}
-
 export function useListVideoFoldersQuery() {
   return useQuery({
     queryKey: ['listVideoFolders'],
@@ -103,12 +103,33 @@ export function useVideoFolderDetailsQuery(videoFolderId: number) {
 
 export function useSlurmLogfileQuery(slurmJobId: number) {
   return useQuery({
-    queryKey: ['SlurmLogfile', slurmJobId],
+    queryKey: ['slurmLogfile', slurmJobId],
     retry: false,
     // TODO: add query FN
     // queryFn: listPredictJobs,
     queryFn: () => {
       return getSlurmLogfile(slurmJobId);
+    },
+  });
+}
+
+export function usePreviewPredictionQuery(
+  predictionId: number,
+  frames: number[],
+  cameraName1: string,
+  cameraName2: string
+) {
+  return useQuery({
+    queryKey: [
+      'previewPrediction',
+      predictionId,
+      frames,
+      cameraName1,
+      cameraName2,
+    ],
+    retry: false,
+    queryFn: () => {
+      return previewPrediction(predictionId, frames, cameraName1, cameraName2);
     },
   });
 }
@@ -164,6 +185,16 @@ export function useSubmitComPredictJobMutation() {
     mutationFn: submitComPredictJob,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['listPredictJobs'] });
+    },
+  });
+}
+
+export function useImportVideoFoldersMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: importVideoFolders,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['listVideoFolders'] });
     },
   });
 }

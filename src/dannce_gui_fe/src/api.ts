@@ -17,7 +17,10 @@ export async function post(route: string, data: object = {}) {
     },
     body: JSON.stringify(data),
   });
-  return await response.json();
+  if (response.status >= 200 && response.status < 300) {
+    return await response.json();
+  }
+  throw Error(`Invalid status: ${response.status}`);
 }
 
 export async function get(route: string) {
@@ -27,7 +30,10 @@ export async function get(route: string) {
     method: 'GET',
     headers: {},
   });
-  return await response.json();
+  if (response.status >= 200 && response.status < 300) {
+    return await response.json();
+  }
+  throw Error(`Invalid status: ${response.status}`);
 }
 
 export async function getFile(route: string) {
@@ -39,11 +45,10 @@ export async function getFile(route: string) {
       'Cache-Control': 'no-cache',
     },
   });
-  if (response.status == 200) {
-    return await response.text();
-  } else {
-    throw Error('Non-200 response returned');
+  if (response.status >= 200 && response.status < 300) {
+    return await response.json();
   }
+  throw Error(`Invalid status: ${response.status}`);
 }
 
 //  SPECIFIC ROUTES
@@ -73,24 +78,6 @@ export async function listRuntimes(): Promise<ListRuntimesData> {
   return get('/runtime/list');
 }
 
-type TrainFolder = {
-  name: string;
-  path: string;
-};
-
-type ListTrainingFolder = {
-  id: number;
-  name: string;
-  path: string;
-  has_model: number; // boolean False=0; 1=True
-  mode: DannceMode;
-  created_at: number;
-}[];
-
-export async function listTrainingFolders(): Promise<ListTrainingFolder> {
-  return get('/training_folder/list');
-}
-
 type ListVideoFolder = {
   id: number;
   name: string;
@@ -103,29 +90,6 @@ type ListVideoFolder = {
 export async function listVideoFolders(): Promise<ListVideoFolder> {
   return get('/video_folder/list');
 }
-
-// type VideoFolder = {
-//   name: string;
-//   path: string;
-// };
-
-// type TrainJobType = {
-//   id: number;
-//   config_file: string;
-//   name: string;
-//   mode: DannceMode;
-//   training_folder: TrainFolder;
-//   video_folders: VideoFolder[];
-// };
-
-// type PredictJobType = {
-//   id: number;
-//   config_file: string;
-//   name: string;
-//   mode: DannceMode;
-//   training_folder: TrainFolder | null;
-//   video_folder: VideoFolder;
-// };
 
 type VideoFolderDetails = {
   id: number;
@@ -329,10 +293,6 @@ export async function getTrainJobDetails(
   return get(`/train_job/${trainJobId}`);
 }
 
-export async function getSlurmLogfile(slurmJobId: number): Promise<any> {
-  return getFile(`/jobs_common/get_log/${slurmJobId}`);
-}
-
 type ListWeightsData = {
   id: number;
   name: string;
@@ -344,4 +304,65 @@ type ListWeightsData = {
 
 export async function listWeights(): Promise<ListWeightsData> {
   return get('/weights/list');
+}
+
+export async function getSlurmLogfile(slurmJobId: number): Promise<any> {
+  if (!slurmJobId) {
+    throw Error('getSlurmLogFIle:: slurmJobId must be defined');
+  }
+  return getFile(`/jobs_common/get_log/${slurmJobId}`);
+}
+
+type ImportVideoFoldersType = {
+  paths: string[];
+};
+export async function importVideoFolders(
+  data: ImportVideoFoldersType
+): Promise<any> {
+  if (data.paths.length == 0) {
+    throw Error('importVideoFolders:: paths[] must not be empty');
+  }
+  return post('/video_folder/import_from_paths', data);
+}
+
+type PredictionDetailsType = {
+  prediction_id: number;
+  prediction_name: string;
+  prediction_path: string;
+  prediction_status: 'PENDING' | 'COMPLETED' | 'FAILED';
+  video_folder_id: number;
+  mode: 'DANNCE' | 'SDANNCE' | 'COM';
+};
+export async function getPredictionDetails(
+  predictionId: number
+): Promise<PredictionDetailsType> {
+  if (!predictionId) {
+    throw Error('getPredictionDetails:: predictionId must be defined');
+  }
+  return get(`/prediction/${predictionId}`);
+}
+
+type PreviewPredictionType = {
+  frames: {
+    frame_idx: number;
+    static_url_cam1: string;
+    static_url_cam2: string;
+    pts_cam1: number[][];
+    pts_cam2: number[][];
+  }[];
+};
+export async function previewPrediction(
+  predictionId: number,
+  frames: number[],
+  camera_name_1: string,
+  camera_name_2: string
+): Promise<PreviewPredictionType> {
+  if (!predictionId) {
+    throw Error('getPredictionDetails:: predictionId must be defined');
+  }
+  return post(`/prediction/${predictionId}/make_preview`, {
+    frames: frames,
+    camera_name_1: camera_name_1,
+    camera_name_2: camera_name_2,
+  });
 }

@@ -22,7 +22,7 @@ const LogStream: React.FC<props> = ({ slurmJobId }) => {
     isError,
   } = useSlurmLogfileQuery(slurmJobId);
 
-  if (isLoading || slurmJobId == undefined) {
+  if (isLoading) {
     return <div>Loading</div>;
   }
 
@@ -38,7 +38,7 @@ const LogStream: React.FC<props> = ({ slurmJobId }) => {
     <div>
       <ScrollArea className="h-[500px] bg-gray-50 rounded-md border p-4 my-4">
         <pre>
-          {isError && 'Error fetching file. Perhaps it does not exist.'}
+          {isError && 'Error fetching log file. Perhaps it does not exist.'}
           {!isError && isEmpty && '<Empty file>'}
           {!isError && !isEmpty && stripProgressLines(logFileData)}
         </pre>

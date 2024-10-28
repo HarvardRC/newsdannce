@@ -17,7 +17,7 @@ const queryClient = new QueryClient({
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Toaster />
+    <Toaster duration={5000} />
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={customRouter} />
     </QueryClientProvider>

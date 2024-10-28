@@ -98,9 +98,14 @@ const VideoFoldersPage: React.FC = () => {
             })}
           </TableBody>
         </Table>
-        <Link to={appPages.makeVideoFolder.path}>
-          <Button>Create Video Folder</Button>
-        </Link>
+        <div className="flex flex-row gap-4">
+          <Link to={appPages.makeVideoFolder.path}>
+            <Button>Create Video Folder</Button>
+          </Link>
+          <Link to={appPages.importVideoFolderPage.path}>
+            <Button variant={'secondary'}>Bulk Import Video Folders</Button>
+          </Link>
+        </div>
       </TooltipProvider>
     </div>
   );

@@ -1,8 +1,16 @@
+import { Button } from '@/components/ui/button';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { useVideoFolderDetailsQuery } from '@/hooks';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 const VideoFolderDetailsPage: React.FC = () => {
   const { id: idStr } = useParams();
+  const [showPreview, setShowPreview] = useState(false);
 
   const id = parseInt(idStr!);
 
@@ -52,17 +60,60 @@ const VideoFolderDetailsPage: React.FC = () => {
         </li>
       </ul>
       <div>
-        <h2 className="my-6 text-lg">Labeled Files: </h2>
-        <pre>{JSON.stringify(labelData, null, 2)}</pre>
+        <Collapsible>
+          <h2 className="my-6 text-lg">
+            Labeled Files:{' '}
+            <CollapsibleTrigger>(click to show)</CollapsibleTrigger>
+          </h2>
+          <CollapsibleContent>
+            <pre>{JSON.stringify(labelData, null, 2)}</pre>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
       <div>
-        <h2 className="my-6 text-lg">Prediction Data: </h2>
-        <pre>{JSON.stringify(predictionData, null, 2)}</pre>
+        {
+          <Collapsible>
+            <h2 className="my-6 text-lg">
+              Prediction Data:{' '}
+              <CollapsibleTrigger>(click to show)</CollapsibleTrigger>
+            </h2>
+            <CollapsibleContent>
+              <pre>{JSON.stringify(predictionData, null, 2)}</pre>
+            </CollapsibleContent>
+          </Collapsible>
+        }
       </div>
 
       <div>
-        <h2 className="my-6 text-lg">Prediction Jobs run on this data: </h2>
-        <pre>{JSON.stringify(predictJobs, null, 2)}</pre>
+        <Collapsible>
+          <h2 className="my-6 text-lg">
+            Prediction Jobs run on this data:{' '}
+            <CollapsibleTrigger>(click to show)</CollapsibleTrigger>
+          </h2>
+          <CollapsibleContent>
+            <pre>{JSON.stringify(predictJobs, null, 2)}</pre>
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+
+      <div>
+        {showPreview ? (
+          <>
+            <h2 className="text-xl">Video Preview</h2>
+            <video autoPlay controls className="max-w-xl">
+              <source
+                src={`/v1/video_folder/${id}/preview?camera_name=Camera1`}
+                type="video/mp4"
+              ></source>
+            </video>
+          </>
+        ) : (
+          <div>
+            <Button onClick={() => setShowPreview(true)}>
+              Show Video Preview (first 5 secs)
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
