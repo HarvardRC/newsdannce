@@ -16,6 +16,7 @@ from .extrinsics import ExtrinsicsParams
 from .intrinsics import IntrinsicsParams
 from .math_utils import is_upper
 
+
 @dataclass(frozen=True, slots=True, kw_only=True)
 class CameraParams:
     r_distort: np.ndarray
@@ -30,9 +31,18 @@ class CameraParams:
     def __post_init__(self):
         assert self.r_distort.shape == (2,), "r_distort must be 1d np array of size 2"
         assert self.t_distort.shape == (2,), "t_distort must be 1d np array of size 2"
-        assert self.camera_matrix.shape == (3, 3), "camera matrix [k] must be 3x3 np array"
-        assert self.rotation_matrix.shape == (3, 3), "Rotation matrix [r] must be 3x3 np array"
-        assert self.translation_vector.shape == (3, 1), "Translation vector [t] must be a 3x1 column array"
+        assert self.camera_matrix.shape == (
+            3,
+            3,
+        ), "camera matrix [k] must be 3x3 np array"
+        assert self.rotation_matrix.shape == (
+            3,
+            3,
+        ), "Rotation matrix [r] must be 3x3 np array"
+        assert self.translation_vector.shape == (
+            3,
+            1,
+        ), "Translation vector [t] must be a 3x1 column array"
         assert is_upper(self.camera_matrix), "Camera matrix must be upper-triangular"
 
     @property
@@ -72,16 +82,28 @@ class CameraParams:
 
     @staticmethod
     def from_struct(s):
-        """Create a CameraParams from a matlab/numpy struct"""
+        """Create a CameraParams from a matlab/numpy struct
+
+        Will convert from label3d format to cv2 format upon loading"""
+        camera_matrix = s["K"][0, 0].reshape(3, 3)
+        rotation_matrix = s["r"][0, 0].reshape(3, 3)
+        # make sure translation_vector is a (3,1) column matrix shape
+        translation_vector = s["t"][0, 0].reshape(3, 1)
+        r_distort = s["RDistort"][0, 0].reshape(2)
+        t_distort = s["TDistort"][0, 0].reshape(2)
+
+        # Transform camera mtx and rotation mtx. to account for label3d/dannce format
+        camera_matrix = camera_matrix.T
+        camera_matrix[0, 2] -= 1
+        camera_matrix[1, 2] -= 1
+        rotation_matrix = rotation_matrix.T
 
         return CameraParams(
-            camera_matrix=s["K"][0, 0].reshape(3, 3),
-            rotation_matrix=s["r"][0, 0].reshape(3, 3),
-            translation_vector=s["t"][0, 0].reshape(
-                3, 1
-            ),  # ensure translation vector is column vector 3x1 not 1x3
-            r_distort=s["RDistort"][0, 0].reshape(2),
-            t_distort=s["TDistort"][0, 0].reshape(2),
+            camera_matrix=camera_matrix,
+            rotation_matrix=rotation_matrix,
+            translation_vector=translation_vector,
+            r_distort=r_distort,
+            t_distort=t_distort,
         )
 
     @staticmethod
@@ -293,7 +315,7 @@ class CalibrationData:
     #         }
     #     }
     #     """
-     
+
     #     camera_params_list = []
     #     for p in self.camera_params:
     #         camera_params_list.append(
