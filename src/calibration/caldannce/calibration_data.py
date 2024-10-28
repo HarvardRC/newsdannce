@@ -73,9 +73,7 @@ class CameraParams:
     @staticmethod
     def load_from_hires_file(filename):
         """Generate a CaemraParams matrix from a file path to a hires file"""
-        intrinsics = IntrinsicsParams.load_from_mat_file(
-            filename, cvt_from_label3d_format=True
-        )
+        intrinsics = IntrinsicsParams.load_from_mat_file(filename)
         extrinsics = ExtrinsicsParams.load_from_mat_file(filename)
 
         return CameraParams.from_intrinsics_extrinsics(intrinsics, extrinsics)

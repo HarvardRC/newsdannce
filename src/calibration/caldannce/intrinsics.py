@@ -42,9 +42,7 @@ class IntrinsicsParams:
         return self.dist[2:4]
 
     @staticmethod
-    def load_from_mat_file(
-        path: str
-    ) -> "IntrinsicsParams":
+    def load_from_mat_file(path: str) -> "IntrinsicsParams":
         """
         convert from matlab intrinsics matrix to cv2: adjust upper left px from (1,1) to (0,0) and transpose camera_matrix
         """
@@ -58,7 +56,7 @@ class IntrinsicsParams:
         k = k.T
         k[0, 2] -= 1
         k[1, 2] -= 1
-        
+
         return IntrinsicsParams(camera_matrix=k, dist=dist)
 
     def __eq__(self, other: "IntrinsicsParams") -> bool:
