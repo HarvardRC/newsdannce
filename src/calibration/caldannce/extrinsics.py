@@ -32,7 +32,7 @@ class ExtrinsicsParams:
     def load_from_mat_file(path) -> "ExtrinsicsParams":
         mat_file = loadmat(path)
         r = mat_file["r"]
-        t = mat_file["t"]
+        t = mat_file["t"].reshape(3, 1)  # make sure it's a column vector
         return ExtrinsicsParams(rotation_matrix=r, translation_vector=t)
 
 

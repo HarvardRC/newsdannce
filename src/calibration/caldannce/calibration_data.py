@@ -2,8 +2,11 @@
 
 import json
 import logging
+from pathlib import Path
+import re
 import time
 from dataclasses import dataclass
+from scipy.io import loadmat
 
 import cv2
 import numpy as np
@@ -22,6 +25,13 @@ class CameraParams:
     """3x3 ndarray matrix"""
     translation_vector: np.ndarray
     """3x1 ndarray matrix"""
+
+    def __post_init__(self):
+        assert self.r_distort.shape == (2,)
+        assert self.t_distort.shape == (2,)
+        assert self.camera_matrix.shape == (3, 3)
+        assert self.rotation_matrix.shape == (3, 3)
+        assert self.translation_vector.shape == (3, 1)
 
     @property
     def dist(self) -> np.ndarray:
@@ -57,6 +67,77 @@ class CameraParams:
         extrinsics = ExtrinsicsParams.load_from_mat_file(filename)
 
         return CameraParams.from_intrinsics_extrinsics(intrinsics, extrinsics)
+
+    @staticmethod
+    def from_struct(s):
+        """Create a CameraParams from a matlab/numpy struct"""
+
+        return CameraParams(
+            camera_matrix=s["K"][0, 0].reshape(3, 3),
+            rotation_matrix=s["r"][0, 0].reshape(3, 3),
+            translation_vector=s["t"][0, 0].reshape(
+                3, 1
+            ),  # ensure translation vector is column vector 3x1 not 1x3
+            r_distort=s["RDistort"][0, 0].reshape(2),
+            t_distort=s["TDistort"][0, 0].reshape(2),
+        )
+
+    @staticmethod
+    def load_list_from_hires_folder(
+        calibration_folder: str | Path,
+    ) -> list["CameraParams"]:
+        """Load a list of camera params from a folder containing hires_camX_params.mat files"""
+        hires_folder = Path(calibration_folder)
+        hires_files = [f for f in hires_folder.glob("hires_cam*params.mat")]
+        if len(hires_files) == 0:
+            raise Exception(
+                "No valid calibration files found (format=hires_camX_params.mat where X is 1,2,3...)"
+            )
+        # sort the files so the hires_cam1 is before hires_cam2 (etc. )
+        hires_files = sorted(
+            hires_files,
+            key=lambda x: int(re.match(r"hires_cam(\d+)_params.mat", x.name).group(1)),
+        )
+        params_list = [CameraParams.load_from_hires_file(f) for f in hires_files]
+        return params_list
+
+    @staticmethod
+    def load_list_from_dannce_mat_file(
+        dannce_mat_file: str | Path,
+    ) -> list["CameraParams"]:
+        """Load a list of camera params from a COM or DANNCE *dannce.mat file"""
+        dannce_mat_file = Path(dannce_mat_file)
+        mat = loadmat(dannce_mat_file)
+        params = mat["params"]
+        n_cams = params.shape[0]
+        # return as params_list
+        params_list = []
+        for i in range(n_cams):
+            params_list.append(CameraParams.from_struct(params[i, 0]))
+        return params_list
+
+    @staticmethod
+    def load_from_dict(obj: dict) -> "CameraParams":
+        """Load a single camera param object from a serializable object"""
+        return CameraParams(
+            r_distort=np.array(obj["r_distort"]),
+            t_distort=np.array(obj["t_distort"]),
+            camera_matrix=np.array(obj["camera_matrix"]),
+            translation_vector=np.array(obj["translation_vector"]),
+            rotation_matrix=np.array(obj["rotation_matrix"]),
+        )
+
+    @staticmethod
+    def load_list_from_json_string(json_string: str) -> list["CameraParams"]:
+        """Load a list of camera parameters given a json string"""
+        obj = json.loads(json_string)
+        n_views = len(obj)
+        params_list = []
+        for i in range(n_views):
+            cam_i = obj[i]
+            params_i = CameraParams.load_from_dict(cam_i)
+            params_list.append(params_i)
+        return params_list
 
     @staticmethod
     def compare(A: "CameraParams", B: "CameraParams"):
@@ -109,6 +190,30 @@ class CameraParams:
         for i in range(m_world_points):
             proj_points[i, :] = self.project_world_point(world_points[i, :])
         return proj_points
+
+    def as_dict(self):
+        return {
+            "camera_matrix": self.camera_matrix.tolist(),
+            "rotation_matrix": self.rotation_matrix.tolist(),
+            "translation_vector": self.translation_vector.tolist(),
+            "r_distort": self.r_distort.tolist(),
+            "t_distort": self.t_distort.tolist(),
+        }
+
+    def __eq__(self, other):
+        attrs = [
+            "camera_matrix",
+            "rotation_matrix",
+            "translation_vector",
+            "r_distort",
+            "t_distort",
+        ]
+        for attr in attrs:
+            selfvalue = getattr(self, attr)
+            othervalue = getattr(other, attr)
+            if not (np.all(np.isclose(selfvalue, othervalue, rtol=1e-7, atol=1e-8))):
+                return False
+        return True
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
