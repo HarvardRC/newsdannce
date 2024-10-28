@@ -43,10 +43,10 @@ class IntrinsicsParams:
 
     @staticmethod
     def load_from_mat_file(
-        path: str, cvt_matlab_to_cv2: bool = False
+        path: str
     ) -> "IntrinsicsParams":
         """
-        cvt_matlab_to_cv2: if this is true, convert from matlab intrinsics matrix to cv2 intrinsics matrix (add 1)
+        convert from matlab intrinsics matrix to cv2: adjust upper left px from (1,1) to (0,0) and transpose camera_matrix
         """
         mat_file = loadmat(path)
         r_distort = np.array(mat_file["RDistort"]).squeeze()
@@ -54,10 +54,11 @@ class IntrinsicsParams:
         dist = np.array([r_distort[0], r_distort[1], t_distort[0], t_distort[1]])
         k = mat_file["K"]
 
-        if cvt_matlab_to_cv2:
-            k[0, 2] -= 1
-            k[1, 2] -= 1
-
+        # convert from label3d format
+        k = k.T
+        k[0, 2] -= 1
+        k[1, 2] -= 1
+        
         return IntrinsicsParams(camera_matrix=k, dist=dist)
 
     def __eq__(self, other: "IntrinsicsParams") -> bool:

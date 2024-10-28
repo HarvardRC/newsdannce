@@ -17,6 +17,6 @@ class IntrinsicsHiresFile(IntrinsicsMethod):
         self, camera_name: str, camdata: Camdata
     ) -> IntrinsicsParams:
         ret_params = IntrinsicsParams.load_from_mat_file(
-            camdata.hires_file_path, cvt_matlab_to_cv2=False
+            camdata.hires_file_path
         )
         return ret_params
