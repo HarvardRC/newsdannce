@@ -7,6 +7,7 @@ import re
 import time
 from dataclasses import dataclass
 from scipy.io import loadmat
+import textwrap
 
 import cv2
 import numpy as np
@@ -214,6 +215,20 @@ class CameraParams:
             if not (np.all(np.isclose(selfvalue, othervalue, rtol=1e-7, atol=1e-8))):
                 return False
         return True
+
+    def __repr__(self):
+        return f"""CameraParam
+ > camera_matrix [K]:
+{textwrap.indent(np.array_str(self.camera_matrix, precision=3, suppress_small=True), "    ")}
+ > rotation_matrix [r]:
+{textwrap.indent(np.array_str(self.rotation_matrix, precision=3, suppress_small=True), "    ")}
+ > translation_vector [t]:
+{textwrap.indent(np.array_str(self.translation_vector, precision=3, suppress_small=True), "    ")}
+ > r_distort:
+ {textwrap.indent(np.array_str(self.r_distort, precision=3, suppress_small=True), "    ")}
+ > t_distort:
+{textwrap.indent(np.array_str(self.t_distort, precision=3, suppress_small=True), "    ")}
+"""
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
