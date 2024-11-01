@@ -19,7 +19,7 @@ export default function PredictionsPage() {
     isError,
   } = useListPredictionsQuery();
   if (isLoading) {
-    return <div>loading</div>;
+    return <div>Loading...</div>;
   }
 
   const data = rawPredictions || [];

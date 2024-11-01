@@ -1,100 +1,74 @@
-import { usePreviewPredictionQuery } from '@/hooks';
+import { useEffect, useRef, useState } from 'react';
 
-import { BlurFilter, TextStyle } from 'pixi.js';
-import {
-  Stage,
-  Container,
-  Sprite,
-  Text,
-  SimpleMesh,
-  Graphics,
-} from '@pixi/react';
-import { useState } from 'react';
+import { Button } from './ui/button';
+import { PixiPreview } from '@/utils/pixiFunctions';
+import { PreviewPredictionType } from '@/api';
+import { useDebounce, useWindowSize } from '@/hooks';
 
 type props = {
-  predictionId: number;
-  cameraName1: string;
-  cameraName2: string;
-  frames: number[];
+  data: PreviewPredictionType;
 };
 
-const PreviewPrediction: React.FC<props> = ({
-  predictionId,
-  cameraName1,
-  cameraName2,
-  frames,
-}) => {
-  const { data, isLoading, isError } = usePreviewPredictionQuery(
-    predictionId,
-    frames,
-    cameraName1,
-    cameraName2
-  );
-
+const PreviewPrediction: React.FC<props> = ({ data }) => {
+  const mountRef = useRef<HTMLDivElement>(null);
   const [frameIdx, setFrameIdx] = useState(0);
+  const allPreviewInstancesRef = useRef<Record<number, PixiPreview>>({});
+  const _size = useWindowSize();
+  const sizeDebounced = useDebounce(_size, 400);
+  /** size is debounced 400 ms, so it waits until user finishes dragging window to re-render */
 
-  if (isLoading) {
-    return <div>Loading</div>;
-  }
-
-  if (isError || !data) {
-    return <div>Error</div>;
-  }
-
-  const nJoints = data.frames[frameIdx].pts_cam1.length;
-  const nFrames = data.frames.length;
-
-  console.log('NFRAMES', nFrames);
-  const incFrameIdx = () => {
-    // setFrameIdx((x) => (x + 1) % nFrames);
-    setFrameIdx((x) => (x + 1) % nFrames);
-
-    console.log('INCING FRAME INDEX');
+  const incrFrameBy = (n: number) => {
+    const maxNoFrames = data.frames.length;
+    setFrameIdx((frame) => (frame + maxNoFrames + n) % maxNoFrames);
   };
-  const decFrameIdx = () => {
-    setFrameIdx((x) => (x + nFrames - 1) % nFrames);
-    console.log("DEC'ING");
-  };
+
+  useEffect(() => {
+    // const mountElement = mountRef.current!;
+    const previewInstance = new PixiPreview();
+    // const ac = new AbortController();
+    let promiseChain = previewInstance.init(mountRef, data);
+    promiseChain = promiseChain.then(() => {
+      allPreviewInstancesRef.current[previewInstance.id] = previewInstance;
+    });
+    promiseChain = promiseChain.then(() => {
+      previewInstance.update(0);
+    });
+
+    return () => {
+      promiseChain
+        .then(() => previewInstance.destroy())
+        .then(() => delete allPreviewInstancesRef.current[previewInstance.id]);
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log(
+      'Updating previewInstances because frameIdx or window size changed'
+    );
+    for (const [, app] of Object.entries(allPreviewInstancesRef.current)) {
+      if (app.data != null) {
+        app.update(frameIdx);
+      }
+    }
+  }, [frameIdx, sizeDebounced]);
 
   return (
-    <div>
-      <div className="flex flex-row gap-4">
-        <div
-          onClick={decFrameIdx}
-          className="cursor-pointer border-2 border-blue-500 select-none"
-        >
-          DEC FRAME
-        </div>
-        <div
-          className="cursor-pointer border-2 border-blue-500 select-none"
-          onClick={incFrameIdx}
-        >
-          INC FRAME
-        </div>
-        <div>current frame: {frameIdx}</div>
+    <div className="my-8">
+      <div className="flex flex-row gap-4 my-2">
+        {/* BUTTON CONTAINER */}
+        <Button onClick={() => incrFrameBy(-1)} variant={'default'}>
+          Frame -
+        </Button>
+        <Button onClick={() => incrFrameBy(+1)} variant={'default'}>
+          Frame +
+        </Button>
       </div>
 
-      <Stage width={1920} height={1200} options={{ background: 0x656565 }}>
-        <Sprite
-          image={data!.frames[frameIdx].static_url_cam1}
-          anchor={0}
-          scale={{ x: 1, y: 1 }}
-          x={0}
-          y={0}
-          alpha={1}
-        />
-        <Graphics
-          draw={(g) => {
-            g.beginFill(0xff0000);
-            g.lineStyle(1);
-
-            for (let i = 0; i < data.frames[frameIdx].pts_cam1.length; i++) {
-              const pt = data.frames[frameIdx].pts_cam1[i];
-              g.drawCircle(pt[0], pt[1], 5);
-            }
-          }}
-        />
-      </Stage>
+      <div>
+        Frame: {data.frames[frameIdx].absolute_frameno} ({frameIdx + 1}/
+        {data.n_frames})
+      </div>
+      <div ref={mountRef} className="border-2 h-[800px] border-red-300" />
     </div>
   );
 };

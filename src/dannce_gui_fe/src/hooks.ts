@@ -19,6 +19,7 @@ import {
   getPredictionDetails,
   previewPrediction,
 } from './api';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 /* #######################
  *         QUERIES
@@ -56,6 +57,7 @@ export function usePredictionDetailsQuery(predictionId: number) {
   return useQuery({
     queryKey: ['predictionDetails', predictionId],
     queryFn: () => getPredictionDetails(predictionId),
+    // enabled: false,
   });
 }
 
@@ -128,6 +130,7 @@ export function usePreviewPredictionQuery(
       cameraName2,
     ],
     retry: false,
+    // enabled: false,
     queryFn: () => {
       return previewPrediction(predictionId, frames, cameraName1, cameraName2);
     },
@@ -197,4 +200,39 @@ export function useImportVideoFoldersMutation() {
       queryClient.invalidateQueries({ queryKey: ['listVideoFolders'] });
     },
   });
+}
+
+// ############
+// CUSTOM HOOKS
+// ############
+
+export function useWindowSize() {
+  // Returns a state variable which update (& triggers rerender) on window resize
+  const [size, setSize] = useState([0, 0]);
+  useLayoutEffect(() => {
+    function updateSize() {
+      setSize([window.innerWidth, window.innerHeight]);
+    }
+    window.addEventListener('resize', updateSize);
+    updateSize();
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
+  return size;
+}
+
+export function useDebounce<T>(value: T, delayInMs = 500) {
+  // Debounce - updates returned value (debouncedValue) only after delayInMs milliseconds
+  // after last value update
+  const [debouncedValue, setDebouncedValue] = useState<T | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    timerRef.current = setTimeout(() => setDebouncedValue(value), delayInMs);
+
+    return () => {
+      clearTimeout(timerRef.current!);
+    };
+  }, [value, delayInMs]);
+
+  return debouncedValue;
 }

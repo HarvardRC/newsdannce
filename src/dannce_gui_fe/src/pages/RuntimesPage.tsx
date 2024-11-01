@@ -15,7 +15,7 @@ import { Link } from 'react-router-dom';
 export default function RuntimesPage() {
   const { data, isLoading, isError } = useListRuntimesQuery();
   if (isLoading) {
-    return <div>loading</div>;
+    return <div>Loading...</div>;
   }
   return (
     <div>

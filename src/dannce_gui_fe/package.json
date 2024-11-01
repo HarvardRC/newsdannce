@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
-    "@pixi/react": "^7.1.2",
     "@radix-ui/react-checkbox": "^1.1.2",
     "@radix-ui/react-collapsible": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.2",
@@ -34,7 +33,7 @@
     "cmdk": "^1.0.0",
     "lucide-react": "^0.451.0",
     "next-themes": "^0.3.0",
-    "pixi.js": "^7.4.2",
+    "pixi.js": "^8.5.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.0",

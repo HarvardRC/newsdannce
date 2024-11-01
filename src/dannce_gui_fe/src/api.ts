@@ -342,14 +342,19 @@ export async function getPredictionDetails(
   return get(`/prediction/${predictionId}`);
 }
 
-type PreviewPredictionType = {
+export type PreviewPredictionType = {
   frames: {
     frame_idx: number;
+    absolute_frameno: number; // frame number of the within the original video (not frame idx)
     static_url_cam1: string;
     static_url_cam2: string;
     pts_cam1: number[][];
     pts_cam2: number[][];
   }[];
+  n_frames: number;
+  frame_width: number;
+  frame_height: number;
+  n_joints: number;
 };
 export async function previewPrediction(
   predictionId: number,
