@@ -6,32 +6,8 @@ from dataclasses import dataclass
 import re
 from datetime import datetime
 
-
-@dataclass
-class CameraParam:
-    K: np.ndarray
-    r: np.ndarray
-    t: np.ndarray
-    RDistort: np.ndarray
-    TDistort: np.ndarray
-
-    def from_struct(s):
-        return CameraParam(
-            s["K"][0, 0],
-            s["r"][0, 0],
-            s["t"][0, 0],
-            s["RDistort"][0, 0],
-            s["TDistort"][0, 0],
-        )
-
-    def as_dict(self):
-        return {
-            "K": self.K.tolist(),
-            "r": self.r.tolist(),
-            "t": self.t.tolist(),
-            "RDistort": self.RDistort.tolist(),
-            "TDistort": self.TDistort.tolist(),
-        }
+from caldannce.intrinsics import IntrinsicsParams
+from caldannce.calibration_data import CameraParams
 
 
 @dataclass
@@ -47,7 +23,7 @@ class MatFileInfo:
     timestamp: int
 
 
-def process_label_mat_file(matfile_path):
+def process_label_mat_file(matfile_path) -> MatFileInfo:
     p = Path(matfile_path)
     filename = p.name
     match = re.match(
@@ -75,7 +51,7 @@ def process_label_mat_file(matfile_path):
     timestamp = dt.timestamp()
 
     for i in range(n_cameras):
-        cam_params = CameraParam.from_struct(mat["params"][i, 0])
+        cam_params = CameraParams.from_struct(mat["params"][i, 0])
         params.append(cam_params.as_dict())
 
     info = MatFileInfo(
@@ -116,12 +92,29 @@ def get_predicted_data_in_dir(video_folder_id, video_folder_path):
 def get_com_pred_data_3d(com3d_file: Path, frames: list[int]) -> np.ndarray:
     """Get 3d data from COM predictions file.
 
-    Return (n_frames x 3) ndarray. Rows=n_frames; Cols=3"""
+    OUTPUT SHAPE (n_frames, n_joints[1], n_dims[3])
+    Return (n_frames x 3 x1) ndarray. Rows=n_frames; Cols=3"""
     mat = loadmat(com3d_file)
     # now you have a VIDOE_FRAMES x 3 shaped ndarray
     # index by frames list
-    com_data = mat["com"][frames, :]
+    com_data = mat["com"][frames, np.newaxis, :]
+    # com_data = np.transpose(com_data, (0,))
+
     return com_data
+
+
+def get_dannce_pred_data_3d(dannce_pred_file: Path, frames: list[int]) -> np.ndarray:
+    """Get 3d data from DANNCE predictions file.
+
+    OUTPUT SHAPE (n_frames, n_joints, n_dims[3])
+    Return (n_frames x 3 x n_joints) ndarray. Rows=n_frames; Cols=3"""
+    mat = loadmat(dannce_pred_file)
+    # now you have a VIDOE_FRAMES x 3 shaped ndarray
+    # index by frames list
+    # pred array (n_framesn, n_animals, n_dims, n_joints)
+    dannce_data = mat["pred"][frames, 0, :, :]
+    dannce_data = np.transpose(dannce_data, (0, 2, 1))
+    return dannce_data
 
 
 # def get_pred_3d_data(prediction_file: Path) -> np.ndarray:

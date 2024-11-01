@@ -1,9 +1,8 @@
 # from sqlite3 import Connection
 # from typing import Any, Annotated
 import logging
-import os
 from pathlib import Path
-from typing import Any, BinaryIO
+from typing import Any
 import uuid
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
@@ -51,16 +50,6 @@ def create_video_folder(data: CreateVideoFolderModel, session: SessionDep) -> An
 @router.post("/import_from_paths")
 def import_video_folders_route(session: SessionDep, data: ImportVideoFoldersModel):
     return import_video_folders_from_paths(session, data)
-
-
-# TEST_VIDEO_PATH = "/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/newsdannce/src/gui_be/instance_data/test-video/W2D2M5_Camera1_FRAMENOS_2.mp4"
-
-
-# @router.get("/test_video_stream")
-# def get_video(request: Request):
-#     return range_requests_response(
-#         request, file_path=TEST_VIDEO_PATH, content_type="video/mp4"
-#     )
 
 
 @router.get("/{id}/frame")

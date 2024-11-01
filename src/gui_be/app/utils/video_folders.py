@@ -1,7 +1,9 @@
 from dataclasses import dataclass
+import json
 import sqlite3
+import traceback
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, encoders
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
@@ -9,7 +11,9 @@ from app.api.routes.video_folder import ImportVideoFoldersModel
 from app.core.db import TABLE_PREDICTION, TABLE_VIDEO_FOLDER
 from pathlib import Path
 
+from app.utils import dannce_mat_processing
 from app.utils.dannce_mat_processing import process_label_mat_file
+from caldannce.calibration_data import CameraParams
 
 
 @dataclass
@@ -105,17 +109,50 @@ def import_video_folders_from_paths(
                         if dannce_data_file.timestamp < info.timestamp:
                             dannce_data_file = info
 
-            # If we still haven't found a dannce.mat file, then we check tmp_dannce.mat for calibration
-            # try:
-            #     params =
+            # CameraParams[] in order
+            params = None
+            if dannce_data_file:
+                params = CameraParams.load_list_from_dannce_mat_file(
+                    dannce_data_file.path
+                )
+            elif com_data_file:
+                params = CameraParams.load_list_from_dannce_mat_file(com_data_file.path)
+            else:
+                calib_folder_maybe = Path(base_path, "calibration")
+                try:
+                    params = CameraParams.load_list_from_hires_folder(
+                        calib_folder_maybe
+                    )
+                except BaseException as e:
+                    print(traceback.format_exc())
+                    tmp_dannce_maybe_1 = Path(base_path, "tmp_dannce.mat")
+                    if tmp_dannce_maybe_1.exists():
+                        params = CameraParams.load_list_from_dannce_mat_file(
+                            tmp_dannce_maybe_1
+                        )
+                    else:
+                        tmp_dannce_maybe_2 = Path(base_path, "temp_dannce.mat")
+                        if tmp_dannce_maybe_1.exists():
+                            params = CameraParams.load_list_from_dannce_mat_file(
+                                tmp_dannce_maybe_2
+                            )
+            if not params:
+                raise Exception(
+                    f"Unable to find calibration params for this folder: {str(base_path)}"
+                )
+
+            # print(f"PARAMS {p}: {params[0].}")
+
+            params_jsonable = [p.as_dict() for p in params]
 
             curr.execute(
-                f"""INSERT INTO {TABLE_VIDEO_FOLDER} (name, path, com_labels_file, dannce_labels_file) VALUES (?,?,?,?)""",
+                f"""INSERT INTO {TABLE_VIDEO_FOLDER} (name, path, com_labels_file, dannce_labels_file, calibration_params) VALUES (?,?,?,?,?)""",
                 (
                     base_path.name,
                     str(base_path.resolve()),
                     com_data_file.filename if com_data_file else None,
                     dannce_data_file.filename if dannce_data_file else None,
+                    json.dumps(params_jsonable),
                 ),
             )
             video_folder_id = curr.lastrowid
@@ -155,6 +192,7 @@ def import_video_folders_from_paths(
 
     except sqlite3.IntegrityError as e:
         print("SQL ERROR", e)
+        curr.execute("ROLLBACK")
         return JSONResponse(
             content={
                 "status": "failed",
@@ -164,10 +202,11 @@ def import_video_folders_from_paths(
         )
     except Exception as e:
         print("ERROR: ", e)
+        print("TRACBACK", traceback.format_exc())
         curr.execute("ROLLBACK")
         raise HTTPException(
             status_code=400,
-            detail="SQLITE3 Error. Transaction rolled back",
+            detail="Unable to add video data",
         )
 
     curr.execute("COMMIT")

@@ -82,4 +82,5 @@ class ImportVideoFoldersModel(BaseModel):
 
 class MakePredictionPreviewModel(BaseModel):
     frames: list[int]
-    camera_name: str
+    camera_name_1: str
+    camera_name_2: str
