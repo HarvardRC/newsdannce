@@ -4,7 +4,7 @@ Calibration GUI for `newsdannce` repo. (Specifically for DANNCE and SDANNCE proj
 
 ## SETUP
 
-1. install conda/mamba (I prefer mamba)
+1. install conda/mamba
 2. create environment
     `mamba env create -f ./src/calibration/environment.yml`
 3. install caldannce
@@ -37,6 +37,6 @@ After you click calibrate, it should take about 30 seconds to run. There should 
 You can run the calibration pipeline directly as a python module (argparse). This will not launch the GUI.
 
 ```
-python -m src.calibration.calibrate -p "~/olveczky/dannce_data/setupCal11_010324" -r 6 -c 9 -s 23 -o "~/olveczky/dannce_data/setupCal11_010324/calibration_export"
+python -m caldannce.calibrate -p "~/olveczky/dannce_data/setupCal11_010324" -r 6 -c 9 -s 23 -o "~/olveczky/dannce_data/setupCal11_010324/calibration_export"
 ```
 
