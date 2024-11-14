@@ -20,28 +20,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { useQuery } from '@tanstack/react-query';
-import { BASE_API_URL } from '@/config';
 import { Textarea } from '@/components/ui/textarea';
 import AddVideoFoldersInput from '@/components/AddVideoFoldersInput';
-import { useListRuntimesQuery, useListVideoFoldersQuery } from '@/hooks';
-import { RadioGroup } from '@/components/ui/radio-group';
-import { RadioGroupItem } from '@radix-ui/react-radio-group';
-
-const placeholder_data_files = `e.g. [
-    {
-        "base_folder": "/n/olveczky_lab_tier1/Lab/dannce_rig2/data/M1-M7_photometry/Alone/Day1_wk2/240624_135840_M4",
-        "com_prediction_folder": "./COM/predict01",
-        "dannce_label_file": "./20240808_124927_DANNCE_Label3D_dannce.mat"
-    },
-    {
-        "base_folder": "/n/olveczky_lab_tier1/Lab/dannce_rig2/data/M1-M7_photometry/Alone/Day2_wk2/240625_143814_M5",
-        "com_prediction_folder": "./COM/predict01",
-        "dannce_label_file": "./20240808_125233_DANNCE_Label3D_dannce.mat"
-    }
-]`;
+import {
+  useListRuntimesQuery,
+  useListVideoFoldersQuery,
+  useSubmitDannceTrainJobMutation,
+} from '@/hooks';
+import { useNavigate } from 'react-router-dom';
+import { appPages } from '@/routes';
 
 const formSchema = z.object({
   name: z.string().min(1).max(1000),
@@ -68,26 +55,37 @@ const DannceTrainPage = () => {
       runtime_id: -1,
     },
   });
+  const navigate = useNavigate();
 
   const { data: runtimesData, isLoading: isRuntimesLoading } =
     useListRuntimesQuery();
   const { data: videoFolderData, isLoading: isVideoFoldersLoading } =
     useListVideoFoldersQuery();
 
-  const onSubmit = (values: formType) => {
-    // TODO: Handle job submission logic here
-    console.log('values', values);
+  const mutation = useSubmitDannceTrainJobMutation();
+
+  const onSubmit = async (values: formType) => {
+    console.log('Dannce train submission. Values=', values);
+    let { config, ...rest } = values;
+    if (config.length == 0) {
+      config = '{}';
+    }
+    const ret = await mutation.mutateAsync({ config, ...rest });
+    console.log('RETURNED DATA', ret);
+    navigate(appPages.monitorJobs.path);
   };
 
   if (isRuntimesLoading || isVideoFoldersLoading) {
     return <div>Data still loading...</div>;
   }
 
-  const videoFolderOptions = videoFolderData!.map((x) => ({
-    id: x.id,
-    name: x.name,
-    path: x.path,
-  }));
+  const videoFolderOptions = videoFolderData!
+    .filter((x) => x.current_com_prediction)
+    .map((x) => ({
+      id: x.id,
+      name: x.name,
+      path: x.path,
+    }));
 
   return (
     <div>
@@ -135,7 +133,7 @@ const DannceTrainPage = () => {
             name="video_folder_ids"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Select data folders to use in training</FormLabel>
+                <FormLabel>Data Folders to use in DANNCE Training</FormLabel>{' '}
                 <FormControl>
                   <AddVideoFoldersInput
                     options={videoFolderOptions}
@@ -152,28 +150,6 @@ const DannceTrainPage = () => {
               </FormItem>
             )}
           />
-          {/* <FormField
-            control={form.control}
-            name="video_files"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Data folders to include in training</FormLabel>
-                <FormControl>
-                  <Textarea
-                    className="min-h-[250px]"
-                    placeholder={placeholder_data_files}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-                <FormDescription>
-                  Specify a JSON list containing items with keys "base_folder",
-                  "com_prediction_folder", and "dannce_label_file".
-                </FormDescription>
-              </FormItem>
-            )}
-          /> */}
-
           <FormField
             control={form.control}
             name="epochs"
@@ -217,7 +193,6 @@ const DannceTrainPage = () => {
                 <FormControl>
                   <Textarea
                     placeholder={`e.g. {
-      "downfac": 8,
       "batch_size": 4,
       "train_mode":"new"
     }`}
@@ -227,7 +202,7 @@ const DannceTrainPage = () => {
                 </FormControl>
                 <FormDescription>
                   Optional JSON arguments for the training job. Must be a
-                  properly formatted JSON string
+                  properly formatted JSON string (or empty)
                 </FormDescription>
                 <FormMessage />
               </FormItem>

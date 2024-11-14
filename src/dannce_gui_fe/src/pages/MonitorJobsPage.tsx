@@ -54,6 +54,7 @@ export default function MonitorJobs() {
             <TableHead className="w-[80px]">Job ID</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Command</TableHead>
+            <TableHead>Runtime</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Slurm Job</TableHead>
             <TableHead>Output Weights</TableHead>
@@ -79,6 +80,7 @@ export default function MonitorJobs() {
                   </Link>
                 </TableCell>
                 <TableCell>{x.mode}</TableCell>
+                <TableCell>{x.runtime_id}</TableCell>
                 <TableCell>{x.status}</TableCell>
                 <TableCell>{x.slurm_job_id}</TableCell>
                 <TableCell>{x.weights_name}</TableCell>
@@ -100,6 +102,7 @@ export default function MonitorJobs() {
             <TableHead className="w-[80px]">Job ID</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Command</TableHead>
+            <TableHead>Runtime</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Slurm Job</TableHead>
             <TableHead>Video Folder</TableHead>
@@ -127,6 +130,7 @@ export default function MonitorJobs() {
                   </Link>
                 </TableCell>
                 <TableCell>{x.mode}</TableCell>
+                <TableCell>{x.runtime_id}</TableCell>
                 <TableCell>{x.status}</TableCell>
                 <TableCell>{x.slurm_job_id}</TableCell>
                 <TableCell>{x.weights_name}</TableCell>

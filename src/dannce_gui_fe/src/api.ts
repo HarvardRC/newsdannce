@@ -46,7 +46,7 @@ export async function getFile(route: string) {
     },
   });
   if (response.status >= 200 && response.status < 300) {
-    return await response.json();
+    return await response.text();
   }
   throw Error(`Invalid status: ${response.status}`);
 }
@@ -85,6 +85,7 @@ type ListVideoFolder = {
   created_at: number;
   com_labels_file?: string;
   dannce_labels_file?: string;
+  current_com_prediction?: number;
 }[];
 
 export async function listVideoFolders(): Promise<ListVideoFolder> {
@@ -98,6 +99,9 @@ type VideoFolderDetails = {
   created_at: number;
   com_labels_file?: string;
   dannce_labels_file?: string;
+  current_com_prediction?: string;
+  current_com_prediction_name?: string;
+
   label_files: {
     n_cameras: number;
     n_frames: number;
@@ -223,6 +227,21 @@ export async function submitComTrainJob(
   data: SubmitComTrainJobData
 ): Promise<void> {
   return post('/train_job/submit_com', data);
+}
+
+type SubmitDannceTrainJobData = {
+  name: string;
+  video_folder_ids: number[];
+  output_model_name: string;
+  config: string;
+  epochs: number;
+  runtime_id: number;
+};
+
+export async function submitDannceTrainJob(
+  data: SubmitDannceTrainJobData
+): Promise<void> {
+  return post('/train_job/submit_dannce', data);
 }
 
 type SubmitComPredictJobData = {

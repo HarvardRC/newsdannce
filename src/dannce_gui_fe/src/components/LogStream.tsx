@@ -37,7 +37,7 @@ const LogStream: React.FC<props> = ({ slurmJobId }) => {
   return (
     <div>
       <ScrollArea className="h-[500px] bg-gray-50 rounded-md border p-4 my-4">
-        <pre>
+        <pre className="text-wrap">
           {isError && 'Error fetching log file. Perhaps it does not exist.'}
           {!isError && isEmpty && '<Empty file>'}
           {!isError && !isEmpty && stripProgressLines(logFileData)}

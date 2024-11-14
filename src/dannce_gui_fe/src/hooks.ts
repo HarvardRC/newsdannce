@@ -18,6 +18,7 @@ import {
   importVideoFolders,
   getPredictionDetails,
   previewPrediction,
+  submitDannceTrainJob,
 } from './api';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
@@ -64,7 +65,6 @@ export function usePredictionDetailsQuery(predictionId: number) {
 export function useListTrainJobsQuery() {
   return useQuery({
     queryKey: ['listTrainJobs'],
-    // TODO: add query FN
     queryFn: listTrainJobs,
   });
 }
@@ -72,7 +72,6 @@ export function useListTrainJobsQuery() {
 export function useListPredictionsQuery() {
   return useQuery({
     queryKey: ['listPredictions'],
-    // TODO: add query FN
     queryFn: listPredictions,
   });
 }
@@ -86,8 +85,6 @@ export function useListWeightsQuery() {
 export function useListVideoFoldersQuery() {
   return useQuery({
     queryKey: ['listVideoFolders'],
-    // TODO: add query FN
-    // queryFn: listPredictJobs,
     queryFn: listVideoFolders,
   });
 }
@@ -95,8 +92,6 @@ export function useListVideoFoldersQuery() {
 export function useVideoFolderDetailsQuery(videoFolderId: number) {
   return useQuery({
     queryKey: ['videoFolder', videoFolderId],
-    // TODO: add query FN
-    // queryFn: listPredictJobs,
     queryFn: () => {
       return videoFolderDetails(videoFolderId);
     },
@@ -107,8 +102,6 @@ export function useSlurmLogfileQuery(slurmJobId: number) {
   return useQuery({
     queryKey: ['slurmLogfile', slurmJobId],
     retry: false,
-    // TODO: add query FN
-    // queryFn: listPredictJobs,
     queryFn: () => {
       return getSlurmLogfile(slurmJobId);
     },
@@ -139,7 +132,7 @@ export function usePreviewPredictionQuery(
 
 /* #######################
  *        MUTATIONS
- * ###################∂###*/
+ * #######################*/
 
 export function useMakeVideoFolderMutation() {
   const queryClient = useQueryClient();
@@ -165,6 +158,15 @@ export function useSubmitComTrainJobMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: submitComTrainJob,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['listTrainJobs'] });
+    },
+  });
+}
+export function useSubmitDannceTrainJobMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: submitDannceTrainJob,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['listTrainJobs'] });
     },
@@ -202,9 +204,9 @@ export function useImportVideoFoldersMutation() {
   });
 }
 
-// ############
-// CUSTOM HOOKS
-// ############
+/* #######################
+ *   OTHER CUSTOM HOOKS
+ * #######################*/
 
 export function useWindowSize() {
   // Returns a state variable which update (& triggers rerender) on window resize

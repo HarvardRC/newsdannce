@@ -199,7 +199,7 @@ const ComPredictPage = () => {
                 </FormControl>
                 <FormDescription>
                   Optional JSON arguments for the prediction job. Must be a
-                  properly formatted JSON string
+                  properly formatted JSON string (or emtpy)
                 </FormDescription>
                 <FormMessage />
               </FormItem>

@@ -5,8 +5,9 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { useVideoFolderDetailsQuery } from '@/hooks';
+import { appPages } from '@/routes';
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 const VideoFolderDetailsPage: React.FC = () => {
   const { id: idStr } = useParams();
@@ -58,6 +59,22 @@ const VideoFolderDetailsPage: React.FC = () => {
           <span className="font-bold">Current DANNCE Label File:</span>{' '}
           {data.dannce_labels_file || '[NONE]'}
         </li>
+        <li>
+          <span className="font-bold">Current COM Predictions:</span>{' '}
+          {data.current_com_prediction ? (
+            <Link
+              to={appPages.predictionDetailsPage.path.replace(
+                ':id',
+                data.current_com_prediction
+              )}
+            >
+              {data.current_com_prediction_name} [ID=
+              {data.current_com_prediction}]
+            </Link>
+          ) : (
+            '[NONE]'
+          )}
+        </li>
       </ul>
       <div>
         <Collapsible>
@@ -83,7 +100,6 @@ const VideoFolderDetailsPage: React.FC = () => {
           </Collapsible>
         }
       </div>
-
       <div>
         <Collapsible>
           <h2 className="my-6 text-lg">
@@ -95,8 +111,7 @@ const VideoFolderDetailsPage: React.FC = () => {
           </CollapsibleContent>
         </Collapsible>
       </div>
-
-      <div>
+      <div className="my-8">
         {showPreview ? (
           <>
             <h2 className="text-xl">Video Preview</h2>

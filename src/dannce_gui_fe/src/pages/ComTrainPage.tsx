@@ -132,10 +132,7 @@ const ComTrainPage = () => {
             name="video_folder_ids"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  Select data folders to use in training. Only folders with COM
-                  labels are listed.
-                </FormLabel>
+                <FormLabel>Data Folders to use in COM Training</FormLabel>
                 <FormControl>
                   <AddVideoFoldersInput
                     options={videoFolderOptions}
@@ -205,7 +202,7 @@ const ComTrainPage = () => {
                 </FormControl>
                 <FormDescription>
                   Optional JSON arguments for the training job. Must be a
-                  properly formatted JSON string
+                  properly formatted JSON string (or empty)
                 </FormDescription>
                 <FormMessage />
               </FormItem>
