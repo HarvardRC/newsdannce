@@ -34,6 +34,11 @@ gpu_id: 0
 
 # Create any missing required directories and files
 def setup_instancedata(force_recreate=False):
+    """
+    Make required folders to store instance data and run DANNCE.
+    Also create the sqlite3 database (db.sqlite3) if it does not exist.
+
+    """
     if force_recreate is True or not settings.DATA_FOLDER.exists():
         print("CREATING INSANCE FOLDER")
         # make instance_data folders
@@ -50,6 +55,7 @@ def setup_instancedata(force_recreate=False):
         train_folder_videos = Path(settings.SLURM_TRAIN_FOLDER, "videos")
         train_folder_videos.mkdir(mode=0o770, exist_ok=True)
 
+        # TODO: remove after PR changes make this unnecessary
         for i in range(settings.N_CAMERAS):
             # videos/Camera1
             train_folder_camera_i = Path(train_folder_videos, f"Camera{i+1}")

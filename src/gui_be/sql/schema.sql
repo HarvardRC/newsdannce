@@ -5,19 +5,21 @@ DROP TABLE IF EXISTS prediction;
 DROP TABLE IF EXISTS predict_job;
 DROP TABLE IF EXISTS slurm_job;
 DROP TABLE IF EXISTS weights;
-
 -- many:many relationship table
 DROP TABLE IF EXISTS train_job_video_folder;
-
 DROP TABLE IF EXISTS global_state;
+-- message queue table
+DROP TABLE IF EXISTS mq;
 
 CREATE TABLE runtime (
     id INTEGER PRIMARY KEY NOT NULL,
+    destination TEXT NOT NULL CHECK (destination IN ('LOCAL', 'SLURM')) DEFAULT 'SLURM',
     name TEXT,
     partition_list TEXT,
     memory_gb INTEGER,
     time_hrs INTEGER,
     n_cpus INTEGER,
+    n_gpus INTEGER,
     created_at INTEGER DEFAULT (STRFTIME('%s', 'now'))
 );
 
@@ -48,13 +50,22 @@ CREATE TABLE weights (
 
 -- store details of a data folder (single recording)
 CREATE TABLE video_folder (
-    id INTEGER PRIMARY KEY NOT NULL,
+id INTEGER PRIMARY KEY NOT NULL,
     name TEXT,
-    path TEXT UNIQUE,
+    path TEXT UNIQUE, --path to folder containing videos directory
     com_labels_file TEXT, --path to dannce.mat file with COM labels
     dannce_labels_file TEXT, -- path to dannce.mat file with DANNCE labels
+    current_com_prediction REFERENCES prediction(id),
     calibration_params JSON,
-    created_at INTEGER DEFAULT (STRFTIME('%s', 'now'))  
+    camera_names JSON DEFAULT '["Camera1","Camera2","Camera3","Camera4","Camera5","Camera6"]',
+    video_width INTEGER DEFAULT 1920,
+    video_height INTEGER DEFAULT 1200,
+    n_cameras INTEGER DEFAULT 6,
+    n_animals INTEGER DEFAULT 1,
+    n_frames INTEGER DEFAULT 30000,
+    duration_s FLOAT DEFAULT 1800,
+    fps FLOAT DEFAULT 50,
+    created_at INTEGER DEFAULT (STRFTIME('%s', 'now'))
 );
 
 CREATE TABLE train_job (
@@ -108,3 +119,11 @@ CREATE TABLE global_state (
 
 -- Create singleton row entry in global_state for storing settings
 INSERT INTO global_state (id) VALUES (0);
+
+CREATE TABLE mq (
+    id INTEGER PRIMARY KEY NOT NULL,
+    created_at INTEGER DEFAULT (STRFTIME('%s', 'now')),
+    message TEXT NOT NULL,
+    status TEXT DEFAULT 'ENQUEUED' CHECK(STATUS IN ('ENQUEUED', 'PROCESSING','SUCCESS','FAILURE'))
+)
+

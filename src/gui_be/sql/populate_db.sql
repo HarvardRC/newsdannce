@@ -2,10 +2,10 @@
 
 INSERT INTO runtime 
     (
-        name,  partition_list, memory_gb, time_hrs, n_cpus
+        id, name, partition_list, memory_gb, time_hrs, n_cpus
     ) VALUES 
-        ('DEMO_bigmem_train', 'gpu', 150, 72, 16),
-        ('DMEO_olveczkygpu', 'olveczkygpu', 50, 72, 16)
+        (2, 'DEMO_bigmem_train', 'gpu', 150, 72, 16),
+        (3, 'DMEO_olveczkygpu', 'olveczkygpu', 50, 72, 16)
 ;
 
 
@@ -46,12 +46,12 @@ INSERT INTO train_job
     ( name, runtime, weights) VALUES 
     (
         'Train COM #1',
-        1,
+        2,
         2
     ),
     (
         'Train DANNCE #1',
-        2,
+        3,
         3
     )
 ;
@@ -68,19 +68,19 @@ INSERT INTO predict_job
         'Predict COM #1',
         1,
         1,
-        1
+        2
     ),
     (
         'Predict COM #2',
         2,
         1,
-        1
+        2
     ),
     (
         'Predict DANNCE #1',
         1,
         1,
-        2
+        3
     )
 ;
 

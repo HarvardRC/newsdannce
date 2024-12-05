@@ -17,8 +17,9 @@ class _Settings(BaseSettings):
         "/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/newsdannce/src/gui_be/instance_data"
     )
     # Links relative to DATA FOLDER
-    SLURM_TRAIN_FOLDER: Path = Path(DATA_FOLDER, "slurm-cwd")
     DB_FILE: Path = Path(DATA_FOLDER, "db.sqlite3")
+    SLURM_TRAIN_FOLDER: Path = Path(DATA_FOLDER, "slurm-cwd")
+    SBATCH_DEBUG_FOLDER: Path = Path(DATA_FOLDER, "sbatch-debug")
     WEIGHTS_FOLDER: Path = Path(DATA_FOLDER, "weights")
     PREDICTIONS_FOLDER: Path = Path(DATA_FOLDER, "predictions")
     CONFIGS_FOLDER: Path = Path(DATA_FOLDER, "configs")

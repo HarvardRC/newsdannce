@@ -1,12 +1,10 @@
 from pathlib import Path
-from fastapi.background import P
 from scipy.io import loadmat
 import numpy as np
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import re
 from datetime import datetime
 
-from caldannce.intrinsics import IntrinsicsParams
 from caldannce.calibration_data import CameraParams
 
 
@@ -21,6 +19,10 @@ class MatFileInfo:
     filename: str
     is_com: bool
     timestamp: int
+
+    def without_params(self):
+        # Return a clone of this object without the params dict
+        return replace(self, params=None)
 
 
 def process_label_mat_file(matfile_path) -> MatFileInfo:
@@ -68,7 +70,7 @@ def process_label_mat_file(matfile_path) -> MatFileInfo:
 
 
 def get_labeled_data_in_dir(video_folder_id, video_folder_path):
-    maybe_label_data = []
+    maybe_label_data: list[MatFileInfo] = []
     for i in Path(video_folder_path).glob("*dannce.mat"):
         this_label_data = process_label_mat_file(str(i))
         if this_label_data:

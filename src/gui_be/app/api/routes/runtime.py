@@ -12,13 +12,15 @@ router = APIRouter()
 def create_runtime(data: CreateRuntimeModel, session: SessionDep) -> Any:
     curr = session.cursor()
     curr.execute(
-        f"INSERT INTO {TABLE_RUNTIME} (name, partition_list, memory_gb, time_hrs, n_cpus) VALUES (?,?,?,?,?)",
+        f"INSERT INTO {TABLE_RUNTIME} (name, destination, partition_list, memory_gb, time_hrs, n_cpus, n_gpus) VALUES (?,?,?,?,?,?,?)",
         (
             data.name,
+            "SLURM",
             data.partition_list,
             data.memory_gb,
             data.time_hrs,
             data.n_cpus,
+            1,
         ),
     )
     insert_id = curr.lastrowid

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+module load Mambaforge
+
+(trap 'kill 0' SIGINT; \
+    conda run -n dannce-dev --no-capture-output rabbitmq-server &\
+    conda run -n dannce-dev --no-capture-output celery -A taskqueue.celery worker --loglevel=INFO &\
+    conda run -n dannce-dev --no-capture-output celery -A taskqueue.celery flower --port=5001 --loglevel=INFO &\
+    conda run -n dannce-dev --no-capture-output python -m fastapi dev ./app/main.py --host 0.0.0.0
+)   
+
