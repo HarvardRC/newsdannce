@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createHashRouter } from 'react-router-dom';
 import RootLayout from './components/Layout';
 import Root from './pages/Home';
 import MonitorJobs from './pages/MonitorJobsPage';
@@ -117,15 +117,50 @@ export const appPages = {
   },
 } as const satisfies Record<string, AppPage>;
 
-export const customRouter = createBrowserRouter([
+export const customRouter = createHashRouter(
+  [
+    {
+      element: <RootLayout />,
+      children: [
+        {
+          path: '/abc',
+          element: <div>ABC ROUTE</div>,
+        },
+        ...Object.values(appPages).map((x) => ({
+          path: x.path,
+          element: x.element,
+        })),
+      ],
+    },
+  ],
   {
-    element: <RootLayout />,
-    children: Object.values(appPages).map((x) => ({
-      path: x.path,
-      element: x.element,
-    })),
-  },
-]);
+    // basename: import.meta.env.GUI_APP_URL,
+  }
+);
+// export const customRouter = createBrowserRouter(
+//   [
+//     {
+//       element: <RootLayout />,
+//       children: [
+//         {
+//           path: '/abc',
+//           element: <div>ABC ROUTE</div>,
+//         },
+//         ...Object.values(appPages).map((x) => ({
+//           path: x.path,
+//           element: x.element,
+//         })),
+//       ],
+//     },
+//   ]
+//   // {
+//   //   basename: import.meta.env.BASE_URL,
+//   // }
+// );
+
+console.log('IMPORTED BASENAME', import.meta.env.BASE_URL);
+console.log('ROUTER BASENAME', customRouter.basename);
+// console.log('BASENAME SHOULD BE', process.env.GUI_APP_URL);
 
 export const headerLinks: AppPage[] = [
   appPages.runtimes,

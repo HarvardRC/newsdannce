@@ -15,6 +15,9 @@ const queryClient = new QueryClient({
   },
 });
 
+// console.log("HOME PAGE URL IS" , )
+(window as any).remix_router = customRouter;
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Toaster duration={5000} />

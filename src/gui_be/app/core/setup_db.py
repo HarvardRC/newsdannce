@@ -25,6 +25,7 @@ def update_local_runtime():
     else:
         local_resources = get_local_resources_pc()
 
+
     with get_db_context() as session:
         curr = session.cursor()
         curr.execute(
@@ -70,7 +71,7 @@ def get_local_resources_pc():
     import psutil
     import torch
 
-    n_cpus = os.cpu_count
+    n_cpus = os.cpu_count()
     mem_gb = int(psutil.virtual_memory().total / 1024 / 1024 / 1024)
     time_hrs = 100_000  # very large number
     n_gpus = 1 if torch.cuda.is_available else 0

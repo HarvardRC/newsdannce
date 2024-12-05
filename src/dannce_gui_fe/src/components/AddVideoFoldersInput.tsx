@@ -27,7 +27,8 @@ type CustomProps = {
 } & ControllerRenderProps;
 
 const AddVideoFoldersInput = forwardRef<any, CustomProps>(
-  ({ options, multiSelect = false, ...field }) => {
+  //@ts-ignore
+  ({ options, multiSelect = false, ...field }, ref) => {
     // const inputRef = useRef<HTMLInputElement>(null);
 
     const isRowSelected = (thisRowId: number) => {

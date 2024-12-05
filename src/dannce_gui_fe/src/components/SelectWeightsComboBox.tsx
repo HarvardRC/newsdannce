@@ -30,7 +30,8 @@ type CustomProps = {
 } & ControllerRenderProps;
 
 const SelectWeightsComboBox = forwardRef<any, CustomProps>(
-  ({ options: optionsUnsafe, mode, ...field }) => {
+  //@ts-ignore
+  ({ options: optionsUnsafe, mode, ...field }, ref) => {
     //  Ref is unused
     const [open, setOpen] = useState(false);
     const value = field.value as number | null;

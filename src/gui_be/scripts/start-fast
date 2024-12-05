@@ -1,6 +1,12 @@
 #!/bin/bash
 
-module load Mambaforge
+if [ -z "${SLURM_JOB_ID}" ]; then
+  echo "Running locally"
+else
+  echo "Running on slurm"
+  module load Mambaforge
+fi
+
 conda run -n dannce-dev --no-capture-output python -m fastapi dev ./app/main.py --host 0.0.0.0
 
 # this would go in script.sh.erb
