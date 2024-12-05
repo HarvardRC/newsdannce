@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# required env varibales
+# FASTAPI_PORT
+# FLOWER_PORT
+# RABBITMQ_PORT
+FLOWER_PORT=5124
+FASTAPI_PORT=5125
+echo "FASTAPI_PORT=$FASTAPI_PORT"
+echo "FLOWER_PORT=$FLOWER_PORT"
+echo "RABBITMQ_NODE_PORT=$RABBITMQ_NODE_PORT"
+
+(trap 'kill 0' SIGINT; \
+    conda run -n dannce-dev --no-capture-output rabbitmq-server &\
+    conda run -n dannce-dev --no-capture-output celery -A taskqueue.celery worker --loglevel=INFO &\
+    conda run -n dannce-dev --no-capture-output celery -A taskqueue.celery flower --port=$FLOWER_PORT --loglevel=INFO &\
+    conda run -n dannce-dev --no-capture-output python -m fastapi dev ./app/main.py --host 0.0.0.0 --port=$FASTAPI_PORT
+)   
+

@@ -11,12 +11,19 @@ from app.core.db import (
     JobCommand,
     TrainMode,
 )
-from app.models import PredictJobSubmitComModel, TrainJobSubmitComModel
+from app.models import (
+    PredictJobSubmitComModel,
+    PredictJobSubmitDannceModel,
+    TrainJobSubmitComModel,
+    TrainJobSubmitDannceModel,
+)
 from app.utils.video_folders import (
     ComExpEntry,
     DannceExpEntry,
+    get_com_file_path,
     get_video_folder_path,
     get_video_folders_for_com,
+    get_video_folders_for_dannce,
 )
 from app.core.config import settings
 from app.utils.weights import get_weights_path_from_id
@@ -37,6 +44,7 @@ class ConfigModel(BaseModel):
     )
     n_instances: int = Field(default=1)
     n_channels_out: int  # OVERRIDE LATER
+    new_n_channels_out: int
     downfac: int = Field(default=8)
     n_channels_in: int = Field(default=3)
     raw_im_h: int = Field(default=1200)
@@ -45,11 +53,12 @@ class ConfigModel(BaseModel):
     num_validation_per_exp: int = Field(default=2)
     batch_size: int = Field(default=4)
     epochs: int = Field(default=20)
-    lr: float = Field(default=5e-5)
+    lr: float = Field(default=0.0001)
     metric: list[Any] = Field(default=[])  # required to provide empty array
-    loss: dict = Field(default={"MSELoss": {"loss_weight": 1.0}})
+    loss: dict = Field(default={"L1Loss": {"loss_weight": 1.0}})
     save_period: int = Field(default=5)
     max_num_samples: int | str = Field(default="max")
+    use_npy: bool = Field(default=False)
     io_config: Path = Field(Path("./io.yaml"))  # TODO: better solution to inject this
 
     def to_dict_safe(self):
@@ -88,6 +97,7 @@ class ComPredictModel(ConfigModel):
 class DannceTrainModel(ConfigModel):
     META_command: JobCommand = JobCommand.TRAIN_DANNCE
     n_channels_out: int = Field(default=23)
+    new_n_channels_out: int = Field(default=23)
     crop_height: tuple[int, int] = Field(default=(0, 1200))
     crop_width: tuple[int, int] = Field(default=(0, 1920))
     dannce_train_dir: Path = Field()  # DANNE model weights output
@@ -97,10 +107,13 @@ class DannceTrainModel(ConfigModel):
 class DanncePredictModel(ConfigModel):
     META_command: JobCommand = JobCommand.PREDICT_DANNCE
     n_channels_out: int = Field(default=23)
+    new_n_channels_out: int = Field(default=23)
     crop_height: tuple[int, int] = Field(default=(0, 1200))
     crop_width: tuple[int, int] = Field(default=(0, 1920))
     dannce_predict_dir: Path = Field()  # DANNCE predictions output
     dannce_predict_model: Path = Field()  # DANNCE model weights to use
+    com_file: Path = Field()  # File containing COM predictions
+    batch_size: int = Field(default=1)  # default 1 batch size to reduce memory usage
 
 
 def config_com_train(conn: sqlite3.Connection, data: TrainJobSubmitComModel):
@@ -119,16 +132,29 @@ def config_com_train(conn: sqlite3.Connection, data: TrainJobSubmitComModel):
     return cfg
 
 
+def config_dannce_train(conn: sqlite3.Connection, data: TrainJobSubmitDannceModel):
+    video_folder_ids = data.video_folder_ids
+    dannce_train_dir = Path(settings.WEIGHTS_FOLDER, f"dannce_train_{uuid.uuid4().hex}")
+
+    dannce_exps = get_video_folders_for_dannce(conn, video_folder_ids)
+    data.config["epochs"] = data.epochs
+    cfg = DannceTrainModel(
+        exp=dannce_exps,
+        dannce_train_dir=dannce_train_dir,
+        META_cwd=settings.SLURM_TRAIN_FOLDER,
+        **data.config,
+    )
+    return cfg
+
+
 def config_com_predict(conn: sqlite3.Connection, data: PredictJobSubmitComModel):
-    # com_train_dir = Path(settings.WEIGHTS_FOLDER, data.output_model_name).resolve()
     video_folder_path = get_video_folder_path(conn, data.video_folder_id)
     weights_path = get_weights_path_from_id(conn, data.weights_id)
     prediction_path = Path(
         settings.PREDICTIONS_FOLDER, f"com_predict_{uuid.uuid4().hex}"
     )
-    blank_io_yaml_file = Path(settings.SLURM_TRAIN_FOLDER, "io.yaml")
-
     prediction_path.mkdir(exist_ok=False, mode=0o770)
+    blank_io_yaml_file = Path(settings.SLURM_TRAIN_FOLDER, "io.yaml")
 
     cfg = ComPredictModel(
         META_cwd=video_folder_path,
@@ -141,12 +167,27 @@ def config_com_predict(conn: sqlite3.Connection, data: PredictJobSubmitComModel)
     return cfg
 
 
-def config_dannce_train():
-    pass
+def config_dannce_predict(conn: sqlite3.Connection, data: PredictJobSubmitDannceModel):
+    video_folder_path = get_video_folder_path(conn, data.video_folder_id)
+    weights_path = get_weights_path_from_id(conn, data.weights_id)
+    com_file_path = get_com_file_path(conn, data.video_folder_id)
+    prediction_path = Path(
+        settings.PREDICTIONS_FOLDER, f"dannce_predict_{uuid.uuid4().hex}"
+    )
+    blank_io_yaml_file = Path(settings.SLURM_TRAIN_FOLDER, "io.yaml")
 
+    prediction_path.mkdir(exist_ok=False, mode=0o770)
 
-def config_dannce_predict():
-    pass
+    cfg = DanncePredictModel(
+        META_cwd=video_folder_path,
+        dannce_predict_dir=prediction_path,
+        dannce_predict_model=weights_path,
+        io_config=blank_io_yaml_file,
+        com_file=com_file_path,
+        **data.config,
+    )
+
+    return cfg
 
 
 # def make_io_yaml_predict(pred_job_id, training_dir, predict_model_path, video_dir):

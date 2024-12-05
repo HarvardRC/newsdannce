@@ -15,12 +15,13 @@ from app.core.db import (
     TABLE_VIDEO_FOLDER,
     TABLE_WEIGHTS,
 )
-from app.models import TrainJobSubmitComModel
+from app.models import TrainJobSubmitComModel, TrainJobSubmitDannceModel
 from app.utils.job import (
     bg_submit_com_train_job,
+    bg_submit_dannce_train_job,
 )
 from app.core.config import settings
-from app.utils.make_io_yaml import config_com_train
+from app.utils.make_io_yaml import config_com_train, config_dannce_train
 
 router = APIRouter()
 
@@ -85,6 +86,71 @@ def train_job_submit_com(
         "weights_id": weights_id,
         "config_file_path": config_file,
         "message": "submitting train COM job to slurm in background",
+    }
+
+
+@router.post("/submit_dannce")
+def train_job_submit_dannce(
+    session: SessionDep,
+    data: TrainJobSubmitDannceModel,
+    background_tasks: BackgroundTasks,
+):
+    m = config_dannce_train(session, data)
+
+    cfg_json = m.to_json_string()
+
+    config_file = Path(
+        settings.CONFIGS_FOLDER, f"train_dannce_config_{uuid.uuid4().hex}.yaml"
+    )
+
+    """Submit a train job: this also creates train_job:video_folder relations"""
+    curr = session.cursor()
+    curr.execute("BEGIN")
+    try:
+        weights_path = str(m.dannce_train_dir)
+        weights_name = data.output_model_name
+        curr.execute(
+            f"INSERT INTO {TABLE_WEIGHTS} (path, name, status, mode) VALUES (?,?,?,?)",
+            (weights_path, weights_name, "PENDING", "DANNCE"),
+        )
+        weights_id = curr.lastrowid
+        # first insert the train job
+        curr.execute(
+            f"INSERT INTO {TABLE_TRAIN_JOB} (name, weights, runtime, config) VALUES (?,?,?,?)",
+            (data.name, weights_id, data.runtime_id, cfg_json),
+        )
+
+        train_job_id = curr.lastrowid
+        sql_tuples = [(train_job_id, x) for x in data.video_folder_ids]
+        #  insert all table_train_job_video pairs
+        curr.executemany(
+            f"INSERT INTO {TABLE_TRAIN_JOB_VIDEO_FOLDER} (train_job, video_folder) VALUES (?,?)",
+            sql_tuples,
+        )
+        curr.execute("COMMIT")
+
+    except sqlite3.Error as e:
+        print("ERROR: ", e)
+        curr.execute("ROLLBACK")
+        raise HTTPException(
+            status_code=400,
+            detail="SQLITE3 Error. Transaction rolled back. Perhaps there is already a model with modelname?",
+        )
+
+    background_tasks.add_task(
+        bg_submit_dannce_train_job,
+        m,
+        data.runtime_id,
+        train_job_id,
+        weights_id,
+        config_file,
+    )
+
+    return {
+        "train_job_id": train_job_id,
+        "weights_id": weights_id,
+        "config_file_path": config_file,
+        "message": "submitting train DANNCE job to slurm in background",
     }
 
 

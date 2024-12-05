@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse
 from app.api.deps import SessionDep
 from app.core.db import (
     TABLE_PREDICT_JOB,
+    TABLE_PREDICTION,
     TABLE_SLURM_JOB,
     TABLE_VIDEO_FOLDER,
 )
@@ -16,7 +17,6 @@ from app.models import CreateVideoFolderModel, ImportVideoFoldersModel
 
 from app.utils.dannce_mat_processing import (
     get_labeled_data_in_dir,
-    get_predicted_data_in_dir,
 )
 from app.utils.video import get_one_frame
 from app.utils.video_folders import import_video_folders_from_paths
@@ -29,7 +29,23 @@ router = APIRouter()
 
 @router.get("/list")
 def list_all_video_folder(session: SessionDep):
-    rows = session.execute(f"SELECT * FROM {TABLE_VIDEO_FOLDER}").fetchall()
+    rows = session.execute(
+        f"""
+SELECT
+    t1.name,
+    t1.id,
+    t1.path,
+    t1.com_labels_file,
+    t1.dannce_labels_file,
+    t1.current_com_prediction,
+    t2.name as current_com_prediction_name,
+    t1.created_at
+FROM {TABLE_VIDEO_FOLDER} t1
+LEFT JOIN {TABLE_PREDICTION} t2
+    ON t1.current_com_prediction = t2.id
+
+"""
+    ).fetchall()
     rows = [dict(x) for x in rows]
     return rows
 
@@ -73,7 +89,7 @@ def get_frame_route(
         get_one_frame(
             video_path=video_path, frame_index=frame_index, output_name=out_filename
         )
-    except BaseException as e:
+    except Exception as e:
         raise HTTPException(400, f"Unable to extract frame from video {e}")
 
     return FileResponse(out_filename, status_code=200)
@@ -135,20 +151,45 @@ def get_preview_route(id: int, camera_name: str, session: SessionDep) -> Any:
 
 
 @router.get("/{id}")
-def get_job_details(id: int, session: SessionDep) -> Any:
-    row = session.execute(
-        f"SELECT * FROM {TABLE_VIDEO_FOLDER} WHERE ID=?", (id,)
+def get_video_folder_details(id: int, session: SessionDep) -> Any:
+    # select t1.*, t2.name as com_pred_name from video_folder t1 LEFT JOIN prediction t2 on t1.current_com_prediction = t2.id
+    row_video_folder = session.execute(
+        f"""
+        SELECT t1.*, t2.name as current_com_prediction_name
+        FROM {TABLE_VIDEO_FOLDER} t1
+        LEFT JOIN {TABLE_PREDICTION} t2
+        ON t1.current_com_prediction = t2.id
+        WHERE t1.id=?""",
+        (id,),
     ).fetchone()
-    if not row:
+    if not row_video_folder:
         raise HTTPException(status_code=404)
 
-    row_dict = dict(row)
+    return_dict = dict(row_video_folder)
 
-    label_data = get_labeled_data_in_dir(id, row_dict["path"])
+    label_data = get_labeled_data_in_dir(id, return_dict["path"])
 
-    row_dict["label_files"] = label_data
+    # Exclude label file params: do not need to return to user
+    label_data = [x.without_params() for x in label_data]
 
-    row_dict["prediction_data"] = get_predicted_data_in_dir(id, row_dict["path"])
+    return_dict["label_files"] = label_data
+
+    # return_dict["prediction_data"] = get_predicted_data_in_dir(id, return_dict["path"])
+    row_predictions = session.execute(
+        f"""
+SELECT
+    name, id, status, mode, created_at
+FROM
+    {TABLE_PREDICTION}
+WHERE
+    video_folder=?
+ORDER BY
+    created_at DESC
+        """,
+        (id,),
+    )
+    row_predictions = [dict(x) for x in row_predictions]
+    return_dict["prediction_data"] = row_predictions
 
     row_predict_job = session.execute(
         f"""
@@ -164,5 +205,6 @@ WHERE video_folder=?""",
     ).fetchmany()
     row_predict_job = [dict(x) for x in row_predict_job]
 
-    row_dict["predict_jobs"] = row_predict_job
-    return row_dict
+    return_dict["predict_jobs"] = row_predict_job
+
+    return return_dict

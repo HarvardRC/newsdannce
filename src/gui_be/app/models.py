@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from enum import Enum
-from typing import Any, Optional, Union
+
+# from enum import Enum
+from typing import Any
 import typing
 
 from pydantic import BaseModel, Field, Json
@@ -18,7 +19,26 @@ class TrainJobSubmitComModel(BaseModel):
     runtime_id: int
 
 
+class TrainJobSubmitDannceModel(BaseModel):
+    name: str
+    output_model_name: str
+    video_folder_ids: list[int]
+    config: Json[Any] = Field(default="{}", validate_default=True)
+    epochs: int
+    # vol_size: int
+    runtime_id: int
+
+
 class PredictJobSubmitComModel(BaseModel):
+    name: str
+    prediction_name: str
+    weights_id: int
+    video_folder_id: int
+    runtime_id: int
+    config: Json[Any] = Field(default="{}", validate_default=True)
+
+
+class PredictJobSubmitDannceModel(BaseModel):
     name: str
     prediction_name: str
     weights_id: int

@@ -41,7 +41,14 @@ class SessionContext:
 
 
 def get_db_context():
-    """Special function to get a db context for running background tasks"""
+    """Special function to get a db context for running background tasks
+    Note: this returns a context you can use with the "with" statement.
+
+    E.g.:
+    with get_db_context() as db:
+        do_something
+    # auto-closed when context ends
+    """
     return closing(sqlite3.connect(settings.DB_FILE, check_same_thread=False))
 
 
@@ -90,6 +97,8 @@ TABLE_WEIGHTS = "weights"
 TABLE_TRAIN_JOB_VIDEO_FOLDER = "train_job_video_folder"
 TABLE_RUNTIME = "runtime"
 TABLE_SLURM_JOB = "slurm_job"
+TABLE_MQ = "mq"
+
 
 # table for global settings
 TABLE_GLOBAL_STATE = "global_state"

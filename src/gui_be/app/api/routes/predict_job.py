@@ -16,9 +16,10 @@ from app.core.db import (
 )
 from app.models import (
     PredictJobSubmitComModel,
+    PredictJobSubmitDannceModel,
 )
-from app.utils.job import bg_submit_com_predict_job
-from app.utils.make_io_yaml import config_com_predict
+from app.utils.job import bg_submit_com_predict_job, bg_submit_dannce_predict_job
+from app.utils.make_io_yaml import config_com_predict, config_dannce_predict
 
 router = APIRouter()
 
@@ -81,6 +82,80 @@ def predict_job_submit_com(
 
     background_tasks.add_task(
         bg_submit_com_predict_job,
+        m,
+        runtime_id,
+        predict_job_id,
+        weights_id,
+        prediction_id,
+        config_file,
+    )
+
+    return {
+        "predict_job_id": predict_job_id,
+        "prediction_id": prediction_id,
+        "config_file_path": config_file,
+        "message": "submitting predict COM job to slurm in background",
+    }
+
+
+@router.post("/submit_dannce")
+def predict_job_submit_dannce(
+    session: SessionDep,
+    data: PredictJobSubmitDannceModel,
+    background_tasks: BackgroundTasks,
+):
+    # return {"message": "Thank u"}
+    m = config_dannce_predict(session, data)
+
+    # return {"config_com_pred": m}
+    cfg_json = m.to_json_string()
+
+    config_file = Path(
+        settings.CONFIGS_FOLDER, f"predict_dannce_config_{uuid.uuid4().hex}.yaml"
+    )
+
+    """Submit a predict job"""
+    curr = session.cursor()
+    curr.execute("BEGIN")
+    try:
+        prediction_path = str(m.dannce_predict_dir)
+        video_folder_id = data.video_folder_id
+        prediction_name = data.prediction_name
+        predict_job_name = data.name
+        weights_id = data.weights_id
+        runtime_id = data.runtime_id
+        # weights_name = data.output_model_name
+        curr.execute(
+            f"INSERT INTO {TABLE_PREDICTION} (path, name, video_folder, status, mode) VALUES (?,?,?,?,?)",
+            (prediction_path, prediction_name, video_folder_id, "PENDING", "DANNCE"),
+        )
+        prediction_id = curr.lastrowid
+        # first insert the train job
+        curr.execute(
+            f"INSERT INTO {TABLE_PREDICT_JOB} (name, weights, prediction, video_folder, runtime, config) VALUES (?,?,?,?,?,?)",
+            (
+                predict_job_name,
+                weights_id,
+                prediction_id,
+                video_folder_id,
+                runtime_id,
+                cfg_json,
+            ),
+        )
+
+        predict_job_id = curr.lastrowid
+        curr.execute("COMMIT")
+
+    except sqlite3.Error as e:
+        print("ERROR: ", e)
+        curr.execute("ROLLBACK")
+        raise HTTPException(
+            status_code=400,
+            detail="SQLITE3 Error. Transaction rolled back. Perhaps there is already a model with modelname?",
+        )
+
+    background_tasks.add_task(
+        bg_submit_dannce_predict_job,
         m,
         runtime_id,
         predict_job_id,

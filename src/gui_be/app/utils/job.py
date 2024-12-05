@@ -13,7 +13,12 @@ import app.core.db as db
 from app.models import (
     JobStatusDataObject,
 )
-from app.utils.make_io_yaml import ComPredictModel, ComTrainModel
+from app.utils.make_io_yaml import (
+    ComPredictModel,
+    ComTrainModel,
+    DanncePredictModel,
+    DannceTrainModel,
+)
 from app.utils.make_sbatch import make_sbatch_str
 from app.utils.predictions import update_prediction_status_by_job_id
 from app.utils.runtimes import get_runtime_data_id
@@ -53,8 +58,8 @@ def bg_submit_com_predict_job(
         )
 
         # TODO: REMOVE - tmp debug by writing out slurm string
-        with open(Path(settings.DATA_FOLDER, "tmp", "pred-com-out.sbatch"), "wt") as f:
-            f.write(sbatch_str)
+        # with open(Path(settings.DATA_FOLDER, "tmp", "pred-com-out.sbatch"), "wt") as f:
+        #     f.write(sbatch_str)
 
         # submit sbatch string to slurm
         slurm_job_id = submit_sbatch_to_slurm(
@@ -94,8 +99,100 @@ def bg_submit_com_train_job(
             cwd_folder=cfg.META_cwd,
         )
 
+        # # TODO: REMOVE - tmp debug by writing out slurm string
+        # with open(Path(settings.DATA_FOLDER, "tmp", "train-com-out.sbatch"), "wt") as f:
+        #     f.write(sbatch_str)
+
+        # submit sbatch string to slurm
+        slurm_job_id = submit_sbatch_to_slurm(
+            sbatch_str,
+            # NOTE: this sets were the slurm process will start from.
+            # shouldn't matter since it's paths are absolute and slurm job will cd where needed
+            current_dir=settings.SLURM_TRAIN_FOLDER,
+        )
+
+        insert_slurm_job_row(conn, slurm_job_id, train_job_id, db.TABLE_TRAIN_JOB)
+
+
+def bg_submit_dannce_predict_job(
+    cfg: DanncePredictModel,
+    runtime_id: int,
+    predict_job_id: int,
+    weights_id: int,
+    prediction_id: int,
+    config_file: Path,
+):
+    with open(config_file, "wt") as f:
+        logging.info(f"Writing config file to {config_file}")
+        yaml_string = cfg.to_yaml_string()
+        f.write(yaml_string)
+
+    with db.SessionContext() as conn:
+        runtime_data = get_runtime_data_id(runtime_id, conn)
+
+        command_enum = db.JobCommand.PREDICT_DANNCE
+
+        # make theh sbatch string
+        sbatch_str = make_sbatch_str(
+            command_enum,
+            config_path=config_file,
+            runtime_data=runtime_data,
+            job_name="predict_dannce",
+            cwd_folder=cfg.META_cwd,
+        )
+
+        with open(
+            Path(settings.SBATCH_DEBUG_FOLDER, config_file.with_suffix(".out").name),
+            "wt",
+        ) as f:
+            f.write(sbatch_str)
+
         # TODO: REMOVE - tmp debug by writing out slurm string
-        with open(Path(settings.DATA_FOLDER, "tmp", "train-com-out.sbatch"), "wt") as f:
+        # with open(Path(settings.DATA_FOLDER, "tmp", "pred-com-out.sbatch"), "wt") as f:
+        #     f.write(sbatch_str)
+
+        # submit sbatch string to slurm
+        slurm_job_id = submit_sbatch_to_slurm(
+            sbatch_str,
+            # NOTE: this sets were the slurm process will start from.
+            # shouldn't matter since it's paths are absolute and slurm job will cd where needed
+            current_dir=settings.SLURM_TRAIN_FOLDER,
+        )
+        # slurm_job_id = 1234567
+
+        insert_slurm_job_row(conn, slurm_job_id, predict_job_id, db.TABLE_PREDICT_JOB)
+
+
+def bg_submit_dannce_train_job(
+    cfg: DannceTrainModel,
+    runtime_id: int,
+    train_job_id: int,
+    weights_id: int,
+    config_file: Path,
+):
+    with open(config_file, "wt") as f:
+        logging.info(f"Writing config file to {config_file}")
+        yaml_string = cfg.to_yaml_string()
+        f.write(yaml_string)
+
+    with db.SessionContext() as conn:
+        runtime_data = get_runtime_data_id(runtime_id, conn)
+
+        command_enum = db.JobCommand.TRAIN_DANNCE
+
+        # make theh sbatch string
+        sbatch_str = make_sbatch_str(
+            command_enum,
+            config_path=config_file,
+            runtime_data=runtime_data,
+            job_name="train_dannce",
+            cwd_folder=cfg.META_cwd,
+        )
+
+        with open(
+            Path(settings.SBATCH_DEBUG_FOLDER, config_file.with_suffix(".out").name),
+            "wt",
+        ) as f:
             f.write(sbatch_str)
 
         # submit sbatch string to slurm
@@ -362,7 +459,7 @@ def update_jobs_by_ids(conn: Connection, job_list: list[JobStatusDataObject]):
                 update_prediction_status_by_job_id(
                     conn, j.job_id, db.PredictionStatus.FAILED
                 )
-            elif j.job_status.is_failure():
+            elif j.job_status.is_success():
                 update_prediction_status_by_job_id(
                     conn, j.job_id, db.PredictionStatus.COMPLETED
                 )
