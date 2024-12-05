@@ -1,17 +1,11 @@
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
   TableCaption,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useListPredictionsQuery } from '@/hooks';
-import { timestampString } from '@/lib/utils';
-import { appPages } from '@/routes';
-import { Link } from 'react-router-dom';
 
 export default function WeightsPage() {
   //   const {

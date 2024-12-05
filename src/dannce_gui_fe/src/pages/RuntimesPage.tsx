@@ -13,7 +13,7 @@ import { appPages } from '@/routes';
 import { Link } from 'react-router-dom';
 
 export default function RuntimesPage() {
-  const { data, isLoading, isError } = useListRuntimesQuery();
+  const { data, isLoading } = useListRuntimesQuery();
   if (isLoading) {
     return <div>Loading...</div>;
   }

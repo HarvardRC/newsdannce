@@ -10,10 +10,10 @@ type Props = {
 const PreviewContainer: React.FC<Props> = ({ ...props }) => {
   const {
     data: previewData,
-    isSuccess: isPreviewSuccess,
+    // isSuccess: isPreviewSuccess,
     isLoading: isPreviewLoading,
     isError: isPreviewError,
-    refetch: fetchPreview,
+    // refetch: fetchPreview,
   } = usePreviewPredictionQuery(
     props.predictionId,
     props.frames,

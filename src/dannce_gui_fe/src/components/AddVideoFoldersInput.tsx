@@ -1,4 +1,4 @@
-import { forwardRef, useRef } from 'react';
+import { forwardRef } from 'react';
 
 import { ControllerRenderProps } from 'react-hook-form';
 import {
@@ -27,7 +27,7 @@ type CustomProps = {
 } & ControllerRenderProps;
 
 const AddVideoFoldersInput = forwardRef<any, CustomProps>(
-  ({ options, multiSelect = false, ...field }, ref) => {
+  ({ options, multiSelect = false, ...field }) => {
     // const inputRef = useRef<HTMLInputElement>(null);
 
     const isRowSelected = (thisRowId: number) => {

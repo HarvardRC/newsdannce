@@ -24,7 +24,7 @@ import { timestampString } from '@/lib/utils';
 import { appPages } from '@/routes';
 import { Link } from 'react-router-dom';
 
-const actions = ['View Logs'];
+// const actions = ['View Logs'];
 
 export default function MonitorJobs() {
   const { data: trainJobData, isLoading: trainJobLoading } =

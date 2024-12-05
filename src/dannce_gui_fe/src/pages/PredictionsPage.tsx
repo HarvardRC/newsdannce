@@ -13,11 +13,7 @@ import { appPages } from '@/routes';
 import { Link } from 'react-router-dom';
 
 export default function PredictionsPage() {
-  const {
-    data: rawPredictions,
-    isLoading,
-    isError,
-  } = useListPredictionsQuery();
+  const { data: rawPredictions, isLoading } = useListPredictionsQuery();
   if (isLoading) {
     return <div>Loading...</div>;
   }

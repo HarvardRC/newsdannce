@@ -14,7 +14,6 @@ import { appPages } from '@/routes';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import { z } from 'zod';
 
 const transformInput = (x: string) => {
@@ -54,9 +53,9 @@ export default function ImportVideoFoldersPage() {
     // await mutation.mutateAsync({
     // ...values,
     // });
-    let result;
+    // let result =;
     try {
-      result = await mutation.mutateAsync(values);
+      await mutation.mutateAsync(values);
       navigate(appPages.videoFolders.path);
     } catch (error) {
       form.setError('paths', {

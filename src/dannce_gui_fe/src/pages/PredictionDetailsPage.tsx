@@ -23,7 +23,7 @@ const formSchema = z.object({
   frames: z.string(),
 });
 
-const PredictionDetailsPage: React.FC<CustomProps> = ({ ...props }) => {
+const PredictionDetailsPage: React.FC<CustomProps> = () => {
   const { id: idStr } = useParams();
   const id = parseInt(idStr!);
   const [frames, setFrames] = useState<any>(null);

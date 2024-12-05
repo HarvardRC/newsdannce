@@ -1,6 +1,4 @@
-import { BASE_API_URL, BASIC_AUTH_TOKEN } from './config';
-import { DannceMode } from './constants';
-// import secrets_json from './secrets.json';
+import { BASE_API_URL } from './config';
 
 export function make_url(...segments: string[]) {
   /** Make url from segments: e.g "foo", "bar" => foobar */
