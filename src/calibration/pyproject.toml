@@ -4,6 +4,8 @@ version = "0.0.1"
 
 [tool.setuptools.package-data]
 caldannce = ["ui_files/*.ui"]
+[tool.setuptools.packages.find]
+include = ['caldannce']
 
 # pyproject can include Ruff lint/format configurations too.
 

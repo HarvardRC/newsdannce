@@ -4,9 +4,16 @@
 
 GUI to generate camera parameters for use in Label3D and DANNCE.
 
-Steps to run
-1. `conda activate dannce-dev`
-2. `python -m src.calibration.gui`
+Steps to run:
+
+1. create environment (required only for initial setup or version upgrade)
+    `mamba env create -f ./src/calibration/environment.yml`
+2. install caldannce (required only for initial setup or version upgrade)
+    `cd src/calibration && pip install --force-reinstall .`
+3. activate environment
+    `mamba activate dannce-dev`
+4. start gui with the command 
+    `python -m caldannce.gui`
 
 ### Calibration Page
 
