@@ -25,7 +25,7 @@ import {
   useListRuntimesQuery,
   useListVideoFoldersQuery,
   useListWeightsQuery,
-  useSubmitComPredictJobMutation,
+  useSubmitDanncePredictJobMutation,
 } from '@/hooks';
 import { appPages } from '@/routes';
 import { useNavigate } from 'react-router-dom';
@@ -44,7 +44,7 @@ const formSchema = z.object({
 
 type formType = z.infer<typeof formSchema>;
 
-const ComPredictPage = () => {
+const DanncePredictPage = () => {
   const form = useForm<formType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -64,10 +64,10 @@ const ComPredictPage = () => {
     useListVideoFoldersQuery();
   const { data: weightsData, isLoading: isWeightsLoading } =
     useListWeightsQuery();
-  const mutation = useSubmitComPredictJobMutation();
+  const mutation = useSubmitDanncePredictJobMutation();
 
   const onSubmit = async (values: formType) => {
-    console.log('Com Predict submission. VALUES BEFORE TRANSFORM=', values);
+    console.log('DANNCE Predict submission. VALUES BEFORE TRANSFORM=', values);
     const newValues = {
       name: values.name,
       prediction_name: values.name,
@@ -76,7 +76,7 @@ const ComPredictPage = () => {
       runtime_id: values.runtime_id,
       config: values.config.length == 0 ? '{}' : values.config,
     };
-    console.log('Com Pred. sub. val post transform: ', newValues);
+    console.log('DANNCE Pred. sub. val post transform: ', newValues);
     const ret = await mutation.mutateAsync(newValues);
     console.log('RETURNED DATA', ret);
     navigate(appPages.monitorJobs.path);
@@ -93,7 +93,7 @@ const ComPredictPage = () => {
   }));
 
   const weightsOptions = weightsData!
-    .filter((x) => x.mode == 'COM')
+    .filter((x) => x.mode == 'DANNCE')
     .filter((x) => x.status == 'COMPLETED')
     .map((x) => ({
       id: x.id,
@@ -102,7 +102,7 @@ const ComPredictPage = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">Predict COM Data</h1>
+      <h1 className="text-2xl font-bold mb-4">Predict DANNCE Data</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
@@ -112,7 +112,7 @@ const ComPredictPage = () => {
               <FormItem>
                 <FormLabel>Inference Job Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="E.g. Predict COM Rat" {...field} />
+                  <Input placeholder="E.g. Predict DANNCE Rat" {...field} />
                 </FormControl>
                 <FormDescription>
                   This name will help you identify the job
@@ -145,11 +145,11 @@ const ComPredictPage = () => {
             name="weights_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Select Trained COM Model (Weights)</FormLabel>
+                <FormLabel>Select Trained DANNCE Model (Weights)</FormLabel>
                 <FormControl>
                   <SelectWeightsComboBox
                     options={weightsOptions}
-                    mode="COM"
+                    mode="DANNCE"
                     {...field}
                   />
                 </FormControl>
@@ -164,7 +164,9 @@ const ComPredictPage = () => {
             name="video_folder_ids"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Select One Data Folder for COM Inference</FormLabel>
+                <FormLabel>
+                  Select One Data Folder for DANNCE Inference
+                </FormLabel>
                 <FormControl>
                   <AddVideoFoldersInput
                     options={videoFolderOptions}
@@ -173,7 +175,7 @@ const ComPredictPage = () => {
                   />
                 </FormControl>
                 <FormDescription>
-                  Each folder will use the most recent COM label files by
+                  Each folder will use the most recent DANNCE label files by
                   default. Click on the folder name to get more info in a new
                   tab.
                 </FormDescription>
@@ -248,4 +250,4 @@ const ComPredictPage = () => {
   );
 };
 
-export default ComPredictPage;
+export default DanncePredictPage;

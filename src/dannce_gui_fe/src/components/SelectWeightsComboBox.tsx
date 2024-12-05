@@ -76,9 +76,9 @@ const SelectWeightsComboBox = forwardRef<any, CustomProps>(
                 return 0;
               }}
             >
-              <CommandInput placeholder="Select COM model..." />
+              <CommandInput placeholder={`Select ${mode} model`} />
               <CommandList>
-                <CommandEmpty>No trained COM model found.</CommandEmpty>
+                <CommandEmpty>No trained {mode} model found.</CommandEmpty>
                 <CommandGroup>
                   {optionsSafe.map((optionsSafe) => (
                     <CommandItem

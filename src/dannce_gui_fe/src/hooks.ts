@@ -19,6 +19,7 @@ import {
   getPredictionDetails,
   previewPrediction,
   submitDannceTrainJob,
+  submitDanncePredictJob,
 } from './api';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
@@ -188,6 +189,16 @@ export function useSubmitComPredictJobMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: submitComPredictJob,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['listPredictJobs'] });
+    },
+  });
+}
+
+export function useSubmitDanncePredictJobMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: submitDanncePredictJob,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['listPredictJobs'] });
     },

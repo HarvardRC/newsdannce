@@ -30,7 +30,7 @@ const LogStream: React.FC<props> = ({ slurmJobId }) => {
 
   const handleRefreshButton = () => {
     queryClient.invalidateQueries({
-      queryKey: ['SlurmLogfile', slurmJobId],
+      queryKey: ['slurmLogfile', slurmJobId],
     });
   };
 

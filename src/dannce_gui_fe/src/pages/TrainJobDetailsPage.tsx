@@ -1,5 +1,4 @@
 import LogStream from '@/components/LogStream';
-import { Button } from '@/components/ui/button';
 import { useTrainJobDetailsQuery } from '@/hooks';
 
 import { useParams } from 'react-router-dom';

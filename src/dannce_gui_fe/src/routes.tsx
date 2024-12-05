@@ -16,6 +16,7 @@ import PredictionsPage from './pages/PredictionsPage';
 import PredictionDetailsPage from './pages/PredictionDetailsPage';
 import WeightsPage from './pages/WeightsPage';
 import ImportVideoFoldersPage from './pages/ImportVideoFoldersPage';
+import DanncePredictPage from './pages/DanncePredictPage';
 
 type AppPage = {
   path: string;
@@ -99,6 +100,11 @@ export const appPages = {
     element: <DannceTrainPage />,
     title: 'Train DANNCE Model',
   },
+  danncePredictPage: {
+    path: '/dannce-predict',
+    element: <DanncePredictPage />,
+    title: 'Predict DANNCE Model',
+  },
   predictionsPage: {
     path: '/predictions',
     element: <PredictionsPage />,
@@ -133,5 +139,6 @@ export const homePages = [
   appPages.comTrainPage,
   appPages.comPredictPage,
   appPages.dannceTrainPage,
+  appPages.danncePredictPage,
   appPages.monitorJobs,
 ];

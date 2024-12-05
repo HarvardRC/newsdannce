@@ -259,6 +259,21 @@ export async function submitComPredictJob(
   return post('/predict_job/submit_com', data);
 }
 
+type SubmitDanncePredictJobData = {
+  name: string;
+  prediction_name: string;
+  video_folder_id: number;
+  weights_id: number;
+  config: string;
+  runtime_id: number;
+};
+
+export async function submitDanncePredictJob(
+  data: SubmitDanncePredictJobData
+): Promise<void> {
+  return post('/predict_job/submit_dannce', data);
+}
+
 export async function refreshJobs(): Promise<void> {
   return post('/jobs_common/update-live-jobs', {});
 }
