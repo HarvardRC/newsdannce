@@ -1,0 +1,21 @@
+name: dannce-dev2
+channels:
+  - defaults
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.11
+  - numpy<2.0
+  - ca-certificates
+  - openssl
+  - scipy
+  - ipykernel
+  - x264
+  - certifi
+  - matplotlib
+  - pip
+  - pip:
+      - ruamel.yaml
+      - fastapi[standard]
+      - sqlmodel
+      - ruamel.yaml.string
