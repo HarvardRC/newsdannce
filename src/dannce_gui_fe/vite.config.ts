@@ -7,6 +7,12 @@ import secrets from './src/secrets.json';
 export default defineConfig({
   build: {
     sourcemap: true,
+    rollupOptions:
+    {
+      output:{
+        assetFileNames:'assets/config.js'
+      }
+    }
   },
   plugins: [react()],
   resolve: {
