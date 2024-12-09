@@ -5,16 +5,14 @@ import logging
 
 
 class _Settings(BaseSettings):
-    CODE_FOLDER: Path = Path(
-        "."
-    )
+    CODE_FOLDER: Path = Path(".")
     # Links relative to CODE FOLDER
     SQL_FOLDER: Path = Path(CODE_FOLDER, "sql")
     INIT_SQL_FILE: Path = Path(SQL_FOLDER, "schema.sql")
     POPULATE_SQL_FILE: Path = Path(SQL_FOLDER, "populate_db.sql")
     USER_DATA_SQL_FILE: Path = Path(SQL_FOLDER, "user_data.sql")
 
-    DATA_FOLDER: Path = Path('/instance_dir')
+    DATA_FOLDER: Path = Path(os.environ.get("INSTANCE_DIR", "/instance_dir"))
     logging.info(f"USING DATA FOLDER AT: {DATA_FOLDER}")
     # Links relative to DATA FOLDER
     DB_FILE: Path = Path(DATA_FOLDER, "db.sqlite3")
@@ -28,13 +26,12 @@ class _Settings(BaseSettings):
     """A folder to store temporary server resources E.g. generated images, etc."""
 
     # name of slurm node the backend is running on
-    NODE_NAME: str = os.environ.get("SLURM_NODELIST",'')
+    NODE_NAME: str = os.environ.get("SLURM_NODELIST", "")
     # proxy url for webserver
-    API_BASE_URL: str = os.environ.get("GUI_API_URL" , (
-        f"https://rcood.rc.fas.harvard.edu/rnode/{NODE_NAME}.rc.fas.harvard.edu/8000"
-    ))
-    FRONTEND_HOST: str = os.environ.get("GUI_APP_URL", "http://localhost:5173")
-    STATIC_URL: str = f"{FRONTEND_HOST}/static"
+
+    APP_BASE_URL: Path = Path(os.environ.get("APP_BASE_URL", "http://localhost:5173"))
+    FRONTEND_HOST: Path = Path(APP_BASE_URL, "app", "index.html")
+    STATIC_URL: Path = Path(APP_BASE_URL, "static")
     N_CAMERAS: int = 6
 
 

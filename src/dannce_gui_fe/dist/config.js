@@ -1,1 +1,2 @@
-const apiUrl=consthttps://rcood.rc.fas.harvard.edu/rnode/holy7c18105.rc.fas.harvard.edu/5123/v1
+// DEFINE apiUrl here: e.g. const apiUrl="https://localhost:5173"
+const apiUrl = "https://rcood.rc.fas.harvard.edu/rnode/holy8a24112.rc.fas.harvard.edu/8000"

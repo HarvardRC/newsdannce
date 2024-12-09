@@ -7,6 +7,10 @@ else
   module load Mambaforge
 fi
 
+export FASTAPI_PORT=8000
+export INSTANCE_DIR="/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/gui-instances/chris-20241209"
+export APP_BASE_URL="https://rcood.rc.fas.harvard.edu/rnode/${SLURM_NODELIST}.rc.fas.harvard.edu/${FASTAPI_PORT}"
+
 conda run -n dannce-dev --no-capture-output python -m fastapi dev ./app/main.py --host 0.0.0.0
 
 # this would go in script.sh.erb

@@ -53,6 +53,7 @@ def get_db_context():
 
 
 def init_db():
+    print("INIT'ING DB...")
     conn = sqlite3.connect(settings.DB_FILE)
     cursor = conn.cursor()
 
@@ -61,6 +62,7 @@ def init_db():
     cursor.executescript(query)
     conn.commit()
     conn.close()
+    print("DONE INIT'ING DB...")
 
 
 def populate_db():

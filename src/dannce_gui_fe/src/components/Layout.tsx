@@ -25,7 +25,7 @@ export default function RootLayout() {
 
             <div className="text-muted-foreground transition-colors hover:text-foreground flex-1">
               <div className="flex flex-row justify-end">
-                <span className="cursor-pointer">Kill Server</span>
+                <span className="cursor-pointer">Kill Server [disabled]</span>
               </div>
             </div>
           </nav>

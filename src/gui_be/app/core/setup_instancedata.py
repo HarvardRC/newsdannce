@@ -71,7 +71,7 @@ def setup_instancedata(force_recreate=False):
 
         # make empty db.sqlite file
         if not settings.DB_FILE.exists():
-            logging.info(f"TRYING TO CREATE DB_FILE at: {DB_FILE}")
+            logging.info(f"TRYING TO CREATE DB_FILE at: {settings.DB_FILE}")
             settings.DB_FILE.touch(exist_ok=False)
             logging.warning("INIT'ING DB")
             init_db()

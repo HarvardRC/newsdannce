@@ -41,6 +41,8 @@ def get_job_log(slurm_job_id: int, conn: SessionDep):
         raise HTTPException(status_code=404)
 
     stdout_file = row["stdout_file"]
+    if not stdout_file:
+        return None
     stdout_file = stdout_file.replace("%j", str(slurm_job_id))
     p = Path(stdout_file)
     if not p.exists():

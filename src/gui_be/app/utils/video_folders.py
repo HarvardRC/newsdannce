@@ -212,14 +212,14 @@ def import_video_folders_from_paths(
             video_metadata = get_video_metadata(base_path)
 
             # check first video if it's web-ready
-            faststart = check_faststart_flag(
-                base_path.joinpath("videos", video_metadata.camera_names[0], "0.mp4")
-            )
-            if not faststart:
-                process_video_folder_faststart(
-                    video_folder_path=base_path,
-                    camera_names=video_metadata.camera_names,
-                )
+            # faststart = check_faststart_flag(
+            #     base_path.joinpath("videos", video_metadata.camera_names[0], "0.mp4")
+            # )
+            # if not faststart:
+            #     process_video_folder_faststart(
+            #         video_folder_path=base_path,
+            #         camera_names=video_metadata.camera_names,
+            #     )
             curr.execute(
                 f"""
 INSERT INTO {TABLE_VIDEO_FOLDER}

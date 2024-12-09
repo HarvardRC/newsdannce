@@ -10,7 +10,7 @@ from starlette.middleware.cors import CORSMiddleware
 from app.api.main import api_router
 
 
-print(f"\nRunning on {settings.API_BASE_URL}")
+print(f"\nRunning on {settings.APP_BASE_URL}")
 
 app = FastAPI(title="DANNCE GUI API")
 
@@ -33,7 +33,7 @@ initialize_state()
 
 app.include_router(api_router, prefix="/v1")
 app.mount("/static", StaticFiles(directory=settings.STATIC_TMP_FOLDER), name="static")
-#app.mount("/app/", StaticFiles(directory='../dannce_gui_fe/dist'), name="gui_fe")
+app.mount("/app/", StaticFiles(directory="./resources/dist"), name="gui_fe")
 
 # https://rcood.rc.fas.harvard.edu/rnode/holy7c18105.rc.fas.harvard.edu/8000/app -> index.html inside ../dannce_gui_fe/dist
 

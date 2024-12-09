@@ -65,6 +65,7 @@ def create_video_folder(data: CreateVideoFolderModel, session: SessionDep) -> An
 
 @router.post("/import_from_paths")
 def import_video_folders_route(session: SessionDep, data: ImportVideoFoldersModel):
+    logging.info("TRYING TO IMPORT FROM PATHS")
     return import_video_folders_from_paths(session, data)
 
 
@@ -97,6 +98,7 @@ def get_frame_route(
 
 @router.get("/{id}/preview")
 def get_preview_route(id: int, camera_name: str, session: SessionDep) -> Any:
+    logging.info(f"Video folder preview {id}")
     row = session.execute(
         f"SELECT * FROM {TABLE_VIDEO_FOLDER} WHERE ID=?", (id,)
     ).fetchone()

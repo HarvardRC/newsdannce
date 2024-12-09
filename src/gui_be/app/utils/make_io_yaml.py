@@ -44,7 +44,6 @@ class ConfigModel(BaseModel):
     )
     n_instances: int = Field(default=1)
     n_channels_out: int  # OVERRIDE LATER
-    new_n_channels_out: int
     downfac: int = Field(default=8)
     n_channels_in: int = Field(default=3)
     raw_im_h: int = Field(default=1200)
