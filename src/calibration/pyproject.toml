@@ -2,6 +2,10 @@
 name = "caldannce"
 version = "0.0.1"
 
+[build-system]
+requires = ["setuptools>72.1.0"]
+build-backend = "setuptools.build_meta"
+
 [tool.setuptools.package-data]
 caldannce = ["ui_files/*.ui"]
 [tool.setuptools.packages.find]
