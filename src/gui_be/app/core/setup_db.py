@@ -69,12 +69,14 @@ def get_local_resources_slurm():
 def get_local_resources_pc():
     """Get runtime parameters if the gui_be app is running a local machine"""
     import psutil
-    import torch
+    #import torch
 
     n_cpus = os.cpu_count()
     mem_gb = int(psutil.virtual_memory().total / 1024 / 1024 / 1024)
     time_hrs = 100_000  # very large number
-    n_gpus = 1 if torch.cuda.is_available else 0
+    #n_gpus = 1 if torch.cuda.is_available else 0
+    #TODO: FIX
+    n_gpus = 0
     partition_list = None
     return LocalResources(
         n_cpus=n_cpus,

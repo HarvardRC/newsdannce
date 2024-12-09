@@ -6,3 +6,6 @@
 /jupyter_debug
 
 __pycache__
+
+
+*.sif

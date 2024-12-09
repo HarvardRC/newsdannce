@@ -14,8 +14,13 @@ dependencies:
   - certifi
   - matplotlib
   - pip
+  - rabbitmq-server
   - pip:
+      - opencv-python-headless
       - ruamel.yaml
       - fastapi[standard]
       - sqlmodel
       - ruamel.yaml.string
+      - pydantic_settings
+      - celery
+      - flower
