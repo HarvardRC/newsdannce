@@ -35,7 +35,7 @@ class _Settings(BaseSettings):
     N_CAMERAS: int = 6
 
     # Singularity container with sdannce image
-    SDANNCE_IMAGE_PATH: Path = os.environ.get("SDANNCE_IMAGE_PATH")
+    SDANNCE_IMAGE_PATH: Path = os.environ.get("SDANNCE_IMAGE_PATH", "/n/holylabs/LABS/olveczky_lab/Lab/singularity2/sdannce/sdannce-20241210.sif")
 
 
 settings = _Settings()

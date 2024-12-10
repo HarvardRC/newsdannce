@@ -1,7 +1,8 @@
 [tool.poetry]
-name = "app"
-version = "0.1.0"
+name = "dannce_gui_app"
+version = "0.0.1"
 description = ""
+authors = ["Chris Axon"]
 
 #[tool.poetry.dependencies]
 #python = "^3.10"
@@ -48,13 +49,13 @@ exclude = ["alembic"]
 
 [tool.ruff.lint]
 select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "B",  # flake8-bugbear
-    "C4",  # flake8-comprehensions
-    "UP",  # pyupgrade
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
     "ARG001", # unused arguments in functions
 ]
 ignore = [
@@ -65,11 +66,9 @@ ignore = [
     "I001",
     "UP007",
     "UP032",
-    "UP015"
+    "UP015",
 ]
 
 [tool.ruff.lint.pyupgrade]
 # Preserve types, even if a file imports `from __future__ import annotations`.
 keep-runtime-typing = true
-
-
