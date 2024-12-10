@@ -50,14 +50,20 @@ def _build_sbatch_script(
 #SBATCH --output={shlex.quote(log_file_str)}
 
 # metadata: runtime name={shlex.quote(runtime_data.name)}
+
+# run with conda env (debugging)
+#########
 ### TODO: REMOVE -- debug with conda instead of singularity for now ################
-source ~/.bashrc
-module load Mambaforge
-conda activate sdannce311
-cd {shlex.quote(cwd_folder_str)}
-dannce {sdannce_command_safe} {shlex.quote(config_path_str)}
+# source ~/.bashrc
+# module load Mambaforge
+# conda activate sdannce311
+# cd {shlex.quote(cwd_folder_str)}
+# dannce {sdannce_command_safe} {shlex.quote(config_path_str)}
 ### END TODO: REMOVE ###############################################################
 
-# img='shlex.quote(sdannce_container)'
-# singularity exec --nv --pwd={shlex.quote(cwd_folder_str)} "$img" dannce {sdannce_command_safe} {shlex.quote(config_path_str)}
+# run from sdannce container
+#########
+SDANNCE_IMG={shlex.quote(settings.SDANNCE_IMAGE_PATH)}
+singularity exec --nv --pwd={shlex.quote(cwd_folder_str)} "$SDANNCE_IMG" dannce {sdannce_command_safe} {shlex.quote(config_path_str)}
+
 """

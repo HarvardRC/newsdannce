@@ -34,5 +34,8 @@ class _Settings(BaseSettings):
     STATIC_URL: Path = Path(APP_BASE_URL, "static")
     N_CAMERAS: int = 6
 
+    # Singularity container with sdannce image
+    SDANNCE_IMAGE_PATH: Path = os.environ.get("SDANNCE_IMAGE_PATH")
+
 
 settings = _Settings()
