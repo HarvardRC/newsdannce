@@ -1,5 +1,5 @@
 #!/bin/bash
 
-cd ./src/dannce_gui_fe
+cd ./apps/gui_fe
 
 npm run dev

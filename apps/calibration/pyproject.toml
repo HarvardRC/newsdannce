@@ -80,4 +80,3 @@ line-ending = "auto"
 ### pytest configuration
 [tool.pytest.ini_options]
 pythonpath = ['.']
-# testpaths = ["src/calibration"]

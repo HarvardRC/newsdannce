@@ -35,7 +35,7 @@ app.include_router(api_router, prefix="/v1")
 app.mount("/static", StaticFiles(directory=settings.STATIC_TMP_FOLDER), name="static")
 app.mount("/app/", StaticFiles(directory="./resources/dist"), name="gui_fe")
 
-# https://rcood.rc.fas.harvard.edu/rnode/holy7c18105.rc.fas.harvard.edu/8000/app -> index.html inside ../dannce_gui_fe/dist
+# https://rcood.rc.fas.harvard.edu/rnode/holy7c18105.rc.fas.harvard.edu/8000/app -> index.html inside ../gui_fe/dist
 
 # https://rcood.rc.fas.harvard.edu/rnode/holy7c18105.rc.fas.harvard.edu/home INSTEAD OF
 # https://rcood.rc.fas.harvard.edu/rnode/holy7c18105.rc.fas.harvard.edu/8000/app/home -> index.html

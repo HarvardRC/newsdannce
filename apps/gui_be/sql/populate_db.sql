@@ -35,10 +35,10 @@ INSERT INTO video_folder
 
 INSERT INTO weights 
     (name, path, status, mode) VALUES
-    ('com-checkpoint-epoch20', '/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/newsdannce/src/gui_be/instance_data/models/com/com-checkpoint-epoch20.pth', 'PENDING', 'COM'),
-    ('com-checkpoint-epoch80', '/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/newsdannce/src/gui_be/instance_data/models/dannce/dannce-checkpoint-epoch80.pth', 'PENDING', 'DANNCE'),
-    ('com-new-1','/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/newsdannce/src/gui_be/instance_data/models/com/new-com1.pth', 'PENDING', 'COM'),
-    ('com-new-2','/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/newsdannce/src/gui_be/instance_data/models/com/new-com2.pth', 'PENDING', 'COM');
+    ('com-checkpoint-epoch20', '/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/newsdannce/apps/gui_be/instance_data/models/com/com-checkpoint-epoch20.pth', 'PENDING', 'COM'),
+    ('com-checkpoint-epoch80', '/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/newsdannce/apps/gui_be/instance_data/models/dannce/dannce-checkpoint-epoch80.pth', 'PENDING', 'DANNCE'),
+    ('com-new-1','/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/newsdannce/apps/gui_be/instance_data/models/com/new-com1.pth', 'PENDING', 'COM'),
+    ('com-new-2','/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/newsdannce/apps/gui_be/instance_data/models/com/new-com2.pth', 'PENDING', 'COM');
 
 
 INSERT INTO train_job

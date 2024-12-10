@@ -6,9 +6,9 @@ Calibration GUI for `newsdannce` repo. (Specifically for DANNCE and SDANNCE proj
 
 1. install conda/mamba
 2. create environment
-    `mamba env create -f ./src/calibration/environment.yml`
+    `mamba env create -f ./apps/calibration/environment.yml`
 3. install caldannce
-    `cd src/calibration && pip install --force-reinstall .`
+    `cd apps/calibration && pip install --force-reinstall .`
 
 
 ## LAUNCH CALIBRATION GUI
