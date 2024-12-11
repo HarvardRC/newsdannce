@@ -1,9 +1,10 @@
 """Make sure the instance_data folder exists and is configured"""
 
-import logging
 from pathlib import Path
 from app.core.config import settings
 from app.core.db import init_db
+from app.base_logger import logger
+import os
 
 ### Structure ###
 #   instance_data/
@@ -39,16 +40,16 @@ def setup_instancedata(force_recreate=False):
     Also create the sqlite3 database (db.sqlite3) if it does not exist.
 
     """
-    if force_recreate is True or not settings.DATA_FOLDER.exists():
-        print("CREATING INSANCE FOLDER")
+    if force_recreate is True or not settings.DATA_FOLDER.exists() or not os.listdir(settings.DATA_FOLDER):
+        logger.info("CREATING INSANCE FOLDER")
         # make instance_data folders
         for p in make_folders:
             if not p.exists():
-                logging.warning(f"Creating folder: {p}")
+                logger.warning(f"Creating folder: {p}")
                 try:
                     p.mkdir(exist_ok=False, mode=0o770)
                 except Exception as e:
-                    logging.critical(f"Unable to make folder: {p}")
+                    logger.critical(f"Unable to make folder: {p}")
                     raise e
 
         # set up training folder
@@ -71,9 +72,12 @@ def setup_instancedata(force_recreate=False):
 
         # make empty db.sqlite file
         if not settings.DB_FILE.exists():
-            logging.info(f"TRYING TO CREATE DB_FILE at: {settings.DB_FILE}")
+            logger.info(f"TRYING TO CREATE DB_FILE at: {settings.DB_FILE}")
             settings.DB_FILE.touch(exist_ok=False)
-            logging.warning("INIT'ING DB")
+            logger.warning("INIT'ING DB")
             init_db()
         else:
-            logging.info("DB FILE ALREADY EXISTS?")
+            logger.info("DB FILE ALREADY EXISTS?")
+
+    else: # not creating local runtime
+        logger.info("not recreating local files")

@@ -1,4 +1,4 @@
-import logging
+from app.base_logger import logger
 from pathlib import Path
 import subprocess
 import uuid
@@ -45,14 +45,14 @@ def get_one_frame(
     try:
         output.check_returncode()
     except subprocess.CalledProcessError as e:
-        logging.error("app.util.video.get_one_frame nonzero subprocess output")
-        logging.error(f"args.VIDEO PATH: {video_path}")
-        logging.error(f"args.FRAME_INDEX: {frame_index}")
-        logging.error(f"args.FRAMERATE_FPS: {framerate_fps}")
-        logging.error(f"args.OUTPUT_PATH: {output_path}")
+        logger.error("app.util.video.get_one_frame nonzero subprocess output")
+        logger.error(f"args.VIDEO PATH: {video_path}")
+        logger.error(f"args.FRAME_INDEX: {frame_index}")
+        logger.error(f"args.FRAMERATE_FPS: {framerate_fps}")
+        logger.error(f"args.OUTPUT_PATH: {output_path}")
 
-        logging.error(f"> stdout: {output.stdout}")
-        logging.error(f"> stdout: {output.stderr}")
+        logger.error(f"> stdout: {output.stdout}")
+        logger.error(f"> stdout: {output.stderr}")
         raise Exception("Unable to get frame from video")
 
     return output_name
@@ -105,14 +105,14 @@ def get_multiple_frames(
 #     try:
 #         output.check_returncode()
 #     except subprocess.CalledProcessError as e:
-#         logging.error("app.util.video.get_one_frame nonzero subprocess output")
-#         logging.error(f"args.VIDEO PATH: {video_path}")
-#         logging.error(f"args.FRAME_SELECT_STR: {timestamps_str}")
-#         logging.error(f"args.FRAMERATE_FPS: {framerate_fps}")
-#         logging.error(f"args.OUTPUT_PATH_TEMPLATE: {output_path}")
+#         logger.error("app.util.video.get_one_frame nonzero subprocess output")
+#         logger.error(f"args.VIDEO PATH: {video_path}")
+#         logger.error(f"args.FRAME_SELECT_STR: {timestamps_str}")
+#         logger.error(f"args.FRAMERATE_FPS: {framerate_fps}")
+#         logger.error(f"args.OUTPUT_PATH_TEMPLATE: {output_path}")
 
-#         logging.error(f"> stdout: {output.stdout}")
-#         logging.error(f"> stdout: {output.stderr}")
+#         logger.error(f"> stdout: {output.stdout}")
+#         logger.error(f"> stdout: {output.stderr}")
 #         raise Exception("Unable to get frame from video")
 
 #     output_names = [output_name.replace("%d", f) for f in frame_indices]

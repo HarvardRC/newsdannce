@@ -2,7 +2,7 @@ from pathlib import Path
 from .celery import app
 import shutil
 import subprocess
-import logging
+from app.base_logger import logger
 
 
 # @app.task
@@ -46,8 +46,8 @@ def reencode_video_folder(video_folder_path: str | Path, camnames: list[str]):
         try:
             output.check_returncode()
         except subprocess.CalledProcessError:
-            logging.warning(f"reencode_video_err: { output.stderr }")
-            logging.warning(f"reencode_video_err: { output.stdout }")
+            logger.warning(f"reencode_video_err: { output.stderr }")
+            logger.warning(f"reencode_video_err: { output.stdout }")
             raise Exception(f"Unable to process video file:{vid_file}")
 
 

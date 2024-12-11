@@ -1,19 +1,19 @@
 from pydantic_settings import BaseSettings
 from pathlib import Path
 import os
-import logging
+from app.base_logger import logger
 
 
 class _Settings(BaseSettings):
     CODE_FOLDER: Path = Path(".")
     # Links relative to CODE FOLDER
-    SQL_FOLDER: Path = Path(CODE_FOLDER, "sql")
+    SQL_FOLDER: Path = Path("/app","resources", "sql")
     INIT_SQL_FILE: Path = Path(SQL_FOLDER, "schema.sql")
     POPULATE_SQL_FILE: Path = Path(SQL_FOLDER, "populate_db.sql")
     USER_DATA_SQL_FILE: Path = Path(SQL_FOLDER, "user_data.sql")
 
-    DATA_FOLDER: Path = Path(os.environ.get("INSTANCE_DIR", "/instance_dir"))
-    logging.info(f"USING DATA FOLDER AT: {DATA_FOLDER}")
+    DATA_FOLDER: Path = Path(os.environ.get("INSTANCE_DIR_MOUNT", "/instance_dir"))
+    logger.info(f"USING DATA FOLDER AT: {DATA_FOLDER}")
     # Links relative to DATA FOLDER
     DB_FILE: Path = Path(DATA_FOLDER, "db.sqlite3")
     SLURM_TRAIN_FOLDER: Path = Path(DATA_FOLDER, "slurm-cwd")

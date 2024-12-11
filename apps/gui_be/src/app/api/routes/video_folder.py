@@ -1,6 +1,5 @@
 # from sqlite3 import Connection
 # from typing import Any, Annotated
-import logging
 from pathlib import Path
 from typing import Any
 import uuid
@@ -22,6 +21,7 @@ from app.utils.video import get_one_frame
 from app.utils.video_folders import import_video_folders_from_paths
 from app.core.config import settings
 import subprocess
+from app.base_logger import logger
 
 
 router = APIRouter()
@@ -65,7 +65,7 @@ def create_video_folder(data: CreateVideoFolderModel, session: SessionDep) -> An
 
 @router.post("/import_from_paths")
 def import_video_folders_route(session: SessionDep, data: ImportVideoFoldersModel):
-    logging.info("TRYING TO IMPORT FROM PATHS")
+    logger.info("TRYING TO IMPORT FROM PATHS")
     return import_video_folders_from_paths(session, data)
 
 
@@ -98,7 +98,7 @@ def get_frame_route(
 
 @router.get("/{id}/preview")
 def get_preview_route(id: int, camera_name: str, session: SessionDep) -> Any:
-    logging.info(f"Video folder preview {id}")
+    logger.info(f"Video folder preview {id}")
     row = session.execute(
         f"SELECT * FROM {TABLE_VIDEO_FOLDER} WHERE ID=?", (id,)
     ).fetchone()
@@ -137,9 +137,9 @@ def get_preview_route(id: int, camera_name: str, session: SessionDep) -> Any:
     )
     # ffmpeg -accurate_seek -ss 0.00 -i "/net/holy-nfsisilon/ifs/rc_labs/olveczky_lab_tier1/Lab/dannce_rig2/data/M1-M7_photometry/Alone/Day2_wk2/240625_143814_M5/videos/Camera1/0.mp4" -frames:v 1 instance_data/tmp/out
 
-    logging.warning(f"SUB OUT:{output.stdout}")
+    logger.warning(f"SUB OUT:{output.stdout}")
 
-    logging.warning(f"SUB ERR:{output.stderr}")
+    logger.warning(f"SUB ERR:{output.stderr}")
 
     # logging.warning(f"SUB CODE:{output.returncode}")
     try:

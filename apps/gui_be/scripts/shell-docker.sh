@@ -1,14 +1,11 @@
-#!/bin/bash
-
 FASTAPI_PORT=8700
 RABBITMQ_NODE_PORT=8701
 INSTANCE_DIR=~/dannce_gui_data 
 
-port=$FASTAPI_PORT
-
-echo "Connect to port ${FASTAPI_PORT}"
-
-# adding -it will allow docker to be killed with CTRL+C
+# docker run \
+#   -it dannce-gui \
+#   --entrypoint "/app/scripts/start_from_container.sh" \
+#   /bi/bash
 
 docker run \
     -it \
@@ -18,4 +15,6 @@ docker run \
     --env PYTHONUNBUFFERED=1 \
     -p ${FASTAPI_PORT}:${FASTAPI_PORT} \
     -v $INSTANCE_DIR:/instance_dir \
-    dannce-gui
+    --entrypoint "/usr/local/bin/_entrypoint.sh" \
+    dannce-gui \
+    /bin/bash

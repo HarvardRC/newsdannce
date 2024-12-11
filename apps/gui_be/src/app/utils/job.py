@@ -5,7 +5,7 @@ from sqlite3 import Connection
 import sqlite3
 import subprocess
 
-import logging
+from app.base_logger import logger
 
 from app.core.config import settings
 import app.core.db as db
@@ -39,7 +39,7 @@ def bg_submit_com_predict_job(
     config_file: Path,
 ):
     with open(config_file, "wt") as f:
-        logging.info(f"Writing config file to {config_file}")
+        logger.info(f"Writing config file to {config_file}")
         yaml_string = cfg.to_yaml_string()
         f.write(yaml_string)
 
@@ -81,7 +81,7 @@ def bg_submit_com_train_job(
     config_file: Path,
 ):
     with open(config_file, "wt") as f:
-        logging.info(f"Writing config file to {config_file}")
+        logger.info(f"Writing config file to {config_file}")
         yaml_string = cfg.to_yaml_string()
         f.write(yaml_string)
 
@@ -123,7 +123,7 @@ def bg_submit_dannce_predict_job(
     config_file: Path,
 ):
     with open(config_file, "wt") as f:
-        logging.info(f"Writing config file to {config_file}")
+        logger.info(f"Writing config file to {config_file}")
         yaml_string = cfg.to_yaml_string()
         f.write(yaml_string)
 
@@ -171,7 +171,7 @@ def bg_submit_dannce_train_job(
     config_file: Path,
 ):
     with open(config_file, "wt") as f:
-        logging.info(f"Writing config file to {config_file}")
+        logger.info(f"Writing config file to {config_file}")
         yaml_string = cfg.to_yaml_string()
         f.write(yaml_string)
 
@@ -255,7 +255,7 @@ def insert_slurm_job_row(
         curr.execute("ROLLBACK")
         raise e
     conn.commit()
-    logging.info("Successfully inserted slurm job and updated ?jobs_table.slurm_job")
+    logger.info("Successfully inserted slurm job and updated ?jobs_table.slurm_job")
 
 
 def check_job_status_multiple(job_list):
@@ -361,7 +361,7 @@ def update_jobs_by_ids(conn: Connection, job_list: list[JobStatusDataObject]):
     job_id_list_str = [str(x.slurm_job_id) for x in job_list]
 
     jobs_str = ",".join(job_id_list_str)
-    logging.warning(f"Trying to update jobs with job_ids: {jobs_str}")
+    logger.warning(f"Trying to update jobs with job_ids: {jobs_str}")
 
     try:
         output_sacct = subprocess.check_output(
@@ -385,7 +385,7 @@ def update_jobs_by_ids(conn: Connection, job_list: list[JobStatusDataObject]):
         print(f"Nonzero process error code. Error: {e}")
         raise e
 
-    logging.warning(f"Job output was: <{output_sacct}>")
+    logger.warning(f"Job output was: <{output_sacct}>")
 
     jobs_with_status = []
     for line in output_sacct.splitlines():
@@ -401,7 +401,7 @@ def update_jobs_by_ids(conn: Connection, job_list: list[JobStatusDataObject]):
     # list of ids which were asked for but not returned by slurm
     ids_lost_in_slurm = list(ids_queried_set - ids_recieved_set)
     if len(ids_lost_in_slurm) > 0:
-        logging.warning(
+        logger.warning(
             f"The following slurm job ids were not found by slurm: {ids_lost_in_slurm}"
         )
 
