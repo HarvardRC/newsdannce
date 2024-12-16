@@ -65,27 +65,16 @@ def init_db():
     print("DONE INIT'ING DB...")
 
 
-def populate_db():
-    conn = sqlite3.connect(settings.DB_FILE)
-    cursor = conn.cursor()
+# def populate_db():
+#     conn = sqlite3.connect(settings.DB_FILE)
+#     cursor = conn.cursor()
 
-    with open(settings.POPULATE_SQL_FILE) as f:
-        query = f.read()
-    cursor.executescript(query)
-    conn.commit()
-    conn.close()
+#     with open(settings.POPULATE_SQL_FILE) as f:
+#         query = f.read()
+#     cursor.executescript(query)
+#     conn.commit()
+#     conn.close()
 
-
-# TODO: REMOVE TESTING MIGRATION
-def populate_real_data():
-    conn = sqlite3.connect(settings.DB_FILE)
-    cursor = conn.cursor()
-
-    with open(settings.USER_DATA_SQL_FILE) as f:
-        query = f.read()
-    cursor.executescript(query)
-    conn.commit()
-    conn.close()
 
 
 ########################

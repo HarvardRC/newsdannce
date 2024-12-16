@@ -1,6 +1,8 @@
 from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
+# from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi import Request
 from app.core.setup_db import update_local_runtime
 from app.core.setup_instancedata import setup_instancedata
 from app.core.config import settings
@@ -9,6 +11,8 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.api.main import api_router
 from app.base_logger import logger
+
+from jinja2 import BaseLoader, Environment, FileSystemLoader
 
 
 
@@ -33,8 +37,18 @@ initialize_state()
 
 
 app.include_router(api_router, prefix="/v1")
+
+@app.get("/app/index.html", response_class=HTMLResponse)
+async def get_app_index(request: Request):
+    """Template the app index to inject FASTAPI_BASE_URL"""
+    with open (settings.REACT_APP_DIST_FOLDER.joinpath("index.html")) as f:
+        template_str = f.read()
+    template = Environment(loader=BaseLoader()).from_string(template_str)
+    html_str = template.render(FASTAPI_BASE_URL=settings.FASTAPI_BASE_URL)
+    return html_str
+
 app.mount("/static", StaticFiles(directory=settings.STATIC_TMP_FOLDER), name="static")
-app.mount("/app", StaticFiles(directory="/app/resources/dist"), name="gui_fe")
+app.mount("/app", StaticFiles(directory=settings.REACT_APP_DIST_FOLDER), name="gui_fe")
 
 # https://rcood.rc.fas.harvard.edu/rnode/holy7c18105.rc.fas.harvard.edu/8000/app -> index.html inside ../gui_fe/dist
 

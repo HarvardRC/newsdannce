@@ -85,10 +85,10 @@ WHERE t1.id=?
                 "absolute_frameno": data.frames[frame_idx],
                 "frame_idx": frame_idx,
                 # "filename_cam1": frame_image_file_1,
-                "static_url_cam1": f"{settings.STATIC_URL}/{frame_image_file_1}",
+                "static_url_cam1": f"{settings.STATIC_TMP_FOLDER}/{frame_image_file_1}",
                 "pts_cam1": im_cam1[frame_idx, :, :].tolist(),
                 # "filename_cam2": frame_image_file_2,
-                "static_url_cam2": f"{settings.STATIC_URL}/{frame_image_file_2}",
+                "static_url_cam2": f"{settings.STATIC_TMP_FOLDER}/{frame_image_file_2}",
                 "pts_cam2": im_cam2[frame_idx, :, :].tolist(),
             }
         )

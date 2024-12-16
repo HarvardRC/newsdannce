@@ -3,17 +3,24 @@ from pathlib import Path
 import os
 from app.base_logger import logger
 
+# env variables (*MUST* be defined)
+ENV_INSTANCE_DIR = os.environ.get("INSTANCE_DIR_MOUNT")
+ENV_TMP_DIR = os.environ.get("TMP_DIR_MOUNT")
+ENV_APP_SRC_DIR = os.environ.get("APP_SRC_DIR")
+ENV_APP_RESOURCES_DIR = os.environ.get("APP_RESOURCES_DIR")
+ENV_REACT_APP_DIST_FOLDER = os.environ.get("REACT_APP_DIST_FOLDER")
+ENV_FASTAPI_BASE_URL = os.environ.get("FASTAPI_BASE_URL")
+ENV_REACT_APP_BASE_URL = os.environ.get("REACT_APP_BASE_URL")
+ENV_SDANNCE_SINGULARITY_IMG_PATH = os.environ.get("SDANNCE_SINGULARITY_IMG_PATH")
+
+# slurm env variables (*MAY* be undefined)
+ENV_SLURM_NODELIST = os.environ.get("SLURM_NODELIST", "")
 
 class _Settings(BaseSettings):
-    CODE_FOLDER: Path = Path(".")
-    # Links relative to CODE FOLDER
-    SQL_FOLDER: Path = Path("/app","resources", "sql")
+    SQL_FOLDER: Path = Path(ENV_APP_RESOURCES_DIR, "sql")
     INIT_SQL_FILE: Path = Path(SQL_FOLDER, "schema.sql")
-    POPULATE_SQL_FILE: Path = Path(SQL_FOLDER, "populate_db.sql")
-    USER_DATA_SQL_FILE: Path = Path(SQL_FOLDER, "user_data.sql")
 
-    DATA_FOLDER: Path = Path(os.environ.get("INSTANCE_DIR_MOUNT", "/instance_dir"))
-    logger.info(f"USING DATA FOLDER AT: {DATA_FOLDER}")
+    DATA_FOLDER: Path = Path(ENV_INSTANCE_DIR)
     # Links relative to DATA FOLDER
     DB_FILE: Path = Path(DATA_FOLDER, "db.sqlite3")
     SLURM_TRAIN_FOLDER: Path = Path(DATA_FOLDER, "slurm-cwd")
@@ -22,20 +29,23 @@ class _Settings(BaseSettings):
     PREDICTIONS_FOLDER: Path = Path(DATA_FOLDER, "predictions")
     CONFIGS_FOLDER: Path = Path(DATA_FOLDER, "configs")
     LOGS_FOLDER: Path = Path(DATA_FOLDER, "logs")
-    STATIC_TMP_FOLDER: Path = Path(DATA_FOLDER, "static-tmp")
+
+    STATIC_TMP_FOLDER: Path = Path(ENV_TMP_DIR, "static-tmp")
     """A folder to store temporary server resources E.g. generated images, etc."""
 
     # name of slurm node the backend is running on
-    NODE_NAME: str = os.environ.get("SLURM_NODELIST", "")
+    NODE_NAME: str = ENV_SLURM_NODELIST
     # proxy url for webserver
 
-    APP_BASE_URL: Path = Path(os.environ.get("APP_BASE_URL", "http://localhost:5173"))
-    FRONTEND_HOST: Path = Path(APP_BASE_URL, "app", "index.html")
-    STATIC_URL: Path = Path(APP_BASE_URL, "static")
+    REACT_APP_BASE_URL: str = ENV_REACT_APP_BASE_URL
+    FASTAPI_BASE_URL: str = ENV_FASTAPI_BASE_URL
+    REACT_APP_DIST_FOLDER: Path = ENV_REACT_APP_DIST_FOLDER
+
     N_CAMERAS: int = 6
 
     # Singularity container with sdannce image
-    SDANNCE_IMAGE_PATH: Path = os.environ.get("SDANNCE_IMAGE_PATH", "/n/holylabs/LABS/olveczky_lab/Lab/singularity2/sdannce/sdannce-20241210.sif")
+    SDANNCE_IMAGE_PATH: Path =Path(ENV_SDANNCE_SINGULARITY_IMG_PATH)
 
+    logger.info(f"USING INSTANCE DATA FOLDER AT: {DATA_FOLDER}")
 
 settings = _Settings()

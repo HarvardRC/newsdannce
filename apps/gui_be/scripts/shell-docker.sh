@@ -1,20 +1,26 @@
-FASTAPI_PORT=8700
-RABBITMQ_NODE_PORT=8701
-INSTANCE_DIR=~/dannce_gui_data 
+#!/bin/bash 
+
+# these ports must match the ports in dev.env file
+FASTAPI_PORT=7901
+RABBITMQ_NODE_PORT=7902
+
+INSTANCE_DIR=/tmp/dannce_gui_data 
+ENV_FILE_PATH=./dev.env
+TEMP_DIR=/tmp/dannce_gui
 
 # docker run \
 #   -it dannce-gui \
 #   --entrypoint "/app/scripts/start_from_container.sh" \
 #   /bi/bash
+echo 'source /mnt-data/.env after container starts'
 
 docker run \
+    --rm \
     -it \
-    --env FASTAPI_PORT=$FASTAPI_PORT \
-    --env RABBITMQ_NODE_PORT=$RABBITMQ_NODE_PORT \
-    --env INSTANCE_DIR=$INSTANCE_DIR \
-    --env PYTHONUNBUFFERED=1 \
     -p ${FASTAPI_PORT}:${FASTAPI_PORT} \
-    -v $INSTANCE_DIR:/instance_dir \
+    -v $INSTANCE_DIR:/mnt-data/instance \
+    -v $ENV_FILE_PATH:/mnt-data/.env \
+    -v $TEMP_DIR:/mnt-data/tmp \
     --entrypoint "/usr/local/bin/_entrypoint.sh" \
     dannce-gui \
     /bin/bash

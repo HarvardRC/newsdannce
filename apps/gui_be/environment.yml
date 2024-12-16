@@ -25,3 +25,4 @@ dependencies:
       - pydantic_settings
       - celery
       - flower
+      - jinja2
