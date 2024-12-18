@@ -9,7 +9,8 @@ ENV_TMP_DIR = os.environ.get("TMP_DIR")
 ENV_APP_SRC_DIR = os.environ.get("APP_SRC_DIR")
 ENV_APP_RESOURCES_DIR = os.environ.get("APP_RESOURCES_DIR")
 ENV_REACT_APP_DIST_FOLDER = os.environ.get("REACT_APP_DIST_FOLDER")
-ENV_FASTAPI_BASE_URL = os.environ.get("FASTAPI_BASE_URL")
+ENV_SERVER_BASE_URL = os.environ.get("SERVER_BASE_URL")
+ENV_API_BASE_URL = os.environ.get("API_BASE_URL")
 ENV_REACT_APP_BASE_URL = os.environ.get("REACT_APP_BASE_URL")
 ENV_SDANNCE_SINGULARITY_IMG_PATH = os.environ.get("SDANNCE_SINGULARITY_IMG_PATH")
 
@@ -38,7 +39,10 @@ class _Settings(BaseSettings):
     # proxy url for webserver
 
     REACT_APP_BASE_URL: str = ENV_REACT_APP_BASE_URL
-    FASTAPI_BASE_URL: str = ENV_FASTAPI_BASE_URL
+    SERVER_BASE_URL: str = ENV_SERVER_BASE_URL
+    API_BASE_URL: str = ENV_API_BASE_URL
+    FRONTEND_STATIC_URL: str = f"{API_BASE_URL}/static"
+
     REACT_APP_DIST_FOLDER: Path = ENV_REACT_APP_DIST_FOLDER
 
     N_CAMERAS: int = 6
@@ -49,3 +53,4 @@ class _Settings(BaseSettings):
     logger.info(f"USING INSTANCE DATA FOLDER AT: {DATA_FOLDER}")
 
 settings = _Settings()
+# FRONTEND_STATIC_URL
