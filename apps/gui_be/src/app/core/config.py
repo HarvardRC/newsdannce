@@ -30,7 +30,7 @@ class _Settings(BaseSettings):
     CONFIGS_FOLDER: Path = Path(DATA_FOLDER, "configs")
     LOGS_FOLDER: Path = Path(DATA_FOLDER, "logs")
 
-    STATIC_TMP_FOLDER: Path = Path(ENV_TMP_DIR, "static-tmp")
+    STATIC_TMP_FOLDER: Path = Path(DATA_FOLDER, "static-tmp")
     """A folder to store temporary server resources E.g. generated images, etc."""
 
     # name of slurm node the backend is running on

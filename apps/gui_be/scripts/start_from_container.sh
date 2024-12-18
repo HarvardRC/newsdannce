@@ -31,9 +31,9 @@ echo "#####################"
 cd /app/src
 
 echo "Starting processes for dannce-gui..."
+export MPLCONFIGDIR="/tmp"
 
-export HOME=/tmp
-# export RABBITMQ_MNESIA_BASE=/mnt-data/rabbitmq_mnesia
+export HOME="/tmp"
 
 # allow killing all processes with single CTRL+C
 (trap 'kill 0' SIGINT; \

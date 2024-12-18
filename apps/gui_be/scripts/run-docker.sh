@@ -4,16 +4,17 @@
 FASTAPI_PORT=7901
 RABBITMQ_NODE_PORT=7902
 
-BASE_VOLUME=/tmp/dannce_gui
+BASE_VOLUME=/home/caxon/dannce-data
 INSTANCE_DIR=$BASE_VOLUME/instance 
 LOGS_DIR=$BASE_VOLUME/logs
 TEMP_DIR=$BASE_VOLUME/tmp
 RABBITMQ_MNESIA_DIR=$BASE_VOLUME/rabbitmq-mnesia
 
-mkdir -p $INSTANCE_DIR
-mkdir -p $LOGS_DIR
-mkdir -p $TEMP_DIR
-mkdir -p $RABBITMQ_MNESIA_DIR
+mkdir -m777 -p $BASE_VOLUME
+mkdir -m777 -p $INSTANCE_DIR
+mkdir -m777 -p $LOGS_DIR
+mkdir -m777 -p $TEMP_DIR
+mkdir -m777 -p $RABBITMQ_MNESIA_DIR
 
 ENV_FILE_PATH=./dev.env
 

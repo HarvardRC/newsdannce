@@ -152,7 +152,7 @@ def config_com_predict(conn: sqlite3.Connection, data: PredictJobSubmitComModel)
     prediction_path = Path(
         settings.PREDICTIONS_FOLDER, f"com_predict_{uuid.uuid4().hex}"
     )
-    prediction_path.mkdir(exist_ok=False, mode=0o770)
+    prediction_path.mkdir(exist_ok=False, mode=0o777)
     blank_io_yaml_file = Path(settings.SLURM_TRAIN_FOLDER, "io.yaml")
 
     cfg = ComPredictModel(
@@ -175,7 +175,7 @@ def config_dannce_predict(conn: sqlite3.Connection, data: PredictJobSubmitDannce
     )
     blank_io_yaml_file = Path(settings.SLURM_TRAIN_FOLDER, "io.yaml")
 
-    prediction_path.mkdir(exist_ok=False, mode=0o770)
+    prediction_path.mkdir(exist_ok=False, mode=0o777)
 
     cfg = DanncePredictModel(
         META_cwd=video_folder_path,

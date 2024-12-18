@@ -47,23 +47,23 @@ def setup_instancedata(force_recreate=False):
             if not p.exists():
                 logger.warning(f"Creating folder: {p}")
                 try:
-                    p.mkdir(exist_ok=False, mode=0o770)
+                    p.mkdir(exist_ok=False, mode=0o777)
                 except Exception as e:
                     logger.critical(f"Unable to make folder: {p}")
                     raise e
 
         # set up training folder
         train_folder_videos = Path(settings.SLURM_TRAIN_FOLDER, "videos")
-        train_folder_videos.mkdir(mode=0o770, exist_ok=True)
+        train_folder_videos.mkdir(mode=0o777, exist_ok=True)
 
         # TODO: remove after PR changes make this unnecessary
         for i in range(settings.N_CAMERAS):
             # videos/Camera1
             train_folder_camera_i = Path(train_folder_videos, f"Camera{i+1}")
-            train_folder_camera_i.mkdir(mode=0o770, exist_ok=True)
+            train_folder_camera_i.mkdir(mode=0o777, exist_ok=True)
             # videos/Camera1/0.mp4
             train_folder_video_i = Path(train_folder_camera_i, "0.mp4")
-            train_folder_video_i.touch(mode=0o770, exist_ok=True)
+            train_folder_video_i.touch(mode=0o777, exist_ok=True)
 
         # make dummy io.yaml file:
         io_yaml_file = Path(settings.SLURM_TRAIN_FOLDER, "io.yaml")

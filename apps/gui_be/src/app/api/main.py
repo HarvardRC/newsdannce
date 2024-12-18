@@ -1,3 +1,7 @@
+import os
+import tempfile
+os.environ['MPLCONFIGDIR']="/tmp"
+
 from fastapi import APIRouter
 
 from app.api.routes import (

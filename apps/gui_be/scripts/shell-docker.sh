@@ -20,7 +20,7 @@ docker run \
     -p ${FASTAPI_PORT}:${FASTAPI_PORT} \
     -v $INSTANCE_DIR:/mnt-data/instance \
     -v $ENV_FILE_PATH:/mnt-data/.env \
-    -v $TEMP_DIR:/mnt-data/tmp \
+    -v $TEMP_DIR:/tmp \
     --entrypoint "/usr/local/bin/_entrypoint.sh" \
     dannce-gui \
     /bin/bash
