@@ -1,38 +1,33 @@
 #!/bin/bash
 
-# these ports must match the ports in dev.env file
 FASTAPI_PORT=7901
-RABBITMQ_NODE_PORT=7902
+RABBITMQ_PORT=7902
+BASE_MOUNT=~/dannce-data
 
-BASE_VOLUME=/home/caxon/dannce-data
-INSTANCE_DIR=$BASE_VOLUME/instance 
-LOGS_DIR=$BASE_VOLUME/logs
-TEMP_DIR=$BASE_VOLUME/tmp
-RABBITMQ_MNESIA_DIR=$BASE_VOLUME/rabbitmq-mnesia
+# make sure BASE_VOLUME exists with correct permissions
+mkdir -m777 -p $BASE_MOUNT
 
-mkdir -m777 -p $BASE_VOLUME
-mkdir -m777 -p $INSTANCE_DIR
-mkdir -m777 -p $LOGS_DIR
-mkdir -m777 -p $TEMP_DIR
-mkdir -m777 -p $RABBITMQ_MNESIA_DIR
+# make a env file at a temporary location
+ENV_TEMPFILE=$(mktemp)
+cat <<EOT >> $ENV_TEMPFILE
+FASTAPI_PORT=${FASTAPI_PORT}
+RABBITMQ_PORT=${RABBITMQ_PORT}
+FASTAPI_BASE_URL="http://localhost:${FASTAPI_PORT}/v1"
+REACT_APP_BASE_URL="http://localhost:${FASTAPI_PORT}/app/index.html"
+SDANNCE_SINGULARITY_IMG_PATH="NOT_SET_ON_LOCALHOST"
+EOT
 
-ENV_FILE_PATH=./dev.env
+echo "Created env file at $ENV_TEMPFILE"
+cat $ENV_TEMPFILE
 
-port=$FASTAPI_PORT
-
-echo "Connect to port ${FASTAPI_PORT}"
-
-# adding -it will allow docker to be killed with CTRL+C
-# --env PYTHONUNBUFFERED=1 \
+# NOTE: run docker as read-only to ensure no data is stored in container
+# this also makes it easier to run with singularity which is always read-only
 
 docker run \
     --rm \
     -it \
     -p ${FASTAPI_PORT}:${FASTAPI_PORT} \
-    -v $ENV_FILE_PATH:/mnt-data/.env \
-    -v $INSTANCE_DIR:/mnt-data/instance \
-    -v $TEMP_DIR:/tmp \
-    -v $LOGS_DIR:/mnt-data/logs \
-    -v $RABBITMQ_MNESIA_DIR:/mnt-data/rabbitmq_mnesia \
+    -v $BASE_MOUNT:/mnt-data \
+    --env-file ${ENV_TEMPFILE} \
     --read-only \
     dannce-gui

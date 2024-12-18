@@ -4,8 +4,8 @@ import os
 from app.base_logger import logger
 
 # env variables (*MUST* be defined)
-ENV_INSTANCE_DIR = os.environ.get("INSTANCE_DIR_MOUNT")
-ENV_TMP_DIR = os.environ.get("TMP_DIR_MOUNT")
+ENV_INSTANCE_DIR = os.environ.get("INSTANCE_DIR")
+ENV_TMP_DIR = os.environ.get("TMP_DIR")
 ENV_APP_SRC_DIR = os.environ.get("APP_SRC_DIR")
 ENV_APP_RESOURCES_DIR = os.environ.get("APP_RESOURCES_DIR")
 ENV_REACT_APP_DIST_FOLDER = os.environ.get("REACT_APP_DIST_FOLDER")
