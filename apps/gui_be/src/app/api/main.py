@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.routes import (
+    test,
     runtime,
     admin,
     video_folder,
@@ -29,3 +30,4 @@ api_router.include_router(prediction.router, prefix="/prediction")
 api_router.include_router(weights.router, prefix="/weights")
 
 api_router.include_router(admin.router, prefix="/admin")
+api_router.include_router(test.router, prefix="/test")

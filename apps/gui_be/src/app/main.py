@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from fastapi.responses import  HTMLResponse
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi import Request
 from app.core.setup_db import update_local_runtime
@@ -23,6 +23,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+print("HELLO WORLD")
+
 
 def initialize_state():
     logger.info("INIT'ING STATE")
@@ -34,14 +36,16 @@ initialize_state()
 
 app.include_router(api_router, prefix="/v1")
 
+
 @app.get("/app/index.html", response_class=HTMLResponse)
 async def get_app_index(request: Request):
     """Template the app index to inject API_BASE_URL"""
-    with open (settings.REACT_APP_DIST_FOLDER.joinpath("index.html")) as f:
+    with open(settings.REACT_APP_DIST_FOLDER.joinpath("index.html")) as f:
         template_str = f.read()
     template = Environment(loader=BaseLoader()).from_string(template_str)
     html_str = template.render(API_URL_INJECTED=settings.API_BASE_URL)
     return html_str
+
 
 app.mount("/static", StaticFiles(directory=settings.STATIC_TMP_FOLDER), name="static")
 app.mount("/app", StaticFiles(directory=settings.REACT_APP_DIST_FOLDER), name="gui_fe")

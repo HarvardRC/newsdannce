@@ -37,6 +37,7 @@ def _build_sbatch_script(
     config_path_str = str(config_path)
     cwd_folder_str = str(cwd_folder)
     log_file_str = str(Path(settings.LOGS_FOLDER, "%j.out").resolve())
+    sdannce_img_path_str = str(settings.SDANNCE_IMAGE_PATH)
 
     sdannce_command_safe = sdannce_command.get_full_command()
 
@@ -63,7 +64,7 @@ def _build_sbatch_script(
 
 # run from sdannce container
 #########
-SDANNCE_IMG={shlex.quote(settings.SDANNCE_IMAGE_PATH)}
+SDANNCE_IMG={shlex.quote(sdannce_img_path_str)}
 singularity exec --nv --pwd={shlex.quote(cwd_folder_str)} "$SDANNCE_IMG" dannce {sdannce_command_safe} {shlex.quote(config_path_str)}
 
 """
