@@ -7,7 +7,7 @@ RABBITMQ_PORT=7912
 
 BASE_MOUNT=/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/gui-instances/chris-20241218c
 SDANNCE_IMG=/n/holylabs/LABS/olveczky_lab/Lab/singularity2/sdannce/sdannce-20241210.sif
-DANNCE_GUI_IMG=/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/containers/dannce-gui.sif
+DANNCE_GUI_IMG=/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/containers/dannce-gui-no-slurm-user.sif
 
 mkdir -m777 -p $BASE_MOUNT
 
@@ -29,22 +29,14 @@ cat $ENV_FILE
 #### start shell in the container
 
 # make slurm commands availbe within singularity container
-SING_BINDS="-B /etc/passwd -B /etc/nsswitch.conf -B /etc/sssd/ -B /var/lib/sss -B /etc/slurm -B /slurm -B /var/run/munge  -B `which sbatch ` -B `which srun ` -B `which sacct ` -B `which scontrol ` -B `which salloc ` -B `which squeue` -B /usr/lib64/slurm/ "
+SING_BINDS="-B /etc/nsswitch.conf -B /etc/sssd/ -B /var/lib/sss -B /etc/slurm -B /slurm -B /var/run/munge -B `which sbatch ` -B `which srun ` -B `which sacct ` -B `which scontrol ` -B `which salloc ` -B `which squeue` -B /usr/lib64/slurm/ "
 
-# singularity run \
-#     --bind $BASE_MOUNT:/mnt-data \
-#     --bind ./src:/app/src \
-#     --bind ./resources:/app/resources \
-#     --bind ./scripts/start_from_container-dev.sh:/app/scripts/start_from_container.sh \
-#     $SING_BINDS \
-#     --env-file $ENV_FILE \
-#     ${DANNCE_GUI_IMG}
 
-singularity exec \
+singularity run \
     --bind $BASE_MOUNT:/mnt-data \
     --bind ./src:/app/src \
     --bind ./resources:/app/resources \
     --bind ./scripts/start_from_container-dev.sh:/app/scripts/start_from_container.sh \
     $SING_BINDS \
     --env-file $ENV_FILE \
-    ${DANNCE_GUI_IMG}  /bin/bash 
+    ${DANNCE_GUI_IMG}

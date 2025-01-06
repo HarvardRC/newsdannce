@@ -8,8 +8,6 @@ DROP TABLE IF EXISTS weights;
 -- many:many relationship table
 DROP TABLE IF EXISTS train_job_video_folder;
 DROP TABLE IF EXISTS global_state;
--- message queue table
-DROP TABLE IF EXISTS mq;
 
 CREATE TABLE runtime (
     id INTEGER PRIMARY KEY NOT NULL,
@@ -119,11 +117,3 @@ CREATE TABLE global_state (
 
 -- Create singleton row entry in global_state for storing settings
 INSERT INTO global_state (id) VALUES (0);
-
-CREATE TABLE mq (
-    id INTEGER PRIMARY KEY NOT NULL,
-    created_at INTEGER DEFAULT (STRFTIME('%s', 'now')),
-    message TEXT NOT NULL,
-    status TEXT DEFAULT 'ENQUEUED' CHECK(STATUS IN ('ENQUEUED', 'PROCESSING','SUCCESS','FAILURE'))
-)
-
