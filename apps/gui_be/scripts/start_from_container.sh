@@ -1,5 +1,6 @@
 #!/bin/bash
 echo "Running from container start script"
+echo "Running PROD version of script"
 
 export TMPDIR="/mnt-data/tmp" # must be set before you can use a here-doc
 
@@ -23,6 +24,8 @@ export APP_DIR="/app"
 export APP_SRC_DIR="/app/src"
 export APP_RESOURCES_DIR="/app/resources"
 export REACT_APP_DIST_FOLDER="/app/resources/react-dist"
+
+
 export INSTANCE_DIR="/mnt-data/instance"
 export TMP_DIR="/mnt-data/tmp"
 export RABBITMQ_LOG_BASE="/mnt-data/logs"

@@ -47,4 +47,4 @@ COPY --chown=$MAMBA_USER:$MAMBA_USER ./scripts /app/scripts
 
 # EXPOSE 8000 0-- removed: not known what port the app will run on
 
-ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "/app/scripts/start_from_container.sh"]
+ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "/app/scripts/start_from_container-dev.sh"]

@@ -8,6 +8,7 @@ echo "The following variables should been set from container env-file"
 cat << EOF
 FASTAPI_PORT=${FASTAPI_PORT}
 RABBITMQ_PORT=${RABBITMQ_PORT}
+FLOWER_PORT=${FLOWER_PORT}
 SERVER_BASE_URL=${SERVER_BASE_URL}
 API_BASE_URL=${API_BASE_URL}
 REACT_APP_BASE_URL=${REACT_APP_BASE_URL}
@@ -15,7 +16,6 @@ SDANNCE_SINGULARITY_IMG_PATH=${SDANNCE_SINGULARITY_IMG_PATH}
 EOF
 
 echo "SETTING FIXED DIRECTORIES"
-
 
 #### SET ALL FIXED LOCATIONS WIHTIN THE CONTAINER AS ENV VARIABLES ####
 # Every container (docker/singularity) should assume these paths exist
@@ -46,6 +46,7 @@ echo "Starting processes for dannce-gui..."
 (trap 'kill 0' SIGINT; \
     HOME=$FAKE_HOME_RABBITMQ rabbitmq-server &\
     celery -A taskqueue.celery worker --loglevel=INFO &\
+    celery -A taskqueue.celery flower --loglevel=INFO &\
     python -m fastapi dev ./app/main.py --host 0.0.0.0 --port $FASTAPI_PORT
 )
 
