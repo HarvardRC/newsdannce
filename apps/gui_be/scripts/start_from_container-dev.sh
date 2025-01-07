@@ -9,6 +9,7 @@ cat << EOF
 FASTAPI_PORT=${FASTAPI_PORT}
 RABBITMQ_PORT=${RABBITMQ_PORT}
 FLOWER_PORT=${FLOWER_PORT}
+FLOWER_BASE_URL=${FLOWER_BASE_URL}
 SERVER_BASE_URL=${SERVER_BASE_URL}
 API_BASE_URL=${API_BASE_URL}
 REACT_APP_BASE_URL=${REACT_APP_BASE_URL}
@@ -46,7 +47,7 @@ echo "Starting processes for dannce-gui..."
 (trap 'kill 0' SIGINT; \
     HOME=$FAKE_HOME_RABBITMQ rabbitmq-server &\
     celery -A taskqueue.celery worker --loglevel=INFO &\
-    celery -A taskqueue.celery flower --loglevel=INFO &\
+    celery -A taskqueue.celery flower --url_prefix=$FLOWER_BASE_URL --loglevel=INFO &\
     python -m fastapi dev ./app/main.py --host 0.0.0.0 --port $FASTAPI_PORT
 )
 

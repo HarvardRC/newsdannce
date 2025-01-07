@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 SING_BINDS=\
 '-B /etc/nsswitch.conf '\
 '-B /etc/slurm '\
@@ -25,4 +24,4 @@ SING_BINDS=\
 '-B /var/lib/sss '
 
 # singularity exec --cleanenv ubuntu_22.04.sif squeue
-singularity exec $SING_BINDS docker://ubuntu:22.04 /bin/bash -c squeue
+singularity exec $SING_BINDS /n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/containers/dannce-gui.sif /bin/bash
