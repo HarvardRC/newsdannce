@@ -47,8 +47,10 @@ echo "Starting processes for dannce-gui..."
 (trap 'kill 0' SIGINT; \
     HOME=$FAKE_HOME_RABBITMQ rabbitmq-server &\
     celery -A taskqueue.celery worker --loglevel=INFO &\
-    celery -A taskqueue.celery flower --url_prefix=$FLOWER_BASE_URL --loglevel=INFO &\
-    python -m fastapi dev ./app/main.py --host 0.0.0.0 --port $FASTAPI_PORT
+    DEBUG=1 python -m uvicorn app.main:app --host 0.0.0.0 --port $FASTAPI_PORT --log-level debug --reload
 )
 
 echo "Done running dannce-gui"
+
+### add this command to enable flower
+# celery -A taskqueue.celery flower --url_prefix=$FLOWER_BASE_URL --loglevel=INFO &\
