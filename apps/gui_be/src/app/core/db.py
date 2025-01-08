@@ -49,7 +49,10 @@ def get_db_context():
         do_something
     # auto-closed when context ends
     """
-    return closing(sqlite3.connect(settings.DB_FILE, check_same_thread=False))
+    conn = sqlite3.connect(settings.DB_FILE, check_same_thread=False)
+    conn.row_factory= sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    return closing(conn)
 
 
 def init_db():

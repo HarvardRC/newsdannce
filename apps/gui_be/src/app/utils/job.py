@@ -49,7 +49,6 @@ def bg_submit_com_predict_job(
 
         command_enum = db.JobCommand.PREDICT_COM
 
-        # make theh sbatch string
         sbatch_str = make_sbatch_str(
             command_enum,
             config_path=config_file,
@@ -62,6 +61,7 @@ def bg_submit_com_predict_job(
         # with open(Path(settings.DATA_FOLDER, "tmp", "pred-com-out.sbatch"), "wt") as f:
         #     f.write(sbatch_str)
 
+
         # submit sbatch string to slurm
         slurm_job_id = submit_sbatch_to_slurm(
             sbatch_str,
@@ -69,6 +69,11 @@ def bg_submit_com_predict_job(
             # shouldn't matter since it's paths are absolute and slurm job will cd where needed
             current_dir=settings.SLURM_TRAIN_FOLDER,
         )
+
+        # Save sbatch submission script for debugging
+        with open(settings.LOGS_FOLDER.joinpath(f"sbatch_{slurm_job_id}")):
+            f.write(sbatch_str)
+
         # slurm_job_id = 1234567
 
         insert_slurm_job_row(conn, slurm_job_id, predict_job_id, db.TABLE_PREDICT_JOB)
