@@ -19,7 +19,6 @@ api_router = APIRouter()
 def route_ping():
     return {"message": "pong"}
 
-
 api_router.include_router(train_job.router, prefix="/train_job")
 api_router.include_router(predict_job.router, prefix="/predict_job")
 api_router.include_router(jobs_common.router, prefix="/jobs_common")

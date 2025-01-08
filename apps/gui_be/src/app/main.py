@@ -23,9 +23,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-print("HELLO WORLD")
-
-
 def initialize_state():
     logger.info("INIT'ING STATE")
     setup_instancedata()

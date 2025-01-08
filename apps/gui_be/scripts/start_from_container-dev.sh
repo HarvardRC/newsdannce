@@ -31,6 +31,9 @@ export INSTANCE_DIR="/mnt-data/instance"
 export TMP_DIR="/mnt-data/tmp"
 export RABBITMQ_LOG_BASE="/mnt-data/logs"
 export RABBITMQ_MNESIA_BASE="/mnt-data/rabbitmq_mnesia"
+export FLOWER_DB="/mnt-data/flower_db"
+export CELERY_BEAT_FILES="/mnt-data/celery-beat"
+
 
 # variables so python uses the correct TMP directories
 export MPLCONFIGDIR="${TMP_DIR}/mpl-cache"        # MatPlotLib requires a cache directory
@@ -39,18 +42,24 @@ FAKE_HOME_RABBITMQ="${TMP_DIR}/erlang-fake-home"  # Erlang (for rabbitmq) create
 
 echo "FAKE_HOME_RMQ: $FAKE_HOME_RABBITMQ"
 mkdir -m777 -p $FAKE_HOME_RABBITMQ
+
+mkdir -m777 -p $FLOWER_DB
+
 cd /app/src
 
 echo "Starting processes for dannce-gui..."
 
+echo "FLOWER PORT IS $FLOWER_PORT"
+
 # allow killing all processes with single CTRL+C
 (trap 'kill 0' SIGINT; \
     HOME=$FAKE_HOME_RABBITMQ rabbitmq-server &\
-    celery -A taskqueue.celery worker --loglevel=INFO &\
+    celery -A taskqueue.celery worker --beat --loglevel=INFO &\
+    FLOWER_UNAUTHENTICATED_API=true celery -A taskqueue.celery flower --loglevel=INFO &\
     DEBUG=1 python -m uvicorn app.main:app --host 0.0.0.0 --port $FASTAPI_PORT --log-level debug --reload
-)
+)    
 
 echo "Done running dannce-gui"
 
-### add this command to enable flower
-# celery -A taskqueue.celery flower --url_prefix=$FLOWER_BASE_URL --loglevel=INFO &\
+#### attempts to make celery persistent - do not work yet
+#  --persistent=True --db="$FLOWER_DB" --save-state-interval=5

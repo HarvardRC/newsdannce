@@ -9,7 +9,7 @@ from fastapi import HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from app.api.routes.video_folder import (
+from app.models import (
     ImportVideoFoldersModel,
 )
 from app.core.db import TABLE_PREDICTION, TABLE_VIDEO_FOLDER
@@ -20,9 +20,7 @@ from caldannce.calibration_data import CameraParams
 from pprint import pp
 
 from app.utils.video_processing import (
-    check_faststart_flag,
     get_video_metadata,
-    process_video_folder_faststart,
 )
 
 

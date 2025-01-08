@@ -1,25 +1,19 @@
 from pathlib import Path
-from .celery import app
-import shutil
+from app.core.db import get_db, get_db_context
+from taskqueue.celery import celery_app
 import subprocess
 from app.base_logger import logger
+import time
 
 
-# @app.task
-# def backup_video_folder(video_folder_path: str | Path):
-#     p_videos_src = Path(video_folder_path, "videos")
-#     p_videos_dst = Path(video_folder_path, "videos-backup")
-#     shutil.copytree(p_videos_src, p_videos_dst)
-
-
-@app.task
+@celery_app.task
 def reencode_video_folder(video_folder_path: str | Path, camnames: list[str]):
     """Update video folder with the changes:
     1. Fast-start (metadata at front)
     [NOT IMPLEMENTED] 2. Adds frame numbers to the to right corner of the video
     [NOT IMPLMENETED] 3. More frequent keyframes (e.g. 5 seconds -> 0.5 seconds)
     Should take ~5 mins to run.
-    Saves to "videos-reencoded" folder.
+    Saves to "videos-reencoded" folder.'
     """
     p = Path(video_folder_path)
     for camname in camnames:
@@ -51,12 +45,30 @@ def reencode_video_folder(video_folder_path: str | Path, camnames: list[str]):
             raise Exception(f"Unable to process video file:{vid_file}")
 
 
-@app.task
-@app.task
-def add(x, y):
+@celery_app.task
+def submit_com_train(x, y):
     return x + y
 
-
-@app.task
-def mul(x, y):
+@celery_app.task
+def submit_dannce_train(x, y):
     return x * y
+
+@celery_app.task
+def submit_com_predict(x, y):
+    return x * y
+
+
+@celery_app.task
+def submit_dannce_predict(x, y):
+    return x * y
+
+
+# periodic task to poll slurm
+@celery_app.task
+def task_refresh_job_list():
+    from app.utils.job import refresh_job_list
+    with get_db_context() as conn:
+        _data = refresh_job_list(conn)
+        logger.info(f"Data: {_data}")
+
+        logger.info("Refreshed jobs list.")

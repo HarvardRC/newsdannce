@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 
 from app.api.deps import SessionDep
 from app.core.db import TABLE_SLURM_JOB
-from app.utils.job import get_nonfinal_job_ids, update_jobs_by_ids
+from app.utils.job import get_nonfinal_job_ids, refresh_job_list, update_jobs_by_ids
 from app.utils.metadata import get_last_jobs_refresh
 
 
@@ -16,8 +16,10 @@ router = APIRouter()
 
 @router.post("/update-live-jobs")
 def update_live_jobs(conn: SessionDep):
-    live_jobs = get_nonfinal_job_ids(conn)
-    jobs_updated = update_jobs_by_ids(conn=conn, job_list=live_jobs)
+    data = refresh_job_list(conn)
+
+    live_jobs = data.live_jobs
+    jobs_updated = data.jobs_updated
 
     return {"live": live_jobs, "jobs_updated": jobs_updated}
 

@@ -1,4 +1,5 @@
 # TRAINING
+from dataclasses import dataclass
 from pathlib import Path
 import re
 from sqlite3 import Connection
@@ -289,6 +290,20 @@ def check_job_status_multiple(job_list):
 
     return update_list
 
+@dataclass
+class RefreshJobListResult:
+    live_jobs: list[JobStatusDataObject]
+    jobs_updated: list[JobStatusDataObject]
+
+def refresh_job_list(conn) -> RefreshJobListResult:
+    live_jobs = get_nonfinal_job_ids(conn)
+    jobs_updated = update_jobs_by_ids(conn=conn, job_list=live_jobs)
+
+    return {
+        "live_jobs": live_jobs,
+        "jobs_updated": jobs_updated,
+    }
+
 
 def check_job_status(job_id):
     out_data = {
@@ -354,7 +369,7 @@ SELECT id, slurm_job_id, train_or_predict, status, created_at FROM (
     return results
 
 
-def update_jobs_by_ids(conn: Connection, job_list: list[JobStatusDataObject]):
+def update_jobs_by_ids(conn: Connection, job_list: list[JobStatusDataObject]) -> list[JobStatusDataObject]:
     """Given a list of job id integers, update each job id using sacct. Returns any jobIds which have been updated"""
     if len(job_list) == 0:
         return []

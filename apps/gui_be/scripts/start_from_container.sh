@@ -30,6 +30,7 @@ export INSTANCE_DIR="/mnt-data/instance"
 export TMP_DIR="/mnt-data/tmp"
 export RABBITMQ_LOG_BASE="/mnt-data/logs"
 export RABBITMQ_MNESIA_BASE="/mnt-data/rabbitmq_mnesia"
+export CELERY_BEAT_FILES="/mnt-data/celery-beat"
 
 # variables so python uses the correct TMP directories
 export MPLCONFIGDIR="${TMP_DIR}/mpl-cache"        # MatPlotLib requires a cache directory
@@ -45,7 +46,7 @@ echo "Starting processes for dannce-gui..."
 # allow killing all processes with single CTRL+C
 (trap 'kill 0' SIGINT; \
     HOME=$FAKE_HOME_RABBITMQ rabbitmq-server &\
-    celery -A taskqueue.celery worker --loglevel=INFO &\
+    celery -A taskqueue.celery worker --beat --loglevel=INFO &\
     python -m uvicorn app.main:app --host 0.0.0.0 --port $FASTAPI_PORT --log-level debug
 )
 
