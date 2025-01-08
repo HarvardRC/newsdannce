@@ -299,10 +299,10 @@ def refresh_job_list(conn) -> RefreshJobListResult:
     live_jobs = get_nonfinal_job_ids(conn)
     jobs_updated = update_jobs_by_ids(conn=conn, job_list=live_jobs)
 
-    return {
-        "live_jobs": live_jobs,
-        "jobs_updated": jobs_updated,
-    }
+    return RefreshJobListResult(
+        live_jobs=live_jobs,
+        jobs_updated=jobs_updated
+    )
 
 
 def check_job_status(job_id):
