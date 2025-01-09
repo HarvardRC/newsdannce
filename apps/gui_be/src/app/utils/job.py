@@ -61,6 +61,7 @@ def bg_submit_com_predict_job(
         # with open(Path(settings.DATA_FOLDER, "tmp", "pred-com-out.sbatch"), "wt") as f:
         #     f.write(sbatch_str)
 
+        logger.warning("About to submit")
 
         # submit sbatch string to slurm
         slurm_job_id = submit_sbatch_to_slurm(
@@ -70,8 +71,10 @@ def bg_submit_com_predict_job(
             current_dir=settings.SLURM_TRAIN_FOLDER,
         )
 
+        logger.warning("Done submitting")
+
         # Save sbatch submission script for debugging
-        with open(settings.LOGS_FOLDER.joinpath(f"sbatch_{slurm_job_id}")):
+        with open(settings.LOGS_FOLDER.joinpath(f"sbatch_{slurm_job_id}"), "wt") as f:
             f.write(sbatch_str)
 
         # slurm_job_id = 1234567
