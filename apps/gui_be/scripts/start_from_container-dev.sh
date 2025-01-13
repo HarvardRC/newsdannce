@@ -6,6 +6,7 @@ export TMPDIR="/mnt-data/tmp" # must be set before you can use a here-doc
 
 echo "The following variables should been set from container env-file"
 cat << EOF
+BASE_MOUNT=${BASE_MOUNT}
 FASTAPI_PORT=${FASTAPI_PORT}
 RABBITMQ_PORT=${RABBITMQ_PORT}
 FLOWER_PORT=${FLOWER_PORT}

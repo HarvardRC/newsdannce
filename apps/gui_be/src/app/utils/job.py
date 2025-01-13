@@ -8,6 +8,7 @@ import subprocess
 
 from app.base_logger import logger
 
+
 from app.core.config import settings
 import app.core.db as db
 
@@ -74,7 +75,7 @@ def bg_submit_com_predict_job(
         logger.warning("Done submitting")
 
         # Save sbatch submission script for debugging
-        with open(settings.LOGS_FOLDER.joinpath(f"sbatch_{slurm_job_id}"), "wt") as f:
+        with open(settings.LOGS_FOLDER.joinpath(f"sbatch_com_pred_{slurm_job_id}"), "wt") as f:
             f.write(sbatch_str)
 
         # slurm_job_id = 1234567
@@ -119,6 +120,9 @@ def bg_submit_com_train_job(
             # shouldn't matter since it's paths are absolute and slurm job will cd where needed
             current_dir=settings.SLURM_TRAIN_FOLDER,
         )
+
+        with open(settings.LOGS_FOLDER.joinpath(f"sbatch_com_train_{slurm_job_id}"), "wt") as f:
+                    f.write(sbatch_str)
 
         insert_slurm_job_row(conn, slurm_job_id, train_job_id, db.TABLE_TRAIN_JOB)
 
@@ -168,6 +172,9 @@ def bg_submit_dannce_predict_job(
             current_dir=settings.SLURM_TRAIN_FOLDER,
         )
         # slurm_job_id = 1234567
+        with open(settings.LOGS_FOLDER.joinpath(f"sbatch_dannce_pred_{slurm_job_id}"), "wt") as f:
+            f.write(sbatch_str)
+
 
         insert_slurm_job_row(conn, slurm_job_id, predict_job_id, db.TABLE_PREDICT_JOB)
 
@@ -211,6 +218,9 @@ def bg_submit_dannce_train_job(
             # shouldn't matter since it's paths are absolute and slurm job will cd where needed
             current_dir=settings.SLURM_TRAIN_FOLDER,
         )
+
+        with open(settings.LOGS_FOLDER.joinpath(f"sbatch_dannce_train_{slurm_job_id}"), "wt") as f:
+            f.write(sbatch_str)
 
         insert_slurm_job_row(conn, slurm_job_id, train_job_id, db.TABLE_TRAIN_JOB)
 
@@ -267,36 +277,6 @@ def insert_slurm_job_row(
     logger.info("Successfully inserted slurm job and updated ?jobs_table.slurm_job")
 
 
-def check_job_status_multiple(job_list):
-    job_list = [str(x) for x in job_list]
-    jobs_str = ",".join(job_list)
-
-    try:
-        output = subprocess.check_output(
-            ["sacct", "-j", "job", jobs_str, "--format=JobID,State", "--noheader"],
-            stderr=subprocess.STDOUT,
-            timeout=SLURM_TIMEOUT_SECONDS,
-            universal_newlines=True,
-        )
-    except subprocess.TimeoutExpired as e:
-        print("timed out while fetching slurm job information. Error: {e}")
-        raise Exception
-    except subprocess.CalledProcessError as e:
-        print("Nonzero process error code. Error: {e}")
-        raise Exception
-    except Exception as e:
-        raise Exception(f"Uknown error {e}")
-
-    matches = re.findall(r"^(\d+)\s*([A-Z]+)", output, re.MULTILINE)
-
-    update_list = []
-
-    for job_id_str, job_state in matches:
-        update_list.append(
-            {"job_id": int(job_id_str), "job_state": db.JobState(job_state)}
-        )
-
-    return update_list
 
 @dataclass
 class RefreshJobListResult:
@@ -311,43 +291,6 @@ def refresh_job_list(conn) -> RefreshJobListResult:
         live_jobs=live_jobs,
         jobs_updated=jobs_updated
     )
-
-
-def check_job_status(job_id):
-    out_data = {
-        "job_id": job_id,
-        "job_state": None,
-        "start_time": None,
-        "stdout_file": None,
-    }
-    try:
-        output_scontrol = subprocess.check_output(
-            ["scontrol", "show", "job", str(job_id)],
-            stderr=subprocess.STDOUT,
-            timeout=SLURM_TIMEOUT_SECONDS,
-            universal_newlines=True,
-        )
-    except subprocess.TimeoutExpired as e:
-        print(f"timed out while fetching slurm job information. Error: {e}")
-        raise Exception
-    except subprocess.CalledProcessError as e:
-        print(f"Nonzero process error code. Error: {e}")
-        raise Exception
-    except Exception as e:
-        raise Exception(f"Uknown error {e}")
-
-    job_state_re = r"^[ \t]*JobState=(\w+)"
-    stdout_file_re = r"^[ \t]*StdOut=(.+)$"
-
-    m_job_state = re.search(job_state_re, output_scontrol, re.MULTILINE)
-    if m_job_state:
-        out_data["job_state"] = m_job_state.group(1)
-
-    m_stdout_file = re.search(stdout_file_re, output_scontrol, re.MULTILINE)
-    if m_stdout_file:
-        out_data["stdout_file"] = m_stdout_file.group(1)
-
-    return out_data
 
 
 def get_nonfinal_job_ids(conn: Connection) -> list[JobStatusDataObject]:

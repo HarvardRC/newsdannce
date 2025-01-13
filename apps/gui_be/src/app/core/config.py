@@ -15,6 +15,8 @@ ENV_REACT_APP_BASE_URL = os.environ.get("REACT_APP_BASE_URL")
 ENV_SDANNCE_SINGULARITY_IMG_PATH = os.environ.get("SDANNCE_SINGULARITY_IMG_PATH")
 ENV_CELERY_BEAT_FILES = os.environ.get("CELERY_BEAT_FILES")
 
+ENV_BASE_MOUNT= os.environ.get("BASE_MOUNT")
+
 # slurm env variables (*MAY* be undefined)
 ENV_SLURM_NODELIST = os.environ.get("SLURM_NODELIST", "")
 
@@ -32,6 +34,7 @@ class _Settings(BaseSettings):
     CONFIGS_FOLDER: Path = Path(DATA_FOLDER, "configs")
     LOGS_FOLDER: Path = Path(DATA_FOLDER, "logs")
     CELERY_BEAT_FILES: Path = Path(ENV_CELERY_BEAT_FILES)
+    LOGS_FOLDER_EXTERNAL: Path = Path(ENV_BASE_MOUNT, "slurm-logs")
 
     STATIC_TMP_FOLDER: Path = Path(DATA_FOLDER, "static-tmp")
     """A folder to store temporary server resources E.g. generated images, etc."""
