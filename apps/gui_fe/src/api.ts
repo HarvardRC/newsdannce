@@ -173,6 +173,7 @@ type ListPredictJobsType = {
   // video_folder_path: string;
   slurm_job_id: number;
   runtime_id: number;
+  runtime_name: string;
   created_at: number;
 }[];
 
@@ -188,6 +189,7 @@ type ListTrainJobsType = {
   train_job_id: number;
   train_job_name: string;
   runtime_id: number;
+  runtime_name: string;
   weights_id: number;
   weights_name: string;
   // weights_path: string;
@@ -195,6 +197,7 @@ type ListTrainJobsType = {
 }[];
 
 export async function listTrainJobs(): Promise<ListTrainJobsType> {
+  console.log('FETCHING TRAINING JOBS TODO: REMOVE');
   return get('/train_job/list');
 }
 

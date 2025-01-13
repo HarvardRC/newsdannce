@@ -224,7 +224,6 @@ SELECT
     t1.weights as weights_id,
     t1.slurm_job as slurm_job_id,
     t1.prediction as prediction_id,
-
     t1.video_folder as video_folder_id,
     t2.mode,
     t2.path as weights_path,

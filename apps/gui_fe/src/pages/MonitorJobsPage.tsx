@@ -24,8 +24,6 @@ import { timestampString } from '@/lib/utils';
 import { appPages } from '@/routes';
 import { Link } from 'react-router-dom';
 
-// const actions = ['View Logs'];
-
 export default function MonitorJobs() {
   const { data: trainJobData, isLoading: trainJobLoading } =
     useListTrainJobsQuery();
@@ -45,15 +43,7 @@ export default function MonitorJobs() {
   return (
     <>
       <TooltipProvider>
-        <Button
-          onClick={handleRefreshClick}
-          className="max-w-40"
-          variant="default"
-        >
-          Refresh All Jobs
-        </Button>
         <h1 className="text-2xl font-semibold mb-4">Training Jobs</h1>
-
         <Table className="mb-5">
           <TableCaption>Training Jobs</TableCaption>
           <TableHeader>
@@ -86,7 +76,7 @@ export default function MonitorJobs() {
                     </Link>
                   </TableCell>
                   <TableCell>{x.mode}</TableCell>
-                  <TableCell>{x.runtime_id}</TableCell>
+                  <TableCell>{x.runtime_name}</TableCell>
                   <TableCell>{x.status}</TableCell>
                   <TableCell>{x.slurm_job_id}</TableCell>
                   <TableCell>{x.weights_name}</TableCell>
@@ -141,12 +131,11 @@ export default function MonitorJobs() {
                     </Link>
                   </TableCell>
                   <TableCell>{x.mode}</TableCell>
-                  <TableCell>{x.runtime_id}</TableCell>
+                  <TableCell>{x.runtime_name}</TableCell>
                   <TableCell>{x.status}</TableCell>
                   <TableCell>{x.slurm_job_id}</TableCell>
                   <TableCell>{x.weights_name}</TableCell>
                   <TableCell>{x.prediction_name}</TableCell>
-
                   <TableCell>
                     <Tooltip>
                       <TooltipTrigger>...</TooltipTrigger>
@@ -163,6 +152,14 @@ export default function MonitorJobs() {
             })}
           </TableBody>
         </Table>
+        <Button
+          onClick={handleRefreshClick}
+          className="max-w-40"
+          variant="default"
+        >
+          Refresh All Jobs
+        </Button>
+        Note: Automatically refetches every 60 seconds
       </TooltipProvider>
     </>
   );
