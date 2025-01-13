@@ -7,6 +7,8 @@ RABBITMQ_NODE_PORT=7902
 INSTANCE_DIR=/tmp/dannce_gui_data 
 ENV_FILE_PATH=./dev.env
 TEMP_DIR=/tmp/dannce_gui
+DATA_FOLDER=/Users/caxon/olveczky/dannce_data
+
 
 # docker run \
 #   -it dannce-gui \
@@ -21,6 +23,7 @@ docker run \
     -v $INSTANCE_DIR:/mnt-data/instance \
     -v $ENV_FILE_PATH:/mnt-data/.env \
     -v $TEMP_DIR:/tmp \
+    -v $DATA_FOLDER:$DATA_FOLDER \
     --entrypoint "/usr/local/bin/_entrypoint.sh" \
     dannce-gui \
     /bin/bash

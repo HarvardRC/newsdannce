@@ -4,6 +4,7 @@ FASTAPI_PORT=7901
 RABBITMQ_PORT=7902
 FLOWER_PORT=7903
 BASE_MOUNT=~/dannce-data
+DATA_FOLDER=/Users/caxon/olveczky/dannce_data
 
 # make sure BASE_VOLUME exists with correct permissions
 mkdir -m777 -p $BASE_MOUNT
@@ -11,6 +12,7 @@ mkdir -m777 -p $BASE_MOUNT
 # make a env file at a temporary location
 ENV_TEMPFILE=$(mktemp)
 cat <<EOT >> $ENV_TEMPFILE
+BASE_MOUNT=${BASE_MOUNT}
 FASTAPI_PORT=${FASTAPI_PORT}
 RABBITMQ_PORT=${RABBITMQ_PORT}
 FLOWER_PORT=${FLOWER_PORT}
@@ -34,6 +36,7 @@ docker run \
     -v $BASE_MOUNT:/mnt-data \
     -v ./scripts:/app/scripts \
     -v ./src:/app/src \
+    -v $DATA_FOLDER:$DATA_FOLDER \
     --env-file ${ENV_TEMPFILE} \
     --read-only \
     --entrypoint /usr/local/bin/_entrypoint.sh \

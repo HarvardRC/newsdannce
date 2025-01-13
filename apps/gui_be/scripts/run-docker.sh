@@ -3,6 +3,7 @@
 FASTAPI_PORT=7901
 RABBITMQ_PORT=7902
 BASE_MOUNT=~/dannce-data
+DATA_FOLDER=/Users/caxon/olveczky/dannce_data
 
 # make sure BASE_VOLUME exists with correct permissions
 mkdir -m777 -p $BASE_MOUNT
@@ -28,7 +29,9 @@ docker run \
     --rm \
     -it \
     -p ${FASTAPI_PORT}:${FASTAPI_PORT} \
+    -v $\
     -v $BASE_MOUNT:/mnt-data \
+    -v $DATA_FOLDER:$DATA_FOLDER \
     --env-file ${ENV_TEMPFILE} \
     --read-only \
     dannce-gui
