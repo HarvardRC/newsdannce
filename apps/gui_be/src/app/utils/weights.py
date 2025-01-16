@@ -4,24 +4,29 @@ import sqlite3
 import re
 
 from app.core.db import TABLE_TRAIN_JOB, TABLE_WEIGHTS, WeightsStatus
-
+from app.core.config import settings
 
 def get_latest_checkpoint(weights_path: Path) -> Path:
     """Assuming training checkpoint files are in the format checkpoint-epochX.pth, return the highest X number checkpoint file
-    Or return checkpoint-final.pth if it exists"""
-    checkpoint_final = Path(weights_path, "checkpoint-final.pth")
+    Or return checkpoint-final.pth if it exists
+
+    NOTE: this returns the full EXTERNAL filepath
+    """
+    checkpoint_final = Path(settings.WEIGHTS_FOLDER, weights_path, "checkpoint-final.pth")
     print(checkpoint_final)
     if checkpoint_final.exists() or checkpoint_final.is_symlink():
-        return checkpoint_final
+        return Path(settings.WEIGHTS_FOLDER_EXTERNAL, weights_path, "checkpoint-final.pth")
 
-    checkpoint_files = weights_path.glob("checkpoint-epoch*.pth")
+    checkpoint_files = Path(settings.WEIGHTS_FOLDER, weights_path).glob("checkpoint-epoch*.pth")
     try:
         checkpoint_files = (
             (x, int(re.match(r"checkpoint-epoch(\d+).pth", x.name).group(1)))
             for x in checkpoint_files
         )
         checkpoint_files = sorted(checkpoint_files, key=lambda x: x[1], reverse=True)
-        return checkpoint_files[0][0]
+        first_checkpoint_filename = checkpoint_files[0][0].name
+        return Path(settings.WEIGHTS_FOLDER_EXTERNAL, weights_path, first_checkpoint_filename)
+
     except Exception as e:
         raise Exception(f"No checkpoint file exists. Error msg={e}")
 
@@ -39,7 +44,7 @@ SELECT path,status FROM {TABLE_WEIGHTS} WHERE id=?
         raise Exception(
             f"Weights column for id={weights_id} has non-COMPLETED status of {row['status']}"
         )
-    base_path = Path(row["path"])
+    base_path = Path(settings.WEIGHTS_FOLDER, row["path"])
     latest_checkpoint = get_latest_checkpoint(base_path)
     return latest_checkpoint
 

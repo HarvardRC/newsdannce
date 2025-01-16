@@ -109,9 +109,7 @@ def bg_submit_com_train_job(
             cwd_folder=cfg.META_cwd,
         )
 
-        # # TODO: REMOVE - tmp debug by writing out slurm string
-        # with open(Path(settings.DATA_FOLDER, "tmp", "train-com-out.sbatch"), "wt") as f:
-        #     f.write(sbatch_str)
+
 
         # submit sbatch string to slurm
         slurm_job_id = submit_sbatch_to_slurm(

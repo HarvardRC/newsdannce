@@ -21,6 +21,7 @@ from app.utils.video_processing import (
     get_video_metadata,
 )
 
+from app.core.config import settings
 
 @dataclass
 class VideoFolderComData:
@@ -60,7 +61,7 @@ def get_video_folders_for_com(
         print("ROW IS ", row)
 
     rows = [
-        ComExpEntry(label3d_file=Path(row["path"], row["com_labels_file"]))
+        ComExpEntry(label3d_file=Path(settings.VIDEO_FOLDERS_FOLDER_EXTERNAL, row["path"], row["com_labels_file"]))
         for row in rows
     ]
 
@@ -96,8 +97,8 @@ WHERE
 
     rows = [
         DannceExpEntry(
-            label3d_file=Path(row["path"], row["dannce_labels_file"]),
-            com_file=Path(row["path"], row["com_pred_path"], "com3d.mat"),
+            label3d_file=Path(settings.VIDEO_FOLDERS_FOLDER_EXTERNAL, row["path"], row["dannce_labels_file"]),
+            com_file=Path(settings.VIDEO_FOLDERS_FOLDER_EXTERNAL, row["path"], row["com_pred_path"], "com3d.mat"),
         )
         # DannceExpEntry(label3d_file=Path(row["path"], row["com_labels_file"]))
         for row in rows

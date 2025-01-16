@@ -117,7 +117,7 @@ class DanncePredictModel(ConfigModel):
 
 def config_com_train(conn: sqlite3.Connection, data: TrainJobSubmitComModel):
     video_folder_ids = data.video_folder_ids
-    com_train_dir = Path(settings.WEIGHTS_FOLDER, f"com_train_{uuid.uuid4().hex}")
+    com_train_dir = Path(settings.WEIGHTS_FOLDER_EXTERNAL, f"COM_{uuid.uuid4().hex}")
 
     com_exps = get_video_folders_for_com(conn, video_folder_ids)
     data.config["epochs"] = data.epochs
@@ -133,7 +133,7 @@ def config_com_train(conn: sqlite3.Connection, data: TrainJobSubmitComModel):
 
 def config_dannce_train(conn: sqlite3.Connection, data: TrainJobSubmitDannceModel):
     video_folder_ids = data.video_folder_ids
-    dannce_train_dir = Path(settings.WEIGHTS_FOLDER, f"dannce_train_{uuid.uuid4().hex}")
+    dannce_train_dir = Path(settings.WEIGHTS_FOLDER_EXTERNAL, f"DANNCE_{uuid.uuid4().hex}")
 
     dannce_exps = get_video_folders_for_dannce(conn, video_folder_ids)
     data.config["epochs"] = data.epochs
@@ -150,14 +150,16 @@ def config_com_predict(conn: sqlite3.Connection, data: PredictJobSubmitComModel)
     video_folder_path = get_video_folder_path(conn, data.video_folder_id)
     weights_path = get_weights_path_from_id(conn, data.weights_id)
     prediction_path = Path(
-        settings.PREDICTIONS_FOLDER, f"com_predict_{uuid.uuid4().hex}"
+        settings.PREDICTIONS_FOLDER_EXTERNAL, f"COM_{uuid.uuid4().hex}"
     )
     prediction_path.mkdir(exist_ok=False, mode=0o777)
     blank_io_yaml_file = Path(settings.SLURM_TRAIN_FOLDER, "io.yaml")
 
+    prediction_path_external = Path(settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path.name)
+
     cfg = ComPredictModel(
         META_cwd=video_folder_path,
-        com_predict_dir=prediction_path,
+        com_predict_dir=prediction_path_external,
         com_predict_weights=weights_path,
         io_config=blank_io_yaml_file,
         **data.config,
@@ -171,15 +173,17 @@ def config_dannce_predict(conn: sqlite3.Connection, data: PredictJobSubmitDannce
     weights_path = get_weights_path_from_id(conn, data.weights_id)
     com_file_path = get_com_file_path(conn, data.video_folder_id)
     prediction_path = Path(
-        settings.PREDICTIONS_FOLDER, f"dannce_predict_{uuid.uuid4().hex}"
+        settings.PREDICTIONS_FOLDER, f"DANNCE_{uuid.uuid4().hex}"
     )
     blank_io_yaml_file = Path(settings.SLURM_TRAIN_FOLDER, "io.yaml")
 
     prediction_path.mkdir(exist_ok=False, mode=0o777)
 
+    prediction_path_external = Path(settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path.name)
+
     cfg = DanncePredictModel(
         META_cwd=video_folder_path,
-        dannce_predict_dir=prediction_path,
+        dannce_predict_dir=prediction_path_external,
         dannce_predict_model=weights_path,
         io_config=blank_io_yaml_file,
         com_file=com_file_path,
@@ -187,14 +191,3 @@ def config_dannce_predict(conn: sqlite3.Connection, data: PredictJobSubmitDannce
     )
 
     return cfg
-
-
-# def make_io_yaml_predict(pred_job_id, training_dir, predict_model_path, video_dir):
-#     """Make an io.yaml file for a predict job"""
-#     yaml = YAML(typ=["rt", "string"])
-#     path = PurePosixPath()
-
-
-# def make_io_yaml_train(train_job_id, training_dir, video_dirs):
-#     """Make an io.yaml file for a train job"""
-#     yaml = YAML(typ=["rt", "string"])

@@ -17,10 +17,11 @@ from app.utils.dannce_mat_processing import (
     get_labeled_data_in_dir,
 )
 from app.utils.video import get_one_frame
-from app.utils.video_folders import import_video_folders_from_paths
+# from app.utils.video_folders import import_video_folders_from_paths
 from app.core.config import settings
 import subprocess
 from app.base_logger import logger
+import taskqueue.video
 
 
 router = APIRouter()
@@ -65,7 +66,9 @@ def create_video_folder(data: CreateVideoFolderModel, session: SessionDep) -> An
 @router.post("/import_from_paths")
 def import_video_folders_route(session: SessionDep, data: ImportVideoFoldersModel):
     logger.info("TRYING TO IMPORT FROM PATHS")
-    return import_video_folders_from_paths(session, data)
+    for path in data.paths:
+        taskqueue.video.import_video_folder_worker.delay(path)
+    # return import_video_folders_from_paths(session, data)
 
 
 @router.get("/{id}/frame")
@@ -81,7 +84,7 @@ def get_frame_route(
     row = dict(row)
     video_path = Path(row["path"], "videos", camera_name, "0.mp4")
     if not video_path.exists():
-        return HTTPException(404, "Video does not exist")
+        raise HTTPException(404, "Video does not exist")
 
     out_filename = f"frame_{id}_{frame_index}_{camera_name}-{uuid.uuid4().hex}.png"
 
@@ -107,7 +110,7 @@ def get_preview_route(id: int, camera_name: str, session: SessionDep) -> Any:
     row = dict(row)
     video_path = Path(row["path"], "videos", camera_name, "0.mp4")
     if not video_path.exists():
-        return HTTPException(404, "Video does not exist")
+        raise HTTPException(404, "Video does not exist")
 
     out_filename = f"preview_{id}_{camera_name}-{uuid.uuid4().hex}.mp4"
     out_path = Path(settings.STATIC_TMP_FOLDER, out_filename).resolve()
@@ -215,13 +218,16 @@ def stream_video(id: int, camera_name: str, session: SessionDep, range: str=Head
     row = session.execute(
         f"SELECT * FROM {TABLE_VIDEO_FOLDER} WHERE ID=?", (id,)
     ).fetchone()
+
     if not row:
         raise HTTPException(status_code=404)
 
     row = dict(row)
-    video_path = Path(row["path"], "videos", camera_name, "0.mp4")
+    video_path = Path(settings.VIDEO_FOLDERS_FOLDER, row["path"], "videos", camera_name, "0.mp4")
+
+
     if not video_path.exists():
-        return HTTPException(404, "Video does not exist")
+        raise HTTPException(status_code=404, detail="Cannot locate file on local machine")
 
     start,end = range.replace("bytes=", "").split("-")
     start = int(start)

@@ -36,7 +36,7 @@ def _build_sbatch_script(
     # make sure Path objects are strings
     config_path_str = str(config_path)
     cwd_folder_str = str(cwd_folder)
-    log_file_str = str(Path(settings.LOGS_FOLDER_EXTERNAL, "%j.out").resolve())
+    log_file_str = str(Path(settings.SLURM_LOGS_FOLDER_EXTERNAL, "%j.out").resolve())
     sdannce_img_path_str = str(settings.SDANNCE_IMAGE_PATH)
 
     sdannce_command_safe = sdannce_command.get_full_command()

@@ -255,7 +255,7 @@ class PredictionInfo:
     mode:Literal["DANNCE","COM"]
     src_file: str
     src_name: str
-    dest_folder_path: Path
+    dest_folder_name: Path
     file_created_time: int
 
 def _identify_and_copy_prediction_files(src_video_folder_path: Path) -> list[PredictionInfo]:
@@ -276,7 +276,7 @@ def _identify_and_copy_prediction_files(src_video_folder_path: Path) -> list[Pre
                 mode="DANNCE",
                 src_file=str(src_path),
                 src_name=src_folder_name,  # Name of containing folder
-                dest_folder_path=dest_folder_path,
+                dest_folder_name=dest_folder_name,
                 file_created_time=int(
                     src_path.stat().st_mtime
                 ),  # (estimated) creation time of the prediction
@@ -298,7 +298,7 @@ def _identify_and_copy_prediction_files(src_video_folder_path: Path) -> list[Pre
                 mode="COM",
                 src_file=str(src_path),
                 src_name=src_folder_name,  # Name of containing folder
-                dest_folder_path=dest_folder_path,
+                dest_folder_name=dest_folder_name,
                 file_created_time=int(
                     src_path.stat().st_mtime
                 ),  # (estimated) creation time of the prediction
@@ -370,7 +370,7 @@ def _write_predictions_to_db(
 
         for pred in predictions:
             pred_mode = pred.mode
-            pred_path = str(pred.dest_folder_path)
+            pred_path = str(pred.dest_folder_name)
             pred_src_path = str(pred.src_file)
             pred_name = f"{pred.src_name} (imported)"
             pred_status = 'COMPLETED'

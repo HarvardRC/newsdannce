@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from pathlib import Path
+from pathlib import Path, PurePath, PurePosixPath
 import os
 from app.base_logger import logger
 
@@ -30,15 +30,26 @@ class _Settings(BaseSettings):
     SLURM_TRAIN_FOLDER: Path = Path(DATA_FOLDER, "slurm-cwd")
     SBATCH_DEBUG_FOLDER: Path = Path(DATA_FOLDER, "sbatch-debug")
 
-    # SQLITE BACKING DATA
+    # INTERNAL VERSIONS OF RESOURCE DATA
+    # these are the paths within the container (at their mount locations)
     WEIGHTS_FOLDER: Path = Path(DATA_FOLDER, "weights")
     PREDICTIONS_FOLDER: Path = Path(DATA_FOLDER, "predictions")
     VIDEO_FOLDERS_FOLDER: Path = Path(DATA_FOLDER, "video_folders")
-
     CONFIGS_FOLDER: Path = Path(DATA_FOLDER, "configs")
     LOGS_FOLDER: Path = Path(DATA_FOLDER, "logs")
+
+    # EXTERNAL VERSIONS OF RESOURCE DATA
+    # e.g. full path to the resource on the host system instead of container
+    # code in container MAY NOT have access to these files
+    # Use these when calling Slurm or displaying a resource path to the user
+    WEIGHTS_FOLDER_EXTERNAL: PurePath = PurePosixPath(ENV_BASE_MOUNT, "weights")
+    PREDICTIONS_FOLDER_EXTERNAL: PurePath = PurePosixPath(ENV_BASE_MOUNT, "predictions")
+    VIDEO_FOLDERS_FOLDER_EXTERNAL: PurePath = PurePosixPath(ENV_BASE_MOUNT, "video_folders")
+    CONFIGS_FOLDER_EXTERNAL: PurePath = PurePosixPath(ENV_BASE_MOUNT, "configs")
+    LOGS_FOLDER_EXTERNAL: PurePath = PurePosixPath(ENV_BASE_MOUNT, "logs")
+
     CELERY_BEAT_FILES: Path = Path(ENV_CELERY_BEAT_FILES)
-    LOGS_FOLDER_EXTERNAL: Path = Path(ENV_BASE_MOUNT, "slurm-logs")
+    SLURM_LOGS_FOLDER_EXTERNAL: Path = Path(ENV_BASE_MOUNT, "slurm-logs")
 
     STATIC_TMP_FOLDER: Path = Path(DATA_FOLDER, "static-tmp")
     """A folder to store temporary server resources E.g. generated images, etc."""

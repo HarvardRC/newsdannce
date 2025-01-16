@@ -37,7 +37,7 @@ def predict_job_submit_com(
     cfg_json = m.to_json_string()
 
     config_file = Path(
-        settings.CONFIGS_FOLDER, f"predict_com_config_{uuid.uuid4().hex}.yaml"
+        settings.CONFIGS_FOLDER_EXTERNAL, f"predict_com_config_{uuid.uuid4().hex}.yaml"
     )
 
     """Submit a predict job"""
@@ -111,7 +111,7 @@ def predict_job_submit_dannce(
     cfg_json = m.to_json_string()
 
     config_file = Path(
-        settings.CONFIGS_FOLDER, f"predict_dannce_config_{uuid.uuid4().hex}.yaml"
+        settings.CONFIGS_FOLDER_EXTERNAL, f"predict_dannce_config_{uuid.uuid4().hex}.yaml"
     )
 
     """Submit a predict job"""

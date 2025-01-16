@@ -34,7 +34,7 @@ def train_job_submit_com(
     cfg_json = m.to_json_string()
 
     config_file = Path(
-        settings.CONFIGS_FOLDER, f"train_com_config_{uuid.uuid4().hex}.yaml"
+        settings.CONFIGS_FOLDER_EXTERNAL, f"train_com_config_{uuid.uuid4().hex}.yaml"
     )
 
     """Submit a train job: this also creates train_job:video_folder relations"""
@@ -99,7 +99,7 @@ def train_job_submit_dannce(
     cfg_json = m.to_json_string()
 
     config_file = Path(
-        settings.CONFIGS_FOLDER, f"train_dannce_config_{uuid.uuid4().hex}.yaml"
+        settings.CONFIGS_FOLDER_EXTERNAL, f"train_dannce_config_{uuid.uuid4().hex}.yaml"
     )
 
     """Submit a train job: this also creates train_job:video_folder relations"""
