@@ -13,7 +13,7 @@ class MatFileInfo:
     n_cameras: int
     n_frames: int
     n_joints: int
-    params: dict
+    params: list[CameraParams]
     """Calibration params"""
     path: str
     filename: str

@@ -22,6 +22,7 @@ def process_video_folder_faststart(video_folder_path, camera_names, backup_video
             [
                 "ffmpeg",
                 "-i",
+                str(vid_file),
                 "-c",
                 "copy",
                 "-movflags",
@@ -42,29 +43,6 @@ def process_video_folder_faststart(video_folder_path, camera_names, backup_video
 
 #  example ffmpeg command to add frame numbers to top of video
 # ffmpeg -i 0.mp4 -vf "drawtext=fontfile=Arial.ttf: text=%{n}: x=(w-tw): y=0: fontcolor=white: box=1: boxcolor=0x00000099" with-frames.mp4
-
-
-def check_faststart_flag(video_file):
-    """Test if a video has the faststart flag (i.e. ready for web streaming)
-    If not, you may want to run process_video_folder_faststart"""
-    # ffmpeg -v trace -i "%%i" NUL 2>&1 | grep -m 1 -o -e "type:'mdat'" -e "type:'moov'"
-    vid0 = Path(video_file)
-
-    output = subprocess.run(
-        ("ffmpeg", "-v", "trace", "-i", str(vid0)), capture_output=True, text=True
-    )
-    match_mdat = re.search(r"type:'mdat'", output.stderr)
-    match_moov = re.search(r"type:'moov'", output.stderr)
-    if not match_mdat and not match_moov:
-        raise Exception(
-            f"Video file does not have expected H.264 Atoms: file={str(vid0)}"
-        )
-    if match_mdat.span()[0] < match_moov.span()[0]:
-        # mdat before moov: not web ready
-        return False
-    else:
-        # moov before mdat: is web ready
-        return True
 
 
 @dataclass

@@ -36,6 +36,7 @@ docker run \
     -v $BASE_MOUNT:/mnt-data \
     -v ./scripts:/app/scripts \
     -v ./src:/app/src \
+    -v ./resources:/app/resources \
     -v $DATA_FOLDER:$DATA_FOLDER \
     --env-file ${ENV_TEMPFILE} \
     --read-only \

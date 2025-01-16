@@ -21,6 +21,7 @@ make_folders = [
     settings.DATA_FOLDER,
     settings.WEIGHTS_FOLDER,
     settings.CONFIGS_FOLDER,
+    settings.VIDEO_FOLDERS_FOLDER,
     settings.LOGS_FOLDER,
     settings.PREDICTIONS_FOLDER,
     settings.SLURM_TRAIN_FOLDER,
@@ -41,7 +42,7 @@ def setup_instancedata(force_recreate=False):
 
     """
     if force_recreate is True or not settings.DATA_FOLDER.exists() or not os.listdir(settings.DATA_FOLDER):
-        logger.info("CREATING INSANCE FOLDER")
+        logger.info("CREATING INSTANCE FOLDER")
         # make instance_data folders
         for p in make_folders:
             if not p.exists():

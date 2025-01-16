@@ -29,7 +29,6 @@ docker run \
     --rm \
     -it \
     -p ${FASTAPI_PORT}:${FASTAPI_PORT} \
-    -v $\
     -v $BASE_MOUNT:/mnt-data \
     -v $DATA_FOLDER:$DATA_FOLDER \
     --env-file ${ENV_TEMPFILE} \

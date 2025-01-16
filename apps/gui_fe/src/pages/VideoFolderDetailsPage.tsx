@@ -30,9 +30,9 @@ const VideoFolderDetailsPage: React.FC = () => {
   const labelData =
     data.label_files.length > 0
       ? data.label_files.map(({ params, ...x }) => ({
-        params: '[HIDDEN]',
-        ...x,
-      }))
+          params: '[HIDDEN]',
+          ...x,
+        }))
       : [];
 
   const predictionData = (data as any).prediction_data;
@@ -119,7 +119,10 @@ const VideoFolderDetailsPage: React.FC = () => {
             <h2 className="text-xl">Video Preview</h2>
             <video autoPlay controls className="max-w-xl">
               <source
-                src={make_url(BASE_API_URL, `video_folder/${id}/preview?camera_name=Camera1`)}
+                src={make_url(
+                  BASE_API_URL,
+                  `video_folder/${id}/stream?camera_name=Camera1`
+                )}
                 type="video/mp4"
               ></source>
             </video>
@@ -127,7 +130,7 @@ const VideoFolderDetailsPage: React.FC = () => {
         ) : (
           <div>
             <Button onClick={() => setShowPreview(true)}>
-              Show Video Preview (first 5 secs)
+              Show Video Preview
             </Button>
           </div>
         )}

@@ -29,8 +29,12 @@ class _Settings(BaseSettings):
     DB_FILE: Path = Path(DATA_FOLDER, "db.sqlite3")
     SLURM_TRAIN_FOLDER: Path = Path(DATA_FOLDER, "slurm-cwd")
     SBATCH_DEBUG_FOLDER: Path = Path(DATA_FOLDER, "sbatch-debug")
+
+    # SQLITE BACKING DATA
     WEIGHTS_FOLDER: Path = Path(DATA_FOLDER, "weights")
     PREDICTIONS_FOLDER: Path = Path(DATA_FOLDER, "predictions")
+    VIDEO_FOLDERS_FOLDER: Path = Path(DATA_FOLDER, "video_folders")
+
     CONFIGS_FOLDER: Path = Path(DATA_FOLDER, "configs")
     LOGS_FOLDER: Path = Path(DATA_FOLDER, "logs")
     CELERY_BEAT_FILES: Path = Path(ENV_CELERY_BEAT_FILES)
@@ -53,9 +57,8 @@ class _Settings(BaseSettings):
     N_CAMERAS: int = 6
 
     # Singularity container with sdannce image
-    SDANNCE_IMAGE_PATH: Path =Path(ENV_SDANNCE_SINGULARITY_IMG_PATH)
+    SDANNCE_IMAGE_PATH: Path = Path(ENV_SDANNCE_SINGULARITY_IMG_PATH)
 
     logger.info(f"USING INSTANCE DATA FOLDER AT: {DATA_FOLDER}")
 
 settings = _Settings()
-# FRONTEND_STATIC_URL

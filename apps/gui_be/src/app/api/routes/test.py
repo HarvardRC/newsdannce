@@ -27,16 +27,30 @@ def test_squeue():
     )
     return {"message-output": output}
 
+TEST_IMPORT_FOLDER="/Users/caxon/olveczky/dannce_data/ALONE/240625_143814_M5"
 
-# @router.post("/enqueue")
-# def route_enqueue():
-#     print("HELOOOO")
-#     result = add.delay(3,4)
-#     value =result.get(timeout=10)
-#     return {"message": "done", "result": value}
+@router.post('/test-import')
+def test_import_route():
+    from taskqueue.video import import_video_folder_worker
 
-# @router.post("/stall")
-# def route_stall():
-#     print("stalling")
-#     result = stall.delay(999)
-#     return {"message": "done"}
+    import_video_folder_worker.delay(TEST_IMPORT_FOLDER)
+
+    return {"status" : "import queued"}
+
+@router.post('/test-dotask')
+def test_dotask_route():
+    from taskqueue.video import dummy_task_me
+    dummy_task_me.delay()
+    return {"hello" : "world"}
+
+
+@router.post("/check-celery")
+def check_celery_route():
+    from taskqueue.celery import celery_app, MAIN_QUEUE_NAME
+    with celery_app.connection_or_acquire() as conn:
+        client = conn.channel().client
+
+        # ct = conn.default_channel.queue_declare(queue=None, passive=True).message_count
+        return {
+            "message_count": client.llen(MAIN_QUEUE_NAME)
+        }

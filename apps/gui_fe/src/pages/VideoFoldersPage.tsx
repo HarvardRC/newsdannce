@@ -91,7 +91,7 @@ const VideoFoldersPage: React.FC = () => {
                     {new Date(x.created_at * 1000).toLocaleString('en-US')}
                   </TableCell>
                   <TableCell>
-                    <div className="cursor-pointer">Edit | Delete</div>
+                    <div className="cursor-pointer">Delete</div>
                   </TableCell>
                 </TableRow>
               );

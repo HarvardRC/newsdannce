@@ -13,6 +13,7 @@ from app.base_logger import logger
 
 from jinja2 import BaseLoader, Environment
 
+
 app = FastAPI(title="DANNCE GUI API")
 
 app.add_middleware(
@@ -46,12 +47,3 @@ async def get_app_index(request: Request):
 
 app.mount("/static", StaticFiles(directory=settings.STATIC_TMP_FOLDER), name="static")
 app.mount("/app", StaticFiles(directory=settings.REACT_APP_DIST_FOLDER), name="gui_fe")
-
-# https://rcood.rc.fas.harvard.edu/rnode/holy7c18105.rc.fas.harvard.edu/8000/app -> index.html inside ../gui_fe/dist
-
-# https://rcood.rc.fas.harvard.edu/rnode/holy7c18105.rc.fas.harvard.edu/home INSTEAD OF
-# https://rcood.rc.fas.harvard.edu/rnode/holy7c18105.rc.fas.harvard.edu/8000/app/home -> index.html
-
-# COULD USE /node (vs /rnode) and specify base URL!
-
-# check out OOD session -> baseURL -> internal Ref's relative to baseURL

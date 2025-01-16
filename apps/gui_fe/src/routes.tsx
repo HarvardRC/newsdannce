@@ -17,6 +17,7 @@ import PredictionDetailsPage from './pages/PredictionDetailsPage';
 import WeightsPage from './pages/WeightsPage';
 import ImportVideoFoldersPage from './pages/ImportVideoFoldersPage';
 import DanncePredictPage from './pages/DanncePredictPage';
+import TestPage from './pages/TestPage';
 
 type AppPage = {
   path: string;
@@ -114,6 +115,11 @@ export const appPages = {
     path: '/predictions/:id',
     element: <PredictionDetailsPage />,
     title: 'Prediction Details',
+  },
+  testPage: {
+    path: '/test',
+    element: <TestPage />,
+    title: 'Test Page',
   },
 } as const satisfies Record<string, AppPage>;
 

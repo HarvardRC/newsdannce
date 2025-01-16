@@ -1,9 +1,8 @@
-# from sqlite3 import Connection
-# from typing import Any, Annotated
 from pathlib import Path
+import sqlite3
 from typing import Any
 import uuid
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header, Response
 from fastapi.responses import FileResponse
 from app.api.deps import SessionDep
 from app.core.db import (
@@ -210,3 +209,87 @@ WHERE video_folder=?""",
     return_dict["predict_jobs"] = row_predict_job
 
     return return_dict
+
+
+CHUNK_SIZE=4*1024*1024
+
+@router.get("/{id}/stream")
+def stream_video(id: int, camera_name: str, session: SessionDep, range: str=Header(None)) -> Any:
+    logger.info(f"Video folder preview {id}")
+    row = session.execute(
+        f"SELECT * FROM {TABLE_VIDEO_FOLDER} WHERE ID=?", (id,)
+    ).fetchone()
+    if not row:
+        raise HTTPException(status_code=404)
+
+    row = dict(row)
+    video_path = Path(row["path"], "videos", camera_name, "0.mp4")
+    if not video_path.exists():
+        return HTTPException(404, "Video does not exist")
+
+    start,end = range.replace("bytes=", "").split("-")
+    start = int(start)
+    end = int(end) if end else start + CHUNK_SIZE
+
+    with open(video_path, "rb") as video:
+        video.seek(start)
+        data = video.read(end-start)
+        filesize= str(video_path.stat().st_size)
+        headers = {
+            'Content-Range': f'bytes {str(start)}-{str(end)}/{filesize}',
+            'Accept-Ranges': 'bytes'
+        }
+        return Response(data, status_code=206, headers=headers, media_type="video/mp4")
+
+    # out_filename = f"preview_{id}_{camera_name}-{uuid.uuid4().hex}.mp4"
+    # out_path = Path(settings.STATIC_TMP_FOLDER, out_filename).resolve()
+
+    # 50 FPS = 0.02 Sec/Frame = 20ms/frame
+    # timestamp = f"{frame_index*20}ms"
+    # max_time = "5s"
+
+    # With FAST SEEKING
+    # output = subprocess.run(
+    #     [
+    #         "ffmpeg",
+    #         "-ss",
+    #         "00:00:00.00",
+    #         "-i",
+    #         str(video_path),
+    #         "-an",  # disable audio processing
+    #         "-t",
+    #         max_time,
+    #         "-abort_on",
+    #         "empty_output",
+    #         str(out_path),  # output path
+    #     ],
+    #     capture_output=True,
+    #     text=True,
+    # )
+    # ffmpeg -accurate_seek -ss 0.00 -i "/net/holy-nfsisilon/ifs/rc_labs/olveczky_lab_tier1/Lab/dannce_rig2/data/M1-M7_photometry/Alone/Day2_wk2/240625_143814_M5/videos/Camera1/0.mp4" -frames:v 1 instance_data/tmp/out
+
+    # logger.warning(f"SUB OUT:{output.stdout}")
+
+    # logger.warning(f"SUB ERR:{output.stderr}")
+
+    # logging.warning(f"SUB CODE:{output.returncode}")
+    # try:
+    #     output.check_returncode()
+    # except subprocess.CalledProcessError:
+    #     raise HTTPException(
+    #         400, "FFMPEG frame extraction failed. Perhaps the frame number is invalid?"
+    #     )
+    # # return {"path": str(out_path)}
+    # return FileResponse(out_path, status_code=200)
+
+@router.delete("/{id}")
+def delete_video_folder_route(id: int, session: SessionDep)-> Any:
+    logger.info(f"Delete video folder: {id}")
+    try:
+        session.execute(
+            f"DELETE FROM {TABLE_VIDEO_FOLDER} WHERE id=?", (id,)
+        )
+    except sqlite3.IntegrityError:
+        return {"Result": "error", "Message": "Delete dependent video predictions first"}
+
+    return {"Result": "success"}

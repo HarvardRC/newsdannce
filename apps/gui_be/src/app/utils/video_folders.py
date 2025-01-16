@@ -3,7 +3,6 @@ import json
 from pprint import pp
 import sqlite3
 import traceback
-import shutil
 
 from fastapi import HTTPException, status
 from fastapi.responses import JSONResponse
@@ -17,7 +16,6 @@ from pathlib import Path
 
 from app.utils.dannce_mat_processing import process_label_mat_file
 from caldannce.calibration_data import CameraParams
-from pprint import pp
 
 from app.utils.video_processing import (
     get_video_metadata,
@@ -352,3 +350,4 @@ VALUES
         "video_folder_ids": video_folder_ids,
         "prediction_ids": prediction_ids,
     }
+

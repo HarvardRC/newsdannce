@@ -68,7 +68,7 @@ export default function ImportVideoFoldersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">Bulk Import Video Folders</h1>
+      <h1 className="text-2xl font-bold">Import Video Folders</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <FormField
@@ -87,7 +87,7 @@ export default function ImportVideoFoldersPage() {
               </FormItem>
             )}
           />
-
+          <div>Note: this may take a few minutes per directory.</div>
           <Button type="submit">Import All</Button>
         </form>
       </Form>

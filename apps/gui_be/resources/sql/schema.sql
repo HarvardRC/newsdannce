@@ -26,6 +26,7 @@ CREATE TABLE prediction (
     id INTEGER PRIMARY KEY NOT NULL,
     name TEXT NOT NULL, --human readible name
     path TEXT NOT NULL, --path to the prediction folder (may not be inside video folder)
+    src_path TEXT, --path where the video was imported from (if relevant)
     status TEXT DEFAULT 'PENDING'
         CHECK(status IN (
             'PENDING', 'COMPLETED','FAILED')),
@@ -51,6 +52,7 @@ CREATE TABLE video_folder (
 id INTEGER PRIMARY KEY NOT NULL,
     name TEXT,
     path TEXT UNIQUE, --path to folder containing videos directory
+    src_path TEXT UNIQUE, --path where the video was imported from
     com_labels_file TEXT, --path to dannce.mat file with COM labels
     dannce_labels_file TEXT, -- path to dannce.mat file with DANNCE labels
     current_com_prediction REFERENCES prediction(id),
