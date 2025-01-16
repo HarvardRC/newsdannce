@@ -134,13 +134,11 @@ def get_preview_route(id: int, camera_name: str, session: SessionDep) -> Any:
         capture_output=True,
         text=True,
     )
-    # ffmpeg -accurate_seek -ss 0.00 -i "/net/holy-nfsisilon/ifs/rc_labs/olveczky_lab_tier1/Lab/dannce_rig2/data/M1-M7_photometry/Alone/Day2_wk2/240625_143814_M5/videos/Camera1/0.mp4" -frames:v 1 instance_data/tmp/out
 
     logger.warning(f"SUB OUT:{output.stdout}")
 
     logger.warning(f"SUB ERR:{output.stderr}")
 
-    # logging.warning(f"SUB CODE:{output.returncode}")
     try:
         output.check_returncode()
     except subprocess.CalledProcessError:
@@ -153,7 +151,6 @@ def get_preview_route(id: int, camera_name: str, session: SessionDep) -> Any:
 
 @router.get("/{id}")
 def get_video_folder_details(id: int, session: SessionDep) -> Any:
-    # select t1.*, t2.name as com_pred_name from video_folder t1 LEFT JOIN prediction t2 on t1.current_com_prediction = t2.id
     row_video_folder = session.execute(
         f"""
         SELECT t1.*, t2.name as current_com_prediction_name
@@ -175,7 +172,6 @@ def get_video_folder_details(id: int, session: SessionDep) -> Any:
 
     return_dict["label_files"] = label_data
 
-    # return_dict["prediction_data"] = get_predicted_data_in_dir(id, return_dict["path"])
     row_predictions = session.execute(
         f"""
 SELECT

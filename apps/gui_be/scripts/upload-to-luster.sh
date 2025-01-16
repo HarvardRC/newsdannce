@@ -1,5 +1,9 @@
 #!/bin/bash
 
+#### Custom script for Chris devleopment
+# does not contain any secret information
+# TODO: remove from repo 
+
 OUTPUT_TARGET=./dannce-gui-1.sif
 
 echo "building docker"

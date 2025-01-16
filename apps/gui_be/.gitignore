@@ -1,11 +1,2 @@
-# data for the backend server
-/instance_data
-
-# debug files (TODO: remove from gitignore after dev is finished)
-/IMPORTED_DANNCE_MODELS
-/jupyter_debug
-
-__pycache__
-
-
+# built singularity (apptainer) containers
 *.sif

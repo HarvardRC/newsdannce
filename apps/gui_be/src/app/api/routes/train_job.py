@@ -5,7 +5,6 @@ from typing import Any
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 import uuid
 
-
 from app.api.deps import SessionDep
 from app.core.db import (
     TABLE_RUNTIME,

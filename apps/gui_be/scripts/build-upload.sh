@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# custom script for Chris building containers and uploading to the cluster
+# TODO: remove from repo
+
 set -e 
 
 ./scripts/build-docker.sh 

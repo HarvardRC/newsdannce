@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 
 from app.api.deps import SessionDep
 from app.core.db import TABLE_SLURM_JOB
-from app.utils.job import get_nonfinal_job_ids, refresh_job_list, update_jobs_by_ids
+from app.utils.job import refresh_job_list
 from app.utils.metadata import get_last_jobs_refresh
 
 

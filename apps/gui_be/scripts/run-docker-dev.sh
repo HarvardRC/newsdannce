@@ -4,6 +4,8 @@ FASTAPI_PORT=7901
 RABBITMQ_PORT=7902
 FLOWER_PORT=7903
 BASE_MOUNT=~/dannce-data
+
+# mount folder so you can import files into dannce gui
 DATA_FOLDER=/Users/caxon/olveczky/dannce_data
 
 # make sure BASE_VOLUME exists with correct permissions

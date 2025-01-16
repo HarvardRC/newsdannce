@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# testing run script on the Duke Compute Cluster (DCC)
+
 FASTAPI_PORT=7911
 RABBITMQ_PORT=7912
 
