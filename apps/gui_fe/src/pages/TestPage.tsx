@@ -1,11 +1,3 @@
-import { Button } from '@/components/ui/button';
-
-import { PixiPreview, PixiPreviewVideo } from '@/utils/pixiFunctions';
-import { PreviewPredictionType } from '@/api';
-import { useDebounce, useWindowSize } from '@/hooks';
-import { useEffect, useReducer, useRef, useState } from 'react';
-import { Application, Assets, Graphics, Sprite, Texture } from 'pixi.js';
-
 export default function TestPage() {
   // const ref = useRef<HTMLCanvasElement>(null);
   // const videoRef = useRef<HTMLVideoElement>(null);

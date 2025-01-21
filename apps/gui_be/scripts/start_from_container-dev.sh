@@ -57,7 +57,7 @@ echo "FLOWER PORT IS $FLOWER_PORT"
     HOME=$FAKE_HOME_RABBITMQ rabbitmq-server &\
     celery -A taskqueue.celery worker --beat --loglevel=INFO &\
     FLOWER_UNAUTHENTICATED_API=true celery -A taskqueue.celery flower --loglevel=INFO &\
-    DEBUG=1 python -m uvicorn app.main:app --host 0.0.0.0 --port $FASTAPI_PORT --log-level debug --reload
+    NO_SERVE_FE=1 DEBUG=1 python -m uvicorn app.main:app --host 0.0.0.0 --port $FASTAPI_PORT --log-level debug --reload
 )    
 
 echo "Done running dannce-gui"

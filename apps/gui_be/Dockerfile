@@ -1,5 +1,5 @@
 # for base information, see https://micromamba-docker.readthedocs.io/en/latest/
-FROM mambaorg/micromamba:ubuntu20.04
+FROM mambaorg/micromamba:ubuntu22.04
 
 # this allows future RUN commands to access conda
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
@@ -23,7 +23,7 @@ COPY --chown=$MAMBA_USER:$MAMBA_USER ./src /app/src
 # resources includes wheels and webserver dist
 COPY --chown=$MAMBA_USER:$MAMBA_USER  ./resources /app/resources
 # install caldannce package
-RUN python -m pip install /app/resources/caldannce-0.0.1-py3-none-any.whl
+RUN python -m pip install /app/resources/caldannce.whl
 # copy scripts used for entrypoint
 COPY --chown=$MAMBA_USER:$MAMBA_USER ./scripts /app/scripts
 

@@ -3,10 +3,11 @@
 FASTAPI_PORT=7901
 RABBITMQ_PORT=7902
 FLOWER_PORT=7903
-BASE_MOUNT=~/dannce-data
 
+# folder containing dannce-gui-instance-data
+BASE_MOUNT=~/dannce-gui-instance
 # mount folder so you can import files into dannce gui
-DATA_FOLDER=/Users/caxon/olveczky/dannce_data
+DATA_FOLDER=~/olveczky/dannce_data
 
 # make sure BASE_VOLUME exists with correct permissions
 mkdir -m777 -p $BASE_MOUNT
@@ -31,19 +32,24 @@ cat $ENV_TEMPFILE
 # NOTE: run docker as read-only to ensure no data is stored in container
 # this also makes it easier to run with singularity which is always read-only
 
-docker run \
-    --rm \
-    -it \
-    -p ${FASTAPI_PORT}:${FASTAPI_PORT} \
-    -p ${FLOWER_PORT}:${FLOWER_PORT} \
-    -v $BASE_MOUNT:/mnt-data \
-    -v ./scripts:/app/scripts \
-    -v ./src:/app/src \
-    -v ./resources:/app/resources \
-    -v $DATA_FOLDER:$DATA_FOLDER \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    --env-file ${ENV_TEMPFILE} \
-    --read-only \
-    --entrypoint /usr/local/bin/_entrypoint.sh \
-    dannce-gui-tmp \
-    /app/scripts/start_from_container-dev.sh
+# allow killing all processes with single CTRL+C
+(trap 'kill 0' SIGINT; \
+    npm run dev --prefix=./apps/gui_fe &\
+    docker run \
+        --rm \
+        -it \
+        -p ${FASTAPI_PORT}:${FASTAPI_PORT} \
+        -p ${FLOWER_PORT}:${FLOWER_PORT} \
+        -v $BASE_MOUNT:/mnt-data \
+        -v ./apps/gui_be/scripts:/app/scripts \
+        -v ./apps/gui_be/src:/app/src \
+        -v ./apps/gui_be/resources:/app/resources \
+        -v $DATA_FOLDER:$DATA_FOLDER \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        --env-file ${ENV_TEMPFILE} \
+        --read-only \
+        --entrypoint /usr/local/bin/_entrypoint.sh \
+        dannce-gui \
+        /app/scripts/start_from_container-dev.sh
+)    
+
