@@ -4,6 +4,7 @@ DROP TABLE IF EXISTS train_job;
 DROP TABLE IF EXISTS prediction;
 DROP TABLE IF EXISTS predict_job;
 DROP TABLE IF EXISTS slurm_job;
+DROP TABLE IF EXISTS local_job;
 DROP TABLE IF EXISTS weights;
 -- many:many relationship table
 DROP TABLE IF EXISTS train_job_video_folder;
@@ -94,6 +95,21 @@ CREATE TABLE predict_job (
 -- store details of a single running job
 CREATE TABLE slurm_job (
     slurm_job_id INTEGER PRIMARY KEY NOT NULL,
+    status TEXT
+        CHECK(status IS NULL OR status IN (
+            'CANCELLED','COMPLETED','COMPLETING','FAILED','NODE_FAIL',
+            'OUT_OF_MEMORY','PENDING','PREEMPTED','RUNNING',
+            'SUSPENDED','STOPPED','TIMEOUT',
+            'LOST_TO_SLURM' --custom status meaning the job could not be fetched from slurm
+            )),
+    stdout_file TEXT,
+    created_at INTEGER DEFAULT (STRFTIME('%s', 'now'))
+);
+
+
+CREATE TABLE local_job (
+    id INTEGER PRIMARY KEY NOT NULL,
+    process ID,
     status TEXT
         CHECK(status IS NULL OR status IN (
             'CANCELLED','COMPLETED','COMPLETING','FAILED','NODE_FAIL',

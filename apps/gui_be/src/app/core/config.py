@@ -17,8 +17,9 @@ ENV_CELERY_BEAT_FILES = os.environ.get("CELERY_BEAT_FILES")
 
 ENV_BASE_MOUNT= os.environ.get("BASE_MOUNT")
 
-# slurm env variables (*MAY* be undefined)
+# optional env variables (*MAY* be undefined)
 ENV_SLURM_NODELIST = os.environ.get("SLURM_NODELIST", "")
+ENV_MAX_CONCURRENT_LOCAL_JOBS = int(os.environ.get("MAX_CONCURRENT_LOCAL_JOBS", 0))
 
 class _Settings(BaseSettings):
     SQL_FOLDER: Path = Path(ENV_APP_RESOURCES_DIR, "sql")
@@ -71,5 +72,10 @@ class _Settings(BaseSettings):
     SDANNCE_IMAGE_PATH: Path = Path(ENV_SDANNCE_SINGULARITY_IMG_PATH)
 
     logger.info(f"USING INSTANCE DATA FOLDER AT: {DATA_FOLDER}")
+
+    # max number of jobs running on local machine
+    # should usually be 1, unless you have multiple GPUs on local machine
+    # should be 0 if running on cluster (always use slurm to submit and manage jobs)
+    MAX_CONCURRENT_LOCAL_JOBS: int = ENV_MAX_CONCURRENT_LOCAL_JOBS
 
 settings = _Settings()
