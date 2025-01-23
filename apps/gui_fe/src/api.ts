@@ -21,9 +21,25 @@ export async function post(route: string, data: object = {}) {
   throw Error(`Invalid status: ${response.status}`);
 }
 
-export async function get(route: string) {
+export async function postFormDataFile(route: string, file: File) {
   const full_url: string = make_url(BASE_API_URL, route);
+  const formdata = new FormData();
+  formdata.append('file', file);
+  const response = await fetch(full_url, {
+    method: 'POST',
+    body: formdata,
+  });
+  if (response.status >= 200 && response.status < 300) {
+    return await response.json();
+  }
+  throw Error(`Invalid status: ${response.status}`);
+}
 
+export async function get(route: string, query_dict: Record<string, any> = {}) {
+  let full_url: string = make_url(BASE_API_URL, route);
+  if (query_dict) {
+    full_url = `${full_url}?${new URLSearchParams(query_dict)}`;
+  }
   const response = await fetch(full_url, {
     method: 'GET',
     headers: {},
@@ -49,6 +65,20 @@ export async function getFile(route: string) {
   throw Error(`Invalid status: ${response.status}`);
 }
 
+export async function delete_verb(route: string, data: object = {}) {
+  const full_url: string = make_url(BASE_API_URL, route);
+  const response = await fetch(full_url, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+  if (response.status >= 200 && response.status < 300) {
+    return await response.json();
+  }
+  throw Error(`Invalid status: ${response.status}`);
+}
 //  SPECIFIC ROUTES
 
 type CreateRuntimeData = {
@@ -99,7 +129,6 @@ type VideoFolderDetails = {
   dannce_labels_file?: string;
   current_com_prediction?: string;
   current_com_prediction_name?: string;
-
   label_files: {
     n_cameras: number;
     n_frames: number;
@@ -348,6 +377,33 @@ export async function getSlurmLogfile(slurmJobId: number): Promise<any> {
   return getFile(`/jobs_common/get_log/${slurmJobId}`);
 }
 
+export async function getComPreview(
+  predictionId: number,
+  nSamples: number
+): Promise<number[][]> {
+  if (!predictionId) {
+    throw Error('getComPreview:: predictionId must be defined');
+  }
+  return get(`/prediction/${predictionId}/com_preview`, { samples: nSamples });
+}
+
+type ComHistogramReturnType = {
+  hist: number[];
+  bin_edges: number[];
+};
+export async function getComHistogram(
+  predictionId: number
+): Promise<ComHistogramReturnType> {
+  if (!predictionId) {
+    throw Error('getComPreview:: predictionId must be defined');
+  }
+  return get(`/prediction/${predictionId}/com_histogram`);
+}
+
+export async function getSkeletonPath(): Promise<{ data: null | string }> {
+  return get(`/settings_page/skeleton`);
+}
+
 type ImportVideoFoldersType = {
   paths: string[];
 };
@@ -360,7 +416,7 @@ export async function importVideoFolders(
   return post('/video_folder/import_from_paths', data);
 }
 
-type PredictionDetailsType = {
+export type PredictionDetailsType = {
   prediction_id: number;
   prediction_name: string;
   prediction_path: string;
@@ -390,6 +446,10 @@ export type PreviewPredictionType = {
   frame_width: number;
   frame_height: number;
   n_joints: number;
+  skeleton_data?: {
+    joint_names: string[];
+    joints_idx: number[][];
+  };
 };
 export async function previewPrediction(
   predictionId: number,

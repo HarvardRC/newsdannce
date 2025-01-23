@@ -38,6 +38,8 @@ class _Settings(BaseSettings):
     VIDEO_FOLDERS_FOLDER: Path = Path(DATA_FOLDER, "video_folders")
     CONFIGS_FOLDER: Path = Path(DATA_FOLDER, "configs")
     LOGS_FOLDER: Path = Path(DATA_FOLDER, "logs")
+    # misc. resources e.g. uploaded skeleton files
+    RESOURCES_FOLDER: Path = Path(DATA_FOLDER, "resources")
 
     # EXTERNAL VERSIONS OF RESOURCE DATA
     # e.g. full path to the resource on the host system instead of container
@@ -67,6 +69,7 @@ class _Settings(BaseSettings):
     REACT_APP_DIST_FOLDER: Path = ENV_REACT_APP_DIST_FOLDER
 
     N_CAMERAS: int = 6
+    SKELETON_FILE: Path = Path(RESOURCES_FOLDER, "skeleton.mat")
 
     # Singularity container with sdannce image
     SDANNCE_IMAGE_PATH: Path = Path(ENV_SDANNCE_SINGULARITY_IMG_PATH)

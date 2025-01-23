@@ -252,7 +252,7 @@ VALUES
             # Attempt to set the created_at timestamp based on the file edit time (not perfect)
 
             predictions: list = []
-            dannce_data_paths = base_path.glob("DANNCE/*/save_data_AVG.mat")
+            dannce_data_paths = base_path.glob("DANNCE/*/save_data_AVG0.mat")
             for path in dannce_data_paths:
                 predictions.append(
                     (

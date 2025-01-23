@@ -106,7 +106,7 @@ CREATE TABLE slurm_job (
     created_at INTEGER DEFAULT (STRFTIME('%s', 'now'))
 );
 
-
+-- WIP: track local jon -- todo merge with slurm job for a polymorphic job table
 CREATE TABLE local_job (
     id INTEGER PRIMARY KEY NOT NULL,
     process ID,
@@ -130,7 +130,8 @@ CREATE TABLE train_job_video_folder (
 -- table continaing database metadata
 CREATE TABLE global_state (
     id INTEGER PRIMARY KEY CHECK (id=0),
-    last_update_jobs INTEGER DEFAULT 0
+    last_update_jobs INTEGER DEFAULT 0,
+    skeleton_path TEXT DEFAULT null
 );
 
 -- Create singleton row entry in global_state for storing settings

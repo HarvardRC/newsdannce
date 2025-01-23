@@ -261,7 +261,7 @@ class PredictionInfo:
 def _identify_and_copy_prediction_files(src_video_folder_path: Path) -> list[PredictionInfo]:
     predictions: list = []
 
-    dannce_data_paths = src_video_folder_path.glob("DANNCE/*/save_data_AVG.mat")
+    dannce_data_paths = src_video_folder_path.glob("DANNCE/*/save_data_AVG0.mat")
     for src_path in dannce_data_paths:
         src_folder_name = src_path.parent.name
         dest_folder_name = f"DANNCE_{make_resource_folder_name()}"

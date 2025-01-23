@@ -128,6 +128,31 @@ export class PixiPreview {
       this.graphics2!.fill(0xff00ff);
     }
 
+    if (this.data?.skeleton_data != null) {
+      for (let i = 0; i < this.data!.skeleton_data.joints_idx.length; i++) {
+        let [from_idx, to_idx] = this.data!.skeleton_data.joints_idx[i];
+        // convert from matlab (index starts at 1 to 0)
+        from_idx -= 1;
+        to_idx -= 1;
+
+        const from_pt1 =
+          this.data!.frames[this.currentFrame].pts_cam1[from_idx];
+        const to_pt1 = this.data!.frames[this.currentFrame].pts_cam1[to_idx];
+
+        const from_pt2 =
+          this.data!.frames[this.currentFrame].pts_cam2[from_idx];
+        const to_pt2 = this.data!.frames[this.currentFrame].pts_cam2[to_idx];
+
+        this.graphics1!.moveTo(from_pt1[0], from_pt1[1]);
+        this.graphics1!.lineTo(to_pt1[0], to_pt1[1]);
+        this.graphics1!.stroke({ width: 2.5, color: 0x00ff00 });
+
+        this.graphics2!.moveTo(from_pt2[0], from_pt2[1]);
+        this.graphics2!.lineTo(to_pt2[0], to_pt2[1]);
+        this.graphics2!.stroke({ width: 2.5, color: 0x00ff00 });
+      }
+    }
+
     // Update transform in case screen size has changeda
     // MAYBE: memoize(size) to avoid rerunning unnecessarily(?)
     const dpiHeight = this.data!.frame_height / this.app.screen.height;

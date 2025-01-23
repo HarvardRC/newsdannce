@@ -85,7 +85,7 @@ def get_predicted_data_in_dir(video_folder_id, video_folder_path):
 
     for i in Path(video_folder_path, "COM").glob("**/com3d.mat"):
         com_folders.append(str(i))
-    for i in Path(video_folder_path, "DANNCE").glob("**/save_data_AVG.mat"):
+    for i in Path(video_folder_path, "DANNCE").glob("**/save_data_AVG0.mat"):
         dannce_folders.append(str(i))
 
     return {"com_predictions": com_folders, "dannce_predictions": dannce_folders}

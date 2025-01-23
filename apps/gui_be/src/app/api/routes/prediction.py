@@ -12,6 +12,8 @@ from app.utils.video import get_one_frame
 from app.core.config import settings
 from caldannce.calibration_data import CameraParams
 from app.base_logger import logger
+from app.utils.predictions import get_com_deltas, get_com_prediction_file, get_prediction_file_path, get_prediction_metadata
+import scipy.io
 
 router = APIRouter()
 
@@ -58,7 +60,7 @@ WHERE t1.id=?
         com3d_file = Path(prediction_path, "com3d.mat")
         pred_3d = get_com_pred_data_3d(com3d_file, data.frames)
     elif mode == "DANNCE":
-        dannce3d_file = Path(prediction_path, "save_data_AVG.mat")
+        dannce3d_file = Path(prediction_path, "save_data_AVG0.mat")
         pred_3d = get_dannce_pred_data_3d(dannce3d_file, data.frames)
     else:
         raise Exception("Prediction is unsupported")
@@ -95,17 +97,29 @@ WHERE t1.id=?
             }
         )
 
+    skeleton_data = None
+    if (mode != 'COM' and settings.SKELETON_FILE.exists()):
+        m = scipy.io.loadmat(settings.SKELETON_FILE)
+        joint_names = [x[0] for x in m['joint_names'][0]]
+        joints_idx = m['joints_idx'].tolist()
+        skeleton_data = {
+            'joint_names' : joint_names,
+            'joints_idx' : joints_idx
+        }
+
+
     return {
         "frames": frame_info,
         "n_frames": n_frames,
         "frame_width": 1920,
         "frame_height": 1200,
         "n_joints": n_joints,
+        "skeleton_data": skeleton_data
     }
 
 
 @router.get("/list")
-def list_all_predictions(session: SessionDep):
+def list_all_predictions_route(session: SessionDep):
     rows = session.execute(
         f"""
 SELECT
@@ -122,16 +136,26 @@ FROM {TABLE_PREDICTION}"""
     return rows
 
 
+@router.get("/{id_str}/com_preview")
+def get_com_preview_route(id_str: str, session: SessionDep, samples:int ):
+    id_int = int(id_str)
+    return get_com_prediction_file(session, id_int, samples)
+
+@router.get("/{id_str}/com_histogram")
+def get_com_histogram_route(id_str: str, session: SessionDep ):
+    id_int = int(id_str)
+    return get_com_deltas(session, id_int)
+
+
 @router.get("/{id}")
 def get_prediction_details_route(id: str, session: SessionDep):
     id_int = int(id)
     row = session.execute(
         f"""
 SELECT
-    id AS prediction_id,
     name AS prediction_name,
     path AS prediction_path,
-    status AS prediction_status,
+    status AS status,
     video_folder AS video_folder_id,
     mode AS mode,
     created_at
@@ -142,5 +166,27 @@ WHERE id=?
     ).fetchone()
     if not row:
         raise HTTPException(404)
+
     row = dict(row)
-    return row
+    prediction_name = row['prediction_name']
+    prediction_path = row['prediction_path']
+    status = row['status']
+    video_folder_id = row['video_folder_id']
+    mode = row['mode']
+    created_at = row ['created_at']
+
+    metadata = get_prediction_metadata(status, mode, prediction_path)
+
+    return {
+        'prediction_path': row['prediction_path'],
+        'path_external': get_prediction_file_path(mode, prediction_path, True),
+        'path_internal': get_prediction_file_path(mode, prediction_path, False),
+        'prediction_name': prediction_name,
+        'status': status,
+        'video_folder_id': video_folder_id,
+        'mode': mode,
+        'created_at': created_at,
+        'n_joints': metadata.n_joints,
+        'n_frames': metadata.n_frames
+    }
+

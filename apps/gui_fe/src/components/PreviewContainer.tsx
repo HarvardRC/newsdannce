@@ -1,11 +1,13 @@
 import { usePreviewPredictionQuery } from '@/hooks';
 import PreviewPrediction from './PreviewPrediction';
+import { PredictionDetailsType } from '@/api';
 
 type Props = {
   predictionId: number;
   frames: number[];
   camera1: string;
   camera2: string;
+  predictionDetails: PredictionDetailsType;
 };
 const PreviewContainer: React.FC<Props> = ({ ...props }) => {
   const {
@@ -32,7 +34,10 @@ const PreviewContainer: React.FC<Props> = ({ ...props }) => {
   return (
     <div>
       {previewData ? (
-        <PreviewPrediction data={previewData!} />
+        <PreviewPrediction
+          data={previewData!}
+          predictionDetails={props.predictionDetails}
+        />
       ) : (
         <div>No data</div>
       )}

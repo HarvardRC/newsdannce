@@ -26,6 +26,7 @@ make_folders = [
     settings.PREDICTIONS_FOLDER,
     settings.SLURM_TRAIN_FOLDER,
     settings.STATIC_TMP_FOLDER,
+    settings.RESOURCES_FOLDER
 ]
 
 dummy_io_yaml_text = """# empty io yaml file

@@ -4,7 +4,7 @@
 FASTAPI_PORT=7801
 RABBITMQ_PORT=7802
 FLOWER_PORT=7903
-BASE_MOUNT=~/dannce-data
+BASE_MOUNT=~/dannce-gui-instance
 
 DATA_FOLDER=/Users/caxon/olveczky/dannce_data
 
@@ -27,8 +27,6 @@ cat $ENV_TEMPFILE
 docker run \
     --rm \
     -it \
-    -p ${FASTAPI_PORT}:${FASTAPI_PORT} \
-    -p ${FLOWER_PORT}:${FLOWER_PORT} \
     -v $BASE_MOUNT:/mnt-data \
     -v ./scripts:/app/scripts \
     -v ./src:/app/src \

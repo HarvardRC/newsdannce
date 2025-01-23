@@ -2,14 +2,17 @@ import { useEffect, useRef, useState } from 'react';
 
 import { Button } from './ui/button';
 import { PixiPreview } from '@/utils/pixiFunctions';
-import { PreviewPredictionType } from '@/api';
+import { PreviewPredictionType, PredictionDetailsType } from '@/api';
 import { useDebounce, useWindowSize } from '@/hooks';
+import { appPages } from '@/routes';
+import { Link } from 'react-router-dom';
 
 type props = {
   data: PreviewPredictionType;
+  predictionDetails: PredictionDetailsType;
 };
 
-const PreviewPrediction: React.FC<props> = ({ data }) => {
+const PreviewPrediction: React.FC<props> = ({ data, predictionDetails }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const [frameIdx, setFrameIdx] = useState(0);
   const allPreviewInstancesRef = useRef<Record<number, PixiPreview>>({});
@@ -69,6 +72,15 @@ const PreviewPrediction: React.FC<props> = ({ data }) => {
         {data.n_frames})
       </div>
       <div ref={mountRef} className="border-2 h-[800px] border-red-300" />
+      {data.skeleton_data == null && predictionDetails.mode != 'COM' ? (
+        <div>
+          If you are trying to preview DANNCE predictions, you can add a
+          skeleton on the{' '}
+          <Link className="text-purple-700" to={appPages.settings.path}>
+            Settings Page
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 };

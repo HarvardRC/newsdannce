@@ -9,8 +9,9 @@ from app.api.routes import (
     predict_job,
     jobs_common,
     prediction,
-    weights,
+    weights
 )
+from app.api.routes import settings_page
 
 api_router = APIRouter()
 
@@ -27,6 +28,8 @@ api_router.include_router(video_folder.router, prefix="/video_folder")
 api_router.include_router(runtime.router, prefix="/runtime")
 api_router.include_router(prediction.router, prefix="/prediction")
 api_router.include_router(weights.router, prefix="/weights")
+
+api_router.include_router(settings_page.router, prefix="/settings_page")
 
 api_router.include_router(admin.router, prefix="/admin")
 api_router.include_router(test.router, prefix="/test")

@@ -1,5 +1,7 @@
+import ComPreviewChart from '@/components/ComPreviewChart';
 import PreviewContainer from '@/components/PreviewContainer';
 import { Button } from '@/components/ui/button';
+import ComTraceChart from '@/components/ComTraceChart';
 import {
   Form,
   FormControl,
@@ -16,6 +18,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
 import { z } from 'zod';
+import ComHistogramChart from '@/components/ComHistogramChart';
 
 type CustomProps = {};
 
@@ -24,6 +27,10 @@ const formSchema = z.object({
 });
 
 const PredictionDetailsPage: React.FC<CustomProps> = () => {
+  const [showPositionGraph, setShowPositionGraph] = useState(false);
+  const [showPositionTrace, setShowPositionTrace] = useState(false);
+  const [showComHistogram, setShowComHistogram] = useState(false);
+
   const { id: idStr } = useParams();
   const id = parseInt(idStr!);
   const [frames, setFrames] = useState<any>(null);
@@ -43,10 +50,6 @@ const PredictionDetailsPage: React.FC<CustomProps> = () => {
   if (isError) {
     return <div> error</div>;
   }
-
-  // const handlePreparePreview = () => {
-  //   fetchPreview({});
-  // };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log('VALUES ARE ', values);
@@ -82,12 +85,7 @@ const PredictionDetailsPage: React.FC<CustomProps> = () => {
                   </FormItem>
                 )}
               />
-              <Button
-                type="submit"
-                // onClick={handlePreparePreview}
-                // disabled={isPreviewLoading}
-                className="my-4"
-              >
+              <Button type="submit" className="my-4">
                 Preview Prediction
               </Button>
             </form>
@@ -100,7 +98,52 @@ const PredictionDetailsPage: React.FC<CustomProps> = () => {
           frames={frames}
           camera1="Camera1"
           camera2="Camera2"
+          predictionDetails={data!}
         />
+      )}
+      <hr />
+      {data!.mode == 'COM' && (
+        <div className="mt-5 flex flex-col gap-5">
+          <div>
+            <Button
+              type="button"
+              onClick={() => setShowPositionGraph((x) => !x)}
+            >
+              {showPositionGraph ? 'Hide' : 'Show'} Position Graph
+            </Button>
+          </div>
+          {showPositionGraph && (
+            <div>
+              <ComPreviewChart prediction_id={id} />{' '}
+            </div>
+          )}
+          <div>
+            <Button
+              type="button"
+              onClick={() => setShowPositionTrace((x) => !x)}
+            >
+              {showPositionTrace ? 'Hide' : 'Show'} Position Trace
+            </Button>
+          </div>
+          {showPositionTrace && (
+            <div>
+              <ComTraceChart prediction_id={id} />{' '}
+            </div>
+          )}
+          <div>
+            <Button
+              type="button"
+              onClick={() => setShowComHistogram((x) => !x)}
+            >
+              {showComHistogram ? 'Hide' : 'Show'} COM Histogram
+            </Button>
+          </div>
+          {showComHistogram && (
+            <div>
+              <ComHistogramChart prediction_id={id} />{' '}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

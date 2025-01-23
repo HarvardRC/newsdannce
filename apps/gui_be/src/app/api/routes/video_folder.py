@@ -154,19 +154,59 @@ def get_preview_route(id: int, camera_name: str, session: SessionDep) -> Any:
 
 @router.get("/{id}")
 def get_video_folder_details(id: int, session: SessionDep) -> Any:
-    row_video_folder = session.execute(
+    row = session.execute(
         f"""
-        SELECT t1.*, t2.name as current_com_prediction_name
+        SELECT
+            t1.id AS id,
+            t1.name AS name,
+            t1.path AS path,
+            t1.src_path AS src_path,
+            t1.com_labels_file AS com_labels_file,
+            t1.dannce_labels_file AS dannce_labels_file,
+            t1.current_com_prediction AS current_com_prediction_id,
+            t1.camera_names AS camera_names,
+            t1.video_width AS video_width,
+            t1.video_height AS video_height,
+            t1.n_cameras AS n_cameras,
+            t1.n_animals AS n_animals,
+            t1.n_frames AS n_frames,
+            t1.duration_s AS duration_s,
+            t1.fps AS fps,
+            t1.created_at AS created_at,
+            t2.name as current_com_prediction_name
         FROM {TABLE_VIDEO_FOLDER} t1
         LEFT JOIN {TABLE_PREDICTION} t2
         ON t1.current_com_prediction = t2.id
         WHERE t1.id=?""",
         (id,),
     ).fetchone()
-    if not row_video_folder:
+    if not row:
         raise HTTPException(status_code=404)
+    row = dict(row)
 
-    return_dict = dict(row_video_folder)
+    # return_dict = dict(row_video_folder)
+    return_dict = {}
+    return_dict['name'] = row['name']
+    return_dict['path'] = row['path']
+    return_dict['src_path'] = row['src_path']
+    return_dict['com_labels_file'] = row['com_labels_file']
+    return_dict['dannce_labels_file'] = row['dannce_labels_file'],
+    return_dict['current_com_prediction_id'] = row['current_com_prediction_id']
+    return_dict['camera_names'] = row['camera_names']
+    return_dict['video_width'] = row['video_width']
+    return_dict['video_height'] = row['video_height']
+    return_dict['n_cameras'] = row['n_cameras']
+    return_dict['n_animals'] = row['n_animals']
+    return_dict['n_frames'] = row['n_frames']
+    return_dict['duration_s'] = row['duration_s']
+    return_dict['fps'] = row['fps']
+    return_dict['created_at'] = row['created_at']
+    return_dict['current_com_prediction_name'] = row['current_com_prediction_name']
+
+    # derived data
+    return_dict['path_external'] = Path(settings.VIDEO_FOLDERS_FOLDER_EXTERNAL, return_dict['path'])
+    return_dict['path_internal'] = Path(settings.VIDEO_FOLDERS_FOLDER, return_dict['path'])
+
 
     label_data = get_labeled_data_in_dir(id, return_dict["path"])
 
@@ -175,10 +215,11 @@ def get_video_folder_details(id: int, session: SessionDep) -> Any:
 
     return_dict["label_files"] = label_data
 
+    # get predictions involving this video folder
     row_predictions = session.execute(
         f"""
 SELECT
-    name, id, status, mode, created_at
+    id,name, status, mode, created_at
 FROM
     {TABLE_PREDICTION}
 WHERE
@@ -191,6 +232,7 @@ ORDER BY
     row_predictions = [dict(x) for x in row_predictions]
     return_dict["prediction_data"] = row_predictions
 
+    # get predct jobs (e.g. slurm/local jobs) involving this video folder
     row_predict_job = session.execute(
         f"""
 SELECT

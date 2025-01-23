@@ -27,3 +27,4 @@ dependencies:
       - flower
       - jinja2
       - docker
+      - python-multipart

@@ -20,6 +20,9 @@ import {
   previewPrediction,
   submitDannceTrainJob,
   submitDanncePredictJob,
+  getComPreview,
+  getSkeletonPath,
+  getComHistogram,
 } from './api';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
@@ -107,6 +110,33 @@ export function useSlurmLogfileQuery(slurmJobId: number) {
     retry: false,
     queryFn: () => {
       return getSlurmLogfile(slurmJobId);
+    },
+  });
+}
+
+export function useComHistogramQuery(predictionId: number) {
+  return useQuery({
+    queryKey: ['comHistogramQuery', predictionId],
+    queryFn: () => {
+      return getComHistogram(predictionId);
+    },
+  });
+}
+
+export function useComPreviewQuery(predictionId: number, nSamples = 1000) {
+  return useQuery({
+    queryKey: ['comPreviewQuery', predictionId, nSamples],
+    queryFn: () => {
+      return getComPreview(predictionId, nSamples);
+    },
+  });
+}
+
+export function useSkeletonPath() {
+  return useQuery({
+    queryKey: ['skeletonPath'],
+    queryFn: () => {
+      return getSkeletonPath();
     },
   });
 }

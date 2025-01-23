@@ -17,7 +17,7 @@ import PredictionDetailsPage from './pages/PredictionDetailsPage';
 import WeightsPage from './pages/WeightsPage';
 import ImportVideoFoldersPage from './pages/ImportVideoFoldersPage';
 import DanncePredictPage from './pages/DanncePredictPage';
-import TestPage from './pages/TestPage';
+import SettingsPage from './pages/SettingsPage';
 
 type AppPage = {
   path: string;
@@ -36,11 +36,11 @@ export const appPages = {
     element: <MakeVideoFolderPage />,
     title: 'Make Video Folder',
   },
-  // settings: {
-  //   path: '/settings',
-  //   element: <SettingsPage />,
-  //   title: 'Settings',
-  // },
+  settings: {
+    path: '/settings',
+    element: <SettingsPage />,
+    title: 'Settings',
+  },
   monitorJobs: {
     path: '/jobs',
     element: <MonitorJobs />,
@@ -116,11 +116,6 @@ export const appPages = {
     element: <PredictionDetailsPage />,
     title: 'Prediction Details',
   },
-  testPage: {
-    path: '/test',
-    element: <TestPage />,
-    title: 'Test Page',
-  },
 } as const satisfies Record<string, AppPage>;
 
 export const customRouter = createHashRouter(
@@ -172,8 +167,8 @@ export const headerLinks: AppPage[] = [
   appPages.runtimes,
   appPages.videoFolders,
   appPages.monitorJobs,
-  // appPages.settings,
   appPages.predictionsPage,
+  appPages.settings,
 ];
 
 export const homePages = [
