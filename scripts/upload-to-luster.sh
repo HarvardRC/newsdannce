@@ -4,7 +4,7 @@
 # does not contain any secret information
 # TODO: remove from repo 
 
-OUTPUT_TARGET=./dannce-gui-1.sif
+OUTPUT_TARGET=./dannce-gui.sif
 
 echo "building docker"
 ./scripts/build-docker.sh

@@ -198,3 +198,6 @@ demo/weights
 # npm things
 
 node_modules
+
+# Singularity/Apptainer containers
+*.sif
