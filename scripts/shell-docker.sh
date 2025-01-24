@@ -1,9 +1,9 @@
 #!/bin/bash 
 
 # these ports must match the ports in dev.env file
-FASTAPI_PORT=7801
-RABBITMQ_PORT=7802
-FLOWER_PORT=7803
+FASTAPI_PORT=7701
+RABBITMQ_PORT=7702
+FLOWER_PORT=7703
 
 BASE_MOUNT=~/dannce-gui-instance
 DATA_FOLDER=~/olveczky/dannce_data
@@ -25,14 +25,11 @@ EOT
 echo "Created env file at $ENV_TEMPFILE"
 cat $ENV_TEMPFILE
 
-
 docker run \
     --rm \
     -it \
+    -p ${FASTAPI_PORT}:${FASTAPI_PORT} \
     -v $BASE_MOUNT:/mnt-data \
-    -v ./apps/gui_be/scripts:/app/scripts \
-    -v ./apps/gui_be/src:/app/src \
-    -v ./apps/gui_be/resources:/app/resources \
     -v $DATA_FOLDER:$DATA_FOLDER \
     -v /var/run/docker.sock:/var/run/docker.sock \
     --env-file ${ENV_TEMPFILE} \

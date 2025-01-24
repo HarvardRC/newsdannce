@@ -39,14 +39,19 @@ app.mount("/static", StaticFiles(directory=settings.STATIC_TMP_FOLDER), name="st
 
 # Serve frontend unless disabled (e.g. for devleopment)
 if not os.environ.get('NO_SERVE_FE', False):
+    print("Mounting frontend")
     @app.get("/app/index.html", response_class=HTMLResponse)
     async def get_app_index(request: Request):
         """Template the app index to inject API_BASE_URL"""
         with open(settings.REACT_APP_DIST_FOLDER.joinpath("index.html")) as f:
             template_str = f.read()
         template = Environment(loader=BaseLoader()).from_string(template_str)
+        logger.info(f"USING API BASE URL: {settings.API_BASE_URL}")
         html_str = template.render(API_URL_INJECTED=settings.API_BASE_URL)
         return html_str
 
 
     app.mount("/app", StaticFiles(directory=settings.REACT_APP_DIST_FOLDER), name="gui_fe")
+else:
+    print("NOT MOUTNING FRONTEND")
+    

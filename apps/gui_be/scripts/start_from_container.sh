@@ -4,14 +4,18 @@ echo "Running PROD version of script"
 
 export TMPDIR="/mnt-data/tmp" # must be set before you can use a here-doc
 
+echo "Flower disabled in non-dev mode"
+
 echo "The following variables should been set from container env-file"
 cat << EOF
+BASE_MOUNT=${BASE_MOUNT}
 FASTAPI_PORT=${FASTAPI_PORT}
 RABBITMQ_PORT=${RABBITMQ_PORT}
 SERVER_BASE_URL=${SERVER_BASE_URL}
 API_BASE_URL=${API_BASE_URL}
 REACT_APP_BASE_URL=${REACT_APP_BASE_URL}
 SDANNCE_SINGULARITY_IMG_PATH=${SDANNCE_SINGULARITY_IMG_PATH}
+MAX_CONCURRENT_LOCAL_JOBS=${MAX_CONCURRENT_LOCAL_JOBS}
 EOF
 
 echo "SETTING FIXED DIRECTORIES"

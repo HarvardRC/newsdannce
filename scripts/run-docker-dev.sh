@@ -1,8 +1,8 @@
 #!/bin/bash
 
-FASTAPI_PORT=7901
-RABBITMQ_PORT=7902
-FLOWER_PORT=7903
+FASTAPI_PORT=7911
+RABBITMQ_PORT=7912
+FLOWER_PORT=7913
 
 # folder containing dannce-gui-instance-data
 BASE_MOUNT=~/dannce-gui-instance
@@ -34,7 +34,7 @@ cat $ENV_TEMPFILE
 
 # allow killing all processes with single CTRL+C
 (trap 'kill 0' SIGINT; \
-    npm run dev --prefix=./apps/gui_fe &\
+    npm run dev --prefix=./apps/gui_fe &
     docker run \
         --rm \
         -it \
