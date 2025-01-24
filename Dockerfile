@@ -74,4 +74,4 @@ COPY --chown=$MAMBA_USER:$MAMBA_USER ./apps/gui_be/scripts /app/scripts
 
 RUN cat /app/scripts/start_from_container-dev.sh  > ./echod.txt
 
-ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "/app/scripts/start_from_container-dev.sh"]
+ENTRYPOINT ["/usr/local/bin/_entrypoint.sh", "/app/scripts/start_from_container.sh"]

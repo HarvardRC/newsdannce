@@ -29,8 +29,6 @@ from app.utils.weights import update_weights_status_by_job_id
 
 # wait at most this many seconds before killing the slurm subprocess
 SLURM_TIMEOUT_SECONDS = 10
-CONFIG_PATH = "/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/hannah-data/configs/dannce_rat_config.yaml"
-
 
 def bg_submit_com_predict_job(
     cfg: ComPredictModel,

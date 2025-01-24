@@ -3,7 +3,7 @@
 FASTAPI_PORT=7901
 RABBITMQ_PORT=7902
 BASE_MOUNT=~/dannce-data
-DATA_FOLDER=/Users/caxon/olveczky/dannce_data
+DATA_FOLDER=~/olveczky/dannce_data
 
 # make sure BASE_VOLUME exists with correct permissions
 mkdir -m777 -p $BASE_MOUNT

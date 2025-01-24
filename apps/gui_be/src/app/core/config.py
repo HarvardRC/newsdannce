@@ -45,11 +45,12 @@ class _Settings(BaseSettings):
     # e.g. full path to the resource on the host system instead of container
     # code in container MAY NOT have access to these files
     # Use these when calling Slurm or displaying a resource path to the user
-    WEIGHTS_FOLDER_EXTERNAL: PurePath = PurePosixPath(ENV_BASE_MOUNT, "weights")
-    PREDICTIONS_FOLDER_EXTERNAL: PurePath = PurePosixPath(ENV_BASE_MOUNT, "predictions")
-    VIDEO_FOLDERS_FOLDER_EXTERNAL: PurePath = PurePosixPath(ENV_BASE_MOUNT, "video_folders")
-    CONFIGS_FOLDER_EXTERNAL: PurePath = PurePosixPath(ENV_BASE_MOUNT, "configs")
-    LOGS_FOLDER_EXTERNAL: PurePath = PurePosixPath(ENV_BASE_MOUNT, "logs")
+    DATA_FOLDER_EXTERNAL: PurePath = PurePosixPath(ENV_BASE_MOUNT, 'instance' )
+    WEIGHTS_FOLDER_EXTERNAL: PurePath = PurePosixPath(DATA_FOLDER_EXTERNAL, "weights")
+    PREDICTIONS_FOLDER_EXTERNAL: PurePath = PurePosixPath(DATA_FOLDER_EXTERNAL, "predictions")
+    VIDEO_FOLDERS_FOLDER_EXTERNAL: PurePath = PurePosixPath(DATA_FOLDER_EXTERNAL, "video_folders")
+    CONFIGS_FOLDER_EXTERNAL: PurePath = PurePosixPath(DATA_FOLDER_EXTERNAL, "configs")
+    LOGS_FOLDER_EXTERNAL: PurePath = PurePosixPath(DATA_FOLDER_EXTERNAL, "logs")
 
     CELERY_BEAT_FILES: Path = Path(ENV_CELERY_BEAT_FILES)
     SLURM_LOGS_FOLDER_EXTERNAL: Path = Path(ENV_BASE_MOUNT, "slurm-logs")
