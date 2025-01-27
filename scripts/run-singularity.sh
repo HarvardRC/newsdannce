@@ -1,7 +1,7 @@
 #!/bin/bash
 
-FASTAPI_PORT=7911
-RABBITMQ_PORT=7912
+FASTAPI_PORT=7931
+RABBITMQ_PORT=7932
 
 BASE_MOUNT=~/dannce-data-singularity
 
