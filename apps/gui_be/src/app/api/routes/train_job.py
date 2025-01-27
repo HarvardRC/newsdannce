@@ -21,6 +21,7 @@ from app.utils.job import (
 )
 from app.core.config import settings
 from app.utils.make_io_yaml import config_com_train, config_dannce_train
+from app.base_logger import logger
 
 router = APIRouter()
 
@@ -64,7 +65,7 @@ def train_job_submit_com(
         curr.execute("COMMIT")
 
     except sqlite3.Error as e:
-        print("ERROR: ", e)
+        logger.info(f"ERROR: {e}")
         curr.execute("ROLLBACK")
         raise HTTPException(
             status_code=400,
@@ -129,7 +130,7 @@ def train_job_submit_dannce(
         curr.execute("COMMIT")
 
     except sqlite3.Error as e:
-        print("ERROR: ", e)
+        logger.info(f"ERROR: {e}")
         curr.execute("ROLLBACK")
         raise HTTPException(
             status_code=400,

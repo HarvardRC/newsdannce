@@ -21,6 +21,8 @@ from app.models import (
 from app.utils.job import bg_submit_com_predict_job, bg_submit_dannce_predict_job
 from app.utils.make_io_yaml import config_com_predict, config_dannce_predict
 
+from app.base_logger import logger
+
 router = APIRouter()
 
 
@@ -73,7 +75,7 @@ def predict_job_submit_com(
         curr.execute("COMMIT")
 
     except sqlite3.Error as e:
-        print("ERROR: ", e)
+        logger.info(f"ERROR: {e}")
         curr.execute("ROLLBACK")
         raise HTTPException(
             status_code=400,
@@ -147,7 +149,7 @@ def predict_job_submit_dannce(
         curr.execute("COMMIT")
 
     except sqlite3.Error as e:
-        print("ERROR: ", e)
+        logger.info(f"ERROR: {e}")
         curr.execute("ROLLBACK")
         raise HTTPException(
             status_code=400,

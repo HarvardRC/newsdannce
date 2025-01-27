@@ -35,7 +35,6 @@ def upload_skeleton_route(session: SessionDep, file: UploadFile):
   suffix = orig_path.suffix
   if suffix != ".mat":
     raise HTTPException(400, "Must upload a valid .mat file")
-  print("SUFFIX IS OK")
   try:
     m = scipy.io.loadmat(file.file)
     assert 'joints_idx' in m

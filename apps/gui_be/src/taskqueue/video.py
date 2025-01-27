@@ -124,7 +124,7 @@ def _copy_reencode_video_folder(src: Path, dest: Path):
         try:
             output.check_returncode()
         except subprocess.CalledProcessError:
-            print(f"Error processing: {output.stderr}")
+            logger.warning(f"Error processing: {output.stderr}")
             raise Exception(f"Unable to process video file:{src_file}")
         logger.info(f"Copied file {i}")
     logger.info("Copied all video files")
@@ -377,13 +377,6 @@ def _write_predictions_to_db(
             pred_video_folder = video_folder_id
             pred_created_at = pred.file_created_time
 
-            print(pred_mode)
-            print(pred_path)
-            print(pred_src_path)
-            print(pred_name)
-            print(pred_status)
-            print(pred_video_folder)
-            print(pred_created_at)
 
             curr.execute(
 f"""

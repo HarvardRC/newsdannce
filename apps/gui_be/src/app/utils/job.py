@@ -341,17 +341,17 @@ def update_jobs_by_ids(conn: Connection, job_list: list[JobStatusDataObject]) ->
             universal_newlines=True,
         )
     except subprocess.TimeoutExpired as e:
-        print(f"timed out while fetching slurm job information. Error: {e}")
+        logger.warning(f"timed out while fetching slurm job information. Error: {e}")
         raise e
     except subprocess.CalledProcessError as e:
-        print(f"Nonzero process error code. Error: {e}")
+        logger.warning(f"Nonzero process error code. Error: {e}")
         raise e
 
     logger.warning(f"Job output was: <{output_sacct}>")
 
     jobs_with_status = []
     for line in output_sacct.splitlines():
-        print(line)
+        logger.info(f"LINE: {line}")
         m = re.match(r"^(\d+),(\w+),(.+)", line)
         m_job_id = int(m.group(1))
         m_new_status = m.group(2)

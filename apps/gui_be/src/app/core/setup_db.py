@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from app.core.db import TABLE_RUNTIME, get_db_context
 import os
 from datetime import datetime
-
+from app.base_logger import logger
 
 @dataclass
 class LocalResources:
@@ -41,7 +41,7 @@ INSERT OR REPLACE INTO {TABLE_RUNTIME}(id, destination, name, memory_gb, time_hr
             ),
         )
         curr.execute("COMMIT")
-        print("UPDATED LOCAL RUNTIME")
+        logger.info("UPDATED LOCAL RUNTIME")
 
 
 def get_local_resources_slurm():

@@ -5,6 +5,7 @@ import re
 
 from app.core.db import TABLE_TRAIN_JOB, TABLE_WEIGHTS, WeightsStatus
 from app.core.config import settings
+from app.base_logger import logger
 
 def get_latest_checkpoint(weights_path: Path) -> Path:
     """Assuming training checkpoint files are in the format checkpoint-epochX.pth, return the highest X number checkpoint file
@@ -13,7 +14,7 @@ def get_latest_checkpoint(weights_path: Path) -> Path:
     NOTE: this returns the full EXTERNAL filepath
     """
     checkpoint_final = Path(settings.WEIGHTS_FOLDER, weights_path, "checkpoint-final.pth")
-    print(checkpoint_final)
+    logger.info(f"Final checkpoint: {checkpoint_final}")
     if checkpoint_final.exists() or checkpoint_final.is_symlink():
         return Path(settings.WEIGHTS_FOLDER_EXTERNAL, weights_path, "checkpoint-final.pth")
 

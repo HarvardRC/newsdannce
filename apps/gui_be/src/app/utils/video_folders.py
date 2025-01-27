@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import json
-from pprint import pp
 import sqlite3
 import traceback
 
@@ -22,6 +21,7 @@ from app.utils.video_processing import (
 )
 
 from app.core.config import settings
+from app.base_logger import logger
 
 @dataclass
 class VideoFolderComData:
@@ -58,7 +58,7 @@ def get_video_folders_for_com(
     rows = [dict(row) for row in rows]
 
     for row in rows:
-        print("ROW IS ", row)
+        logger.info(f"ROW IS {row}")
 
     rows = [
         ComExpEntry(label3d_file=Path(settings.VIDEO_FOLDERS_FOLDER_EXTERNAL, row["path"], row["com_labels_file"]))
@@ -93,7 +93,7 @@ WHERE
     rows = [dict(row) for row in rows]
 
     for row in rows:
-        print("ROW IS ", row)
+        logger.info(f"ROW IS {row}")
 
     rows = [
         DannceExpEntry(
@@ -187,7 +187,7 @@ def import_video_folders_from_paths(
                         calib_folder_maybe
                     )
                 except Exception:
-                    print(traceback.format_exc())
+                    logger.warning(f"{traceback.format_exc()}")
                     tmp_dannce_maybe_1 = Path(base_path, "tmp_dannce.mat")
                     if tmp_dannce_maybe_1.exists():
                         params = CameraParams.load_list_from_dannce_mat_file(
@@ -302,21 +302,11 @@ VALUES
                 if (pred_mode == "COM") and pred_time > latest_com_pred[0]:
                     latest_com_pred = (pred_time, curr.lastrowid)
 
-            print("\n\nVIDEO FOLDER ID\n")
-            pp(video_folder_id)
-            print("\n\nLATEST_COM_PRED\n")
-            pp(latest_com_pred)
+            logger.info(f"VIDEO FOLDER ID: {video_folder_id}")
+            logger.info(f"LATEST_COM_PRED: {latest_com_pred}")
 
             if latest_com_pred[1] is not None:
-                # result1 = curr.execute(f"SELECT * FROM {TABLE_VIDEO_FOLDER}").fetchall()
-                # result1 = [dict(x) for x in result1]
-                # print("\n\nAll Video folders\n")
-                # pp(result1)
 
-                # result2 = curr.execute(f"SELECT * FROM {TABLE_PREDICTION}").fetchall()
-                # result2 = [dict(x) for x in result2]
-                # print("\n\nAll Predictions\n")
-                # pp(result2)
 
                 curr.execute(
                     f"UPDATE {TABLE_VIDEO_FOLDER} SET current_com_prediction=? WHERE id=?",
@@ -327,7 +317,7 @@ VALUES
                 )
 
     except sqlite3.IntegrityError as e:
-        print("SQL ERROR", e)
+        logger.info(f"SQL ERROR: {e}")
         curr.execute("ROLLBACK")
         return JSONResponse(
             content={
@@ -337,8 +327,8 @@ VALUES
             status_code=status.HTTP_400_BAD_REQUEST,
         )
     except Exception as e:
-        print("ERROR: ", e)
-        print("TRACBACK", traceback.format_exc())
+        logger.warn(f"ERROR: {e}")
+        logger.info(f"TRACBACK: {traceback.format_exc()}")
         curr.execute("ROLLBACK")
         raise HTTPException(
             status_code=400,

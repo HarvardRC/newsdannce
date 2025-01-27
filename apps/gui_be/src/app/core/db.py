@@ -6,7 +6,7 @@ from contextlib import closing
 
 
 from app.core.config import settings
-
+from app.base_logger import logger
 
 def does_db_file_exist():
     if Path(settings.DB_FILE).exists():
@@ -56,7 +56,7 @@ def get_db_context():
 
 
 def init_db():
-    print("INIT'ING DB...")
+    logger.info("INIT'ING DB...")
     conn = sqlite3.connect(settings.DB_FILE)
     cursor = conn.cursor()
 
@@ -65,7 +65,7 @@ def init_db():
     cursor.executescript(query)
     conn.commit()
     conn.close()
-    print("DONE INIT'ING DB...")
+    logger.info("DONE INIT'ING DB...")
 
 
 # def populate_db():
