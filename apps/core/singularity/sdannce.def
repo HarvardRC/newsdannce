@@ -1,0 +1,45 @@
+Bootstrap: docker
+From: debian:stable-slim
+
+%environment
+    . /opt/miniconda3/bin/activate sdannce_env
+
+%post -c /bin/bash
+    apt-get -y update && apt-get install -y git wget libglib2.0-0 libsm6 libxrender1 libxext6 libgl1 libgl1-mesa-glx
+    rm -rf /var/lib/apt/lists/*
+
+    # Install miniconda
+    wget https://repo.anaconda.com/miniconda/Miniconda3-py38_4.10.3-Linux-x86_64.sh
+    bash Miniconda3-py38_4.10.3-Linux-x86_64.sh -b -p /opt/miniconda3
+    rm -f Miniconda3-py38_4.10.3-Linux-x86_64.sh
+    export PATH=/opt/miniconda3/bin:$PATH
+
+    # Create environment
+    conda create -n sdannce_env python=3.8 -y
+    source activate sdannce_env
+
+    # Clone sdannce repo
+    git clone https://github.com/tqxli/sdannce.git
+    cd sdannce
+    git checkout formats
+
+    # Install ffmpeg, cudatoolkit, and pytorch
+    conda install pytorch=1.9.1 torchvision=0.10.1 cudatoolkit=11.1 cudnn ffmpeg -c pytorch -c nvidia
+    
+    # Old setuptools version for setup.py
+    pip install setuptools==59.5.0
+
+    # Install sdannce
+    pip install -e .
+    conda clean --all --yes
+    pip cache purge
+    chmod -R a+rX /opt/miniconda3
+
+    # Make mount directories for holyoke
+    mkdir -p /n
+    mkdir -p /net
+    mkdir -p /scratch
+    mkdir -p /cvmfs
+
+%test
+    python -c "import dannce.engine; import torch; print(torch.cuda.is_available()); print(torch.version.cuda)"
