@@ -11,6 +11,9 @@ node_modules
 dist-ssr
 *.local
 
+# react frontend build
+./react-dist/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
