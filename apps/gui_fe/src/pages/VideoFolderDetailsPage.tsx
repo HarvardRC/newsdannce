@@ -41,13 +41,16 @@ const VideoFolderDetailsPage: React.FC = () => {
 
   return (
     <div>
-      <h1 className="text-xl">Video Folder information</h1>
+      <h1 className="text-xl">Video Folder Information</h1>
       <ul className="pl-4 pt-2 list-disc">
         <li>
           <span className="font-bold">Name:</span> {data.name}
         </li>
         <li>
           <span className="font-bold">Path:</span> {data.path}
+        </li>
+        <li>
+          <span className="font-bold">External Path:</span> {data.path_external}
         </li>
         <li>
           <span className="font-bold">Created on:</span>{' '}

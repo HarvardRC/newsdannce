@@ -1,8 +1,9 @@
 #!/bin/bash
+# run backend dev with docker
 
-FASTAPI_PORT=7911
-RABBITMQ_PORT=7912
-FLOWER_PORT=7913
+FASTAPI_PORT=7901
+RABBITMQ_PORT=7902
+FLOWER_PORT=7903
 
 # folder containing dannce-gui-instance-data
 BASE_MOUNT=~/dannce-gui-instance
@@ -32,24 +33,19 @@ cat $ENV_TEMPFILE
 # NOTE: run docker as read-only to ensure no data is stored in container
 # this also makes it easier to run with singularity which is always read-only
 
-# allow killing all processes with single CTRL+C
-(trap 'kill 0' SIGINT; \
-    npm run dev --prefix=./apps/gui_fe &
-    docker run \
-        --rm \
-        -it \
-        -p ${FASTAPI_PORT}:${FASTAPI_PORT} \
-        -p ${FLOWER_PORT}:${FLOWER_PORT} \
-        -v $BASE_MOUNT:/mnt-data \
-        -v ./apps/gui_be/scripts:/app/scripts \
-        -v ./apps/gui_be/src:/app/src \
-        -v ./apps/gui_be/resources:/app/resources \
-        -v $DATA_FOLDER:$DATA_FOLDER \
-        -v /var/run/docker.sock:/var/run/docker.sock \
-        --env-file ${ENV_TEMPFILE} \
-        --read-only \
-        --entrypoint /usr/local/bin/_entrypoint.sh \
-        dannce-gui \
-        /app/scripts/start_from_container-dev.sh
-)    
-
+docker run \
+    --rm \
+    -it \
+    -p ${FASTAPI_PORT}:${FASTAPI_PORT} \
+    -p ${FLOWER_PORT}:${FLOWER_PORT} \
+    -v $BASE_MOUNT:/mnt-data \
+    -v ./apps/gui_be/scripts:/app/scripts \
+    -v ./apps/gui_be/src:/app/src \
+    -v ./apps/gui_be/resources:/app/resources \
+    -v $DATA_FOLDER:$DATA_FOLDER \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    --env-file ${ENV_TEMPFILE} \
+    --read-only \
+    --entrypoint /usr/local/bin/_entrypoint.sh \
+    dannce-gui \
+    /app/scripts/start_from_container-dev.sh

@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --clearScreen false",
     "build": "tsc -b && vite build --base=\"./\"",
     "lint": "eslint .",
     "lint-fix": "eslint --fix --ext .ts,.tsx,.js,.jsx .",

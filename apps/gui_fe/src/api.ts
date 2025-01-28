@@ -151,6 +151,8 @@ type VideoFolderDetails = {
   }[];
   predict_jobs: any[];
   prediction_data: any[];
+  path_external: string;
+  path_internal: string;
 };
 
 export async function videoFolderDetails(
