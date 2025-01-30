@@ -80,10 +80,10 @@ class CreateRuntimeModel(BaseModel):
 class JobStatusDataObject(BaseModel):
     """Data object containing job status (enum) and job_id"""
 
-    train_predict_job_id:int
+    train_predict_job_id: int
     gpu_job_id: int
-    train_or_predict: int
-    job_status: int
+    train_or_predict: typing.Literal["TRAIN", "PREDICT"]
+    job_status: JobStatus
     slurm_job_id: int
     created_at: int
 
