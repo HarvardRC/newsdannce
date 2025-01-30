@@ -454,19 +454,19 @@ def update_jobs_by_ids(
     for j in updated_job_list:
         if j.train_or_predict == "TRAIN":
             if j.job_status.is_failure():
-                update_weights_status_by_job_id(conn, j.job_id, db.WeightsStatus.FAILED)
+                update_weights_status_by_job_id(conn, j.gpu_job_id, db.WeightsStatus.FAILED)
             elif j.job_status.is_success():
                 update_weights_status_by_job_id(
-                    conn, j.job_id, db.WeightsStatus.COMPLETED
+                    conn, j.gpu_job_id, db.WeightsStatus.COMPLETED
                 )
         elif j.train_or_predict == "PREDICT":
             if j.job_status.is_failure():
                 update_prediction_status_by_job_id(
-                    conn, j.job_id, db.PredictionStatus.FAILED
+                    conn, j.gpu_job_id, db.PredictionStatus.FAILED
                 )
             elif j.job_status.is_success():
                 update_prediction_status_by_job_id(
-                    conn, j.job_id, db.PredictionStatus.COMPLETED
+                    conn, j.gpu_job_id, db.PredictionStatus.COMPLETED
                 )
     conn.commit()
 
