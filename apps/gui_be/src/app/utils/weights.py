@@ -1,24 +1,32 @@
+from dataclasses import dataclass
 import json
 from pathlib import Path
 import sqlite3
 import re
+import string
 
 from app.core.db import TABLE_TRAIN_JOB, TABLE_WEIGHTS, WeightsStatus
 from app.core.config import settings
 from app.base_logger import logger
 
-def get_latest_checkpoint(weights_path: Path) -> Path:
+
+def get_latest_checkpoint_filename(weights_path: Path) -> Path:
     """Assuming training checkpoint files are in the format checkpoint-epochX.pth, return the highest X number checkpoint file
     Or return checkpoint-final.pth if it exists
 
-    NOTE: this returns the full EXTERNAL filepath
+    NOTE: this returns the filename only. Must be appended to "WEIGHTS_FOLDER[_EXTERNAL]" to get full path.
     """
-    checkpoint_final = Path(settings.WEIGHTS_FOLDER, weights_path, "checkpoint-final.pth")
+    checkpoint_final = Path(
+        settings.WEIGHTS_FOLDER, weights_path, "checkpoint-final.pth"
+    )
     logger.info(f"Final checkpoint: {checkpoint_final}")
     if checkpoint_final.exists() or checkpoint_final.is_symlink():
-        return Path(settings.WEIGHTS_FOLDER_EXTERNAL, weights_path, "checkpoint-final.pth")
+        return 'checkpoint_final.pth'
 
-    checkpoint_files = Path(settings.WEIGHTS_FOLDER, weights_path).glob("checkpoint-epoch*.pth")
+    checkpoint_files = Path(settings.WEIGHTS_FOLDER, weights_path).glob(
+        "checkpoint-epoch*.pth"
+    )
+
     try:
         checkpoint_files = (
             (x, int(re.match(r"checkpoint-epoch(\d+).pth", x.name).group(1)))
@@ -26,17 +34,28 @@ def get_latest_checkpoint(weights_path: Path) -> Path:
         )
         checkpoint_files = sorted(checkpoint_files, key=lambda x: x[1], reverse=True)
         first_checkpoint_filename = checkpoint_files[0][0].name
-        return Path(settings.WEIGHTS_FOLDER_EXTERNAL, weights_path, first_checkpoint_filename)
+
+        return first_checkpoint_filename
 
     except Exception as e:
         raise Exception(f"No checkpoint file exists. Error msg={e}")
 
 
-def get_weights_path_from_id(conn: sqlite3.Connection, weights_id) -> Path:
+@dataclass
+class WeightsPathDataType:
+    weights_path: string
+    latest_filename: string
+
+
+def get_weights_path_from_id(conn: sqlite3.Connection, weights_id) -> WeightsPathDataType:
     row = conn.execute(
         f"""
-SELECT path,status FROM {TABLE_WEIGHTS} WHERE id=?
-                 """,
+SELECT
+    path,
+    status
+FROM {TABLE_WEIGHTS}
+WHERE id=?
+        """,
         (weights_id,),
     ).fetchone()
     if not row:
@@ -45,9 +64,17 @@ SELECT path,status FROM {TABLE_WEIGHTS} WHERE id=?
         raise Exception(
             f"Weights column for id={weights_id} has non-COMPLETED status of {row['status']}"
         )
-    base_path = Path(settings.WEIGHTS_FOLDER, row["path"])
-    latest_checkpoint = get_latest_checkpoint(base_path)
-    return latest_checkpoint
+
+    weights_path = row["path"]
+
+    base_path = Path(settings.WEIGHTS_FOLDER, weights_path)
+
+    latest_checkpoint_filename = get_latest_checkpoint_filename(base_path)
+
+    return WeightsPathDataType(
+        weights_path=weights_path,
+        latest_filename=latest_checkpoint_filename
+    )
 
 
 def update_weights_status_by_job_id(

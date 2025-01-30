@@ -1,6 +1,5 @@
 import json
 import sqlite3
-from typing import Any
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field, ConfigDict
 from ruamel.yaml import YAML
@@ -53,7 +52,7 @@ class ConfigModel(BaseModel):
     batch_size: int = Field(default=4)
     epochs: int = Field(default=20)
     lr: float = Field(default=0.0001)
-    metric: list[Any] = Field(default=[])  # required to provide empty array
+    metric: list = Field(default=[])  # required to provide empty array
     loss: dict = Field(default={"L1Loss": {"loss_weight": 1.0}})
     save_period: int = Field(default=5)
     max_num_samples: int | str = Field(default="max")
@@ -185,7 +184,11 @@ def config_dannce_train(conn: sqlite3.Connection, data: TrainJobSubmitDannceMode
 
 def config_com_predict(conn: sqlite3.Connection, data: PredictJobSubmitComModel):
     video_folder_path = get_video_folder_path(conn, data.video_folder_id)
-    weights_path = get_weights_path_from_id(conn, data.weights_id)
+    weights_path_info = get_weights_path_from_id(conn, data.weights_id)
+    weights_latest_filename = weights_path_info.latest_filename
+    weights_path = weights_path_info.weights_path
+
+    weights_file_external = Path(settings.WEIGHTS_FOLDER_EXTERNAL, weights_path, weights_latest_filename)
 
     prediction_path = make_resource_name("PREDICT_COM_")
     config_path = make_resource_name("TRAIN_DANNCE_", ".yaml")
@@ -209,7 +212,7 @@ def config_com_predict(conn: sqlite3.Connection, data: PredictJobSubmitComModel)
         META_log_path=log_path,
         META_prediction_path=prediction_path,
         com_predict_dir=prediction_path_external,
-        com_predict_weights=weights_path,
+        com_predict_weights=weights_file_external,
         io_config=blank_io_yaml_file,
         **data.config,
     )
@@ -219,7 +222,12 @@ def config_com_predict(conn: sqlite3.Connection, data: PredictJobSubmitComModel)
 
 def config_dannce_predict(conn: sqlite3.Connection, data: PredictJobSubmitDannceModel):
     video_folder_path = get_video_folder_path(conn, data.video_folder_id)
-    weights_path = get_weights_path_from_id(conn, data.weights_id)
+    weights_path_info = get_weights_path_from_id(conn, data.weights_id)
+    weights_latest_filename = weights_path_info.latest_filename
+    weights_path = weights_path_info.weights_path
+
+    weights_file_external = Path(settings.WEIGHTS_FOLDER_EXTERNAL, weights_path, weights_latest_filename)
+
     com_file_path = get_com_file_path(conn, data.video_folder_id)
 
     config_path = make_resource_name("PREDICT_DANNCE_", ".yaml")
@@ -244,7 +252,7 @@ def config_dannce_predict(conn: sqlite3.Connection, data: PredictJobSubmitDannce
         META_config_path=config_path,
         META_log_path=log_path,
         dannce_predict_dir=prediction_path_external,
-        dannce_predict_model=weights_path,
+        dannce_predict_model=weights_file_external,
         io_config=blank_io_yaml_file,
         com_file=com_file_path,
         **data.config,
