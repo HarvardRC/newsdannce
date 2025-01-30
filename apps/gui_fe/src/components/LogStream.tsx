@@ -1,11 +1,11 @@
-import { useSlurmLogfileQuery } from '@/hooks';
+import { useGpuJobLogFile } from '@/hooks';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
 import { RefreshCcw } from 'lucide-react';
 
 type props = {
-  slurmJobId: number;
+  gpuJobId: number;
 };
 
 function stripProgressLines(input: string) {
@@ -13,14 +13,10 @@ function stripProgressLines(input: string) {
   return input;
 }
 
-const LogStream: React.FC<props> = ({ slurmJobId }) => {
+const LogStream: React.FC<props> = ({ gpuJobId }) => {
   const queryClient = useQueryClient();
 
-  const {
-    data: logFileData,
-    isLoading,
-    isError,
-  } = useSlurmLogfileQuery(slurmJobId);
+  const { data: logFileData, isLoading, isError } = useGpuJobLogFile(gpuJobId);
 
   if (isLoading) {
     return <div>Loading</div>;
@@ -30,7 +26,7 @@ const LogStream: React.FC<props> = ({ slurmJobId }) => {
 
   const handleRefreshButton = () => {
     queryClient.invalidateQueries({
-      queryKey: ['slurmLogfile', slurmJobId],
+      queryKey: ['gpuJobLogFile', gpuJobId],
     });
   };
 
@@ -38,7 +34,7 @@ const LogStream: React.FC<props> = ({ slurmJobId }) => {
     <div>
       <ScrollArea className="h-[500px] bg-gray-50 rounded-md border p-4 my-4">
         <pre className="text-wrap">
-          {isError && 'Error fetching log file. Perhaps it does not exist.'}
+          {isError && 'Log file does not exist yet.'}
           {!isError && isEmpty && '<Empty file>'}
           {!isError && !isEmpty && stripProgressLines(logFileData)}
         </pre>

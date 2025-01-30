@@ -30,7 +30,7 @@ import { appPages } from '@/routes';
 import { useNavigate } from 'react-router-dom';
 
 const formSchema = z.object({
-  name: z.string().min(1).max(1000),
+  name: z.string().min(0).max(1000),
   video_folder_ids: z
     .array(z.any())
     .min(1, 'Must select at least one data folder'),
@@ -99,7 +99,7 @@ const ComTrainPage = () => {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Training Job Name</FormLabel>
+                <FormLabel>Training Job Name (Optional)</FormLabel>
                 <FormControl>
                   <Input placeholder="E.g. Train COM Rat 2" {...field} />
                 </FormControl>

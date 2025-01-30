@@ -32,7 +32,7 @@ import { useNavigate } from 'react-router-dom';
 import SelectWeightsComboBox from '@/components/SelectWeightsComboBox';
 
 const formSchema = z.object({
-  name: z.string().min(1).max(1000),
+  name: z.string().min(0).max(1000),
   prediction_name: z.string().min(1).max(1000),
   video_folder_ids: z
     .array(z.any())
@@ -110,7 +110,7 @@ const ComPredictPage = () => {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Inference Job Name</FormLabel>
+                <FormLabel>Inference Job Name (Optional)</FormLabel>
                 <FormControl>
                   <Input placeholder="E.g. Predict COM Rat" {...field} />
                 </FormControl>

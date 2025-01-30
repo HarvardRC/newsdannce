@@ -200,7 +200,6 @@ export async function makeRuntime(data: MakeRuntimeData): Promise<void> {
 type ListPredictJobsType = {
   predict_job_id: number;
   predict_job_name: string;
-  stdout_file: string;
   mode: 'COM' | 'DANNCE';
   status: string;
   prediction_id: string;
@@ -212,10 +211,15 @@ type ListPredictJobsType = {
   video_folder_id: number;
   video_folder_name: string;
   // video_folder_path: string;
+  slurm_status: string;
+  local_status: string;
   slurm_job_id: number;
+  local_process_id: number;
+  runtime_type: 'LOCAL' | 'SLURM';
   runtime_id: number;
   runtime_name: string;
   created_at: number;
+  log_path_external: string | null;
 }[];
 
 export async function listPredictJobs(): Promise<ListPredictJobsType> {
@@ -224,7 +228,7 @@ export async function listPredictJobs(): Promise<ListPredictJobsType> {
 
 type ListTrainJobsType = {
   slurm_job_id: number;
-  stdout_file: string | null;
+  log_path_external: string | null;
   mode: 'COM' | 'DANNCE';
   status: string;
   train_job_id: number;
@@ -234,6 +238,10 @@ type ListTrainJobsType = {
   weights_id: number;
   weights_name: string;
   // weights_path: string;
+  local_process_id: number;
+  runtime_type: 'LOCAL' | 'SLURM';
+  slurm_status: string;
+  local_status: string;
   created_at: number;
 }[];
 
@@ -335,9 +343,14 @@ type PredictJobDetailsType = {
   prediction_path: string;
   runtime_id: number;
   runtime_name: string;
+  gpu_job_id: number;
+  runtime_type: 'LOCAL' | 'SLURM';
+  slurm_status: string;
+  local_status: string;
   slurm_job_id: number;
-  slurm_job_status: string;
-  stdout_file: string;
+  local_job_id: number;
+  log_path: string;
+  log_path_external: string;
 };
 export async function getPredictJobDetails(
   predictJobId: number
@@ -359,9 +372,14 @@ type TrainJobDetailsType = {
   }[];
   runtime_id: number;
   runtime_name: string;
+  gpu_job_id: number;
+  runtime_type: 'LOCAL' | 'SLURM';
+  slurm_status: string;
+  local_status: string;
   slurm_job_id: number;
-  slurm_job_status: string;
-  stdout_file: string;
+  local_job_id: number;
+  log_path: string;
+  log_path_external: string;
 };
 export async function getTrainJobDetails(
   trainJobId: number
@@ -382,11 +400,11 @@ export async function listWeights(): Promise<ListWeightsData> {
   return get('/weights/list');
 }
 
-export async function getSlurmLogfile(slurmJobId: number): Promise<any> {
-  if (!slurmJobId) {
+export async function getGpuJobLogFile(gpuJobId: number): Promise<any> {
+  if (!gpuJobId) {
     throw Error('getSlurmLogFIle:: slurmJobId must be defined');
   }
-  return getFile(`/jobs_common/get_log/${slurmJobId}`);
+  return getFile(`/jobs_common/get_log/${gpuJobId}`);
 }
 
 export async function getComPreview(

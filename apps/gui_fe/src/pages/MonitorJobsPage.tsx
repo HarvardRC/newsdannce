@@ -77,13 +77,21 @@ export default function MonitorJobs() {
                   </TableCell>
                   <TableCell>{x.mode}</TableCell>
                   <TableCell>{x.runtime_name}</TableCell>
-                  <TableCell>{x.status}</TableCell>
-                  <TableCell>{x.slurm_job_id}</TableCell>
+                  <TableCell>
+                    {x.runtime_type == 'SLURM'
+                      ? x.slurm_status
+                      : x.local_status}
+                  </TableCell>
+                  <TableCell>
+                    {x.runtime_type == 'SLURM'
+                      ? x.slurm_job_id
+                      : x.local_process_id}
+                  </TableCell>
                   <TableCell>{x.weights_name}</TableCell>
                   <TableCell>
                     <Tooltip>
                       <TooltipTrigger>...</TooltipTrigger>
-                      <TooltipContent>{x.stdout_file}</TooltipContent>
+                      <TooltipContent>{x.log_path_external}</TooltipContent>
                     </Tooltip>
                   </TableCell>
                   <TableCell>{timestampString(x.created_at)}</TableCell>
@@ -132,17 +140,24 @@ export default function MonitorJobs() {
                   </TableCell>
                   <TableCell>{x.mode}</TableCell>
                   <TableCell>{x.runtime_name}</TableCell>
-                  <TableCell>{x.status}</TableCell>
-                  <TableCell>{x.slurm_job_id}</TableCell>
+                  <TableCell>
+                    {x.runtime_type == 'SLURM'
+                      ? x.slurm_status
+                      : x.local_status}
+                  </TableCell>
+                  <TableCell>
+                    {x.runtime_type == 'SLURM'
+                      ? x.slurm_job_id
+                      : x.local_process_id}
+                  </TableCell>{' '}
                   <TableCell>{x.weights_name}</TableCell>
                   <TableCell>{x.prediction_name}</TableCell>
                   <TableCell>
                     <Tooltip>
                       <TooltipTrigger>...</TooltipTrigger>
-                      <TooltipContent>{x.stdout_file}</TooltipContent>
+                      <TooltipContent>{x.log_path_external}</TooltipContent>
                     </Tooltip>
                   </TableCell>
-
                   <TableCell>{timestampString(x.created_at)}</TableCell>
                   <TableCell>
                     <div className="cursor-pointer">Cancel</div>

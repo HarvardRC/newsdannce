@@ -37,6 +37,7 @@ class _Settings(BaseSettings):
     # Links relative to DATA FOLDER
     DB_FILE: Path = Path(DATA_FOLDER, "db.sqlite3")
     SLURM_TRAIN_FOLDER: Path = Path(DATA_FOLDER, "slurm-cwd")
+
     SBATCH_DEBUG_FOLDER: Path = Path(DATA_FOLDER, "sbatch-debug")
 
     # INTERNAL VERSIONS OF RESOURCE DATA
@@ -62,6 +63,8 @@ class _Settings(BaseSettings):
     CONFIGS_FOLDER_EXTERNAL: PurePath = PurePosixPath(DATA_FOLDER_EXTERNAL, "configs")
     JOB_LOGS_FOLDER_EXTERNAL: Path = Path(DATA_FOLDER_EXTERNAL, "job_logs")
     LOGS_FOLDER_EXTERNAL: Path = Path(DATA_FOLDER_EXTERNAL, "logs")
+
+    SLURM_TRAIN_FOLDER_EXTERNAL: Path = Path(DATA_FOLDER_EXTERNAL, "slurm-cwd")
 
     # required to use celery task scheduler
     CELERY_BEAT_FILES: Path = Path(ENV_CELERY_BEAT_FILES)

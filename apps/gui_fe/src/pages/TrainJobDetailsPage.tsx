@@ -28,7 +28,7 @@ const TrainJobDetailsPage: React.FC = () => {
         {JSON.stringify(trainJobData, null, 2)}
       </pre>
       <h2 className="text-xl">Log File</h2>
-      <LogStream slurmJobId={trainJobData.slurm_job_id} />
+      <LogStream gpuJobId={trainJobData.gpu_job_id} />
     </div>
   );
 };

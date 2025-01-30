@@ -77,9 +77,9 @@ class ConfigModel(BaseModel):
 
 class ComTrainModel(ConfigModel):
     META_command: JobCommand = JobCommand.TRAIN_COM
-    META_weights_path: str = None
-    META_config_path: str = None
-    META_log_path: str = None
+    META_weights_path: str = Field()
+    META_config_path: str = Field()
+    META_log_path: str = Field()
     n_channels_out: int = Field(default=1)
     crop_height: tuple[int, int] = Field(default=(0, 1152))
     crop_width: tuple[int, int] = Field(default=(0, 1920))
@@ -89,6 +89,9 @@ class ComTrainModel(ConfigModel):
 
 class ComPredictModel(ConfigModel):
     META_command: JobCommand = JobCommand.PREDICT_COM
+    META_prediction_path: str = Field()
+    META_log_path: str = Field()
+    META_config_path: str = Field()
     n_channels_out: int = Field(default=1)
     crop_height: tuple[int, int] = Field(default=(0, 1152))
     crop_width: tuple[int, int] = Field(default=(0, 1920))
@@ -98,6 +101,10 @@ class ComPredictModel(ConfigModel):
 
 class DannceTrainModel(ConfigModel):
     META_command: JobCommand = JobCommand.TRAIN_DANNCE
+    META_prediction_path: str = Field()
+    META_weights_path: str = Field()
+    META_config_path: str = Field()
+    META_log_path: str = Field()
     n_channels_out: int = Field(default=23)
     new_n_channels_out: int = Field(default=23)
     crop_height: tuple[int, int] = Field(default=(0, 1200))
@@ -108,6 +115,8 @@ class DannceTrainModel(ConfigModel):
 
 class DanncePredictModel(ConfigModel):
     META_command: JobCommand = JobCommand.PREDICT_DANNCE
+    META_log_path: str = Field()
+    META_config_path: str = Field()
     n_channels_out: int = Field(default=23)
     new_n_channels_out: int = Field(default=23)
     crop_height: tuple[int, int] = Field(default=(0, 1200))
@@ -122,8 +131,8 @@ def config_com_train(conn: sqlite3.Connection, data: TrainJobSubmitComModel):
     """Make resource names for"""
     video_folder_ids = data.video_folder_ids
     com_train_weights_path = make_resource_name("TRAIN_COM_")
-    config_path = make_resource_name("TRAIN_COM_")
-    log_path = make_resource_name("TRAIN_COM_")
+    config_path = make_resource_name("TRAIN_COM_", ".yaml")
+    log_path = make_resource_name("TRAIN_COM_", ".out")
 
     # External directory for weights
     com_train_dir_external = Path(
@@ -149,8 +158,13 @@ def config_com_train(conn: sqlite3.Connection, data: TrainJobSubmitComModel):
 
 def config_dannce_train(conn: sqlite3.Connection, data: TrainJobSubmitDannceModel):
     video_folder_ids = data.video_folder_ids
+    dannce_train_weights_path = make_resource_name("TRAIN_DANNCE_")
+    config_path = make_resource_name("TRAIN_DANNCE_", ".yaml")
+    log_path = make_resource_name("TRAIN_DANNCE_", ".out")
+
+
     dannce_train_dir = Path(
-        settings.WEIGHTS_FOLDER_EXTERNAL, make_resource_name("DANNCE_")
+        settings.WEIGHTS_FOLDER_EXTERNAL, dannce_train_weights_path
     )
 
     dannce_exps = get_video_folders_for_dannce(conn, video_folder_ids)
@@ -161,6 +175,9 @@ def config_dannce_train(conn: sqlite3.Connection, data: TrainJobSubmitDannceMode
         exp=dannce_exps,
         dannce_train_dir=dannce_train_dir,
         META_cwd=settings.SLURM_TRAIN_FOLDER,
+        META_weights_path=dannce_train_weights_path,
+        META_config_path=config_path,
+        META_log_path=log_path,
         **data.config,
     )
     return cfg
@@ -169,12 +186,16 @@ def config_dannce_train(conn: sqlite3.Connection, data: TrainJobSubmitDannceMode
 def config_com_predict(conn: sqlite3.Connection, data: PredictJobSubmitComModel):
     video_folder_path = get_video_folder_path(conn, data.video_folder_id)
     weights_path = get_weights_path_from_id(conn, data.weights_id)
-    prediction_path = Path(
-        settings.PREDICTIONS_FOLDER_EXTERNAL, make_resource_name("COM_")
-    )
 
-    prediction_path.mkdir(exist_ok=False, mode=0o777)
-    blank_io_yaml_file = Path(settings.SLURM_TRAIN_FOLDER, "io.yaml")
+    prediction_path = make_resource_name("PREDICT_COM_")
+    config_path = make_resource_name("TRAIN_DANNCE_", ".yaml")
+    log_path = make_resource_name("TRAIN_DANNCE_", ".out")
+
+    prediction_path_internal = Path(settings.PREDICTIONS_FOLDER, prediction_path )
+    prediction_path_external = Path(settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path)
+    prediction_path_internal.mkdir(exist_ok=False, mode=0o777)
+
+    blank_io_yaml_file = Path(settings.SLURM_TRAIN_FOLDER_EXTERNAL, "io.yaml")
 
     prediction_path_external = Path(
         settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path.name
@@ -182,6 +203,9 @@ def config_com_predict(conn: sqlite3.Connection, data: PredictJobSubmitComModel)
 
     cfg = ComPredictModel(
         META_cwd=video_folder_path,
+        META_config_path=config_path,
+        META_log_path=log_path,
+        META_prediction_path=prediction_path,
         com_predict_dir=prediction_path_external,
         com_predict_weights=weights_path,
         io_config=blank_io_yaml_file,
@@ -195,6 +219,10 @@ def config_dannce_predict(conn: sqlite3.Connection, data: PredictJobSubmitDannce
     video_folder_path = get_video_folder_path(conn, data.video_folder_id)
     weights_path = get_weights_path_from_id(conn, data.weights_id)
     com_file_path = get_com_file_path(conn, data.video_folder_id)
+
+    config_path = make_resource_name("PREDICT_DANNCE_", ".yaml")
+    log_path = make_resource_name("PREDICT_DANNCE_", ".out")
+
     prediction_path = Path(
         settings.PREDICTIONS_FOLDER_EXTERNAL, make_resource_name("DANNCE_")
     )
@@ -209,6 +237,8 @@ def config_dannce_predict(conn: sqlite3.Connection, data: PredictJobSubmitDannce
 
     cfg = DanncePredictModel(
         META_cwd=video_folder_path,
+        META_config_path=config_path,
+        META_log_path=log_path,
         dannce_predict_dir=prediction_path_external,
         dannce_predict_model=weights_path,
         io_config=blank_io_yaml_file,

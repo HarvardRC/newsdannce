@@ -11,7 +11,6 @@ import {
   refreshJobs,
   getPredictJobDetails,
   getTrainJobDetails,
-  getSlurmLogfile,
   submitComPredictJob,
   listWeights,
   listPredictions,
@@ -23,6 +22,7 @@ import {
   getComPreview,
   getSkeletonPath,
   getComHistogram,
+  getGpuJobLogFile,
 } from './api';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
@@ -104,12 +104,12 @@ export function useVideoFolderDetailsQuery(videoFolderId: number) {
   });
 }
 
-export function useSlurmLogfileQuery(slurmJobId: number) {
+export function useGpuJobLogFile(gpuJobId: number) {
   return useQuery({
-    queryKey: ['slurmLogfile', slurmJobId],
+    queryKey: ['gpuJobLogFile', gpuJobId],
     retry: false,
     queryFn: () => {
-      return getSlurmLogfile(slurmJobId);
+      return getGpuJobLogFile(gpuJobId);
     },
   });
 }

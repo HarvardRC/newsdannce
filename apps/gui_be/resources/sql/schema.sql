@@ -26,7 +26,7 @@ CREATE TABLE runtime (
 CREATE TABLE prediction (
     id INTEGER PRIMARY KEY NOT NULL,
     name TEXT NOT NULL, --human readible name
-    path TEXT NOT NULL UNIQUE, --path to the prediction folder (may not be inside video folder)
+    path TEXT NOT NULL UNIQUE, --path to the prediction folder
     src_path TEXT, --path where the video was imported from (if relevant)
     status TEXT DEFAULT 'PENDING'
         CHECK(status IN (

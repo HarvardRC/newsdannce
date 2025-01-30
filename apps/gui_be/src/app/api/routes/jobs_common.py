@@ -28,16 +28,16 @@ def update_live_jobs(conn: SessionDep):
 @router.get("/get_log/{gpu_job_id}")
 def get_job_log(conn: SessionDep, gpu_job_id: int, ):
     row = conn.execute(
-        f"SELECT log_file FROM {TABLE_GPU_JOB} WHERE id = ?",
+        f"SELECT log_path FROM {TABLE_GPU_JOB} WHERE id = ?",
         (gpu_job_id,),
     ).fetchone()
 
     if not row:
-        raise HTTPException(status_code=404)
+        raise HTTPException(status_code=500)
 
     row = dict(row)
-    log_file = row['log_file']
-    p = Path(settings.JOB_LOGS_FOLDER, log_file)
+    log_path = row['log_path']
+    p = Path(settings.JOB_LOGS_FOLDER, log_path)
 
     if not p.exists():
         raise HTTPException(

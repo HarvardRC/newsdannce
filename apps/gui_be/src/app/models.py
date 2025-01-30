@@ -10,7 +10,7 @@ from app.core.db import JobMode, JobStatus, PredictionStatus, WeightsStatus
 
 
 class TrainJobSubmitComModel(BaseModel):
-    name: str
+    name: str = Field(default="[none]")
     output_model_name: str
     video_folder_ids: list[int]
     config: Json[Any] = Field(default="{}", validate_default=True)
@@ -20,7 +20,7 @@ class TrainJobSubmitComModel(BaseModel):
 
 
 class TrainJobSubmitDannceModel(BaseModel):
-    name: str
+    name: str = Field(default="[none]")
     output_model_name: str
     video_folder_ids: list[int]
     config: Json[Any] = Field(default="{}", validate_default=True)
@@ -30,7 +30,7 @@ class TrainJobSubmitDannceModel(BaseModel):
 
 
 class PredictJobSubmitComModel(BaseModel):
-    name: str
+    name: str = Field(default="[none]")
     prediction_name: str
     weights_id: int
     video_folder_id: int
@@ -39,7 +39,7 @@ class PredictJobSubmitComModel(BaseModel):
 
 
 class PredictJobSubmitDannceModel(BaseModel):
-    name: str
+    name: str = Field(default="[none]")
     prediction_name: str
     weights_id: int
     video_folder_id: int
@@ -80,11 +80,18 @@ class CreateRuntimeModel(BaseModel):
 class JobStatusDataObject(BaseModel):
     """Data object containing job status (enum) and job_id"""
 
+    train_predict_job_id:int
+    gpu_job_id: int
+    train_or_predict: int
+    job_status: int
     slurm_job_id: int
-    job_status: JobStatus
-    train_or_predict: typing.Literal["TRAIN", "PREDICT"]
-    job_id: int
     created_at: int
+
+    # slurm_job_id: int
+    # job_status: JobStatus
+    # train_or_predict: typing.Literal["TRAIN", "PREDICT"]
+    # job_id: int
+    # created_at: int
 
 
 class WeightsDataObject(BaseModel):

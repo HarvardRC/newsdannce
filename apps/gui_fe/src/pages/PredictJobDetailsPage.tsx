@@ -26,7 +26,7 @@ const PredictJobDetailsPage: React.FC = () => {
         {JSON.stringify(predictJobData, null, 2)}
       </pre>
       <h2 className="text-xl">Log File</h2>
-      <LogStream slurmJobId={predictJobData.slurm_job_id} />
+      <LogStream gpuJobId={predictJobData.gpu_job_id} />
     </div>
   );
 };

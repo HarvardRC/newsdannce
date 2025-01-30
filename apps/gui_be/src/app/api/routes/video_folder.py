@@ -244,7 +244,7 @@ CHUNK_SIZE = 4 * 1024 * 1024
 
 
 @router.get("/{id}/stream")
-def stream_video(
+def stream_video_route(
     conn: SessionDep, id: int, camera_name: str, range: str = Header(None)
 ) -> Any:
     logger.info(f"Video folder preview {id}")

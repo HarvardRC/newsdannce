@@ -110,7 +110,7 @@ const DanncePredictPage = () => {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Inference Job Name</FormLabel>
+                <FormLabel>Inference Job Name (Optional)</FormLabel>
                 <FormControl>
                   <Input placeholder="E.g. Predict DANNCE Rat" {...field} />
                 </FormControl>
