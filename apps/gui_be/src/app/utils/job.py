@@ -394,7 +394,7 @@ def update_jobs_by_ids(
     jobs_with_status: list[JobWithStatusType] = []
     for line in output_sacct.splitlines():
         logger.info(f"LINE: {line}")
-        m = re.match(r"^(\d+),(\w+),(.+)", line)
+        m = re.match(r"^(\d+),(\w+)", line)
         m_job_id = int(m.group(1))
         m_new_status = m.group(2)
         jobs_with_status.append(JobWithStatusType(
