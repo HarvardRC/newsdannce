@@ -339,9 +339,9 @@ WHERE t2.slurm_status IN ({nonfinal_statuses})
             train_predict_job_id=row["train_predict_job_id"],
             gpu_job_id=row["gpu_job_id"],
             train_or_predict=row["train_or_predict"],
-            job_status=row["status"],
-            created_at=row["created_at"],
+            job_status=row["slurm_status"],
             slurm_job_id=row["slurm_job_id"],
+            created_at=row["created_at"],
         )
         for row in rows
     ]
