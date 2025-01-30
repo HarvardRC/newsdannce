@@ -201,8 +201,10 @@ def config_com_predict(conn: sqlite3.Connection, data: PredictJobSubmitComModel)
         settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path
     )
 
+    video_folder_path_external = Path(settings.VIDEO_FOLDERS_FOLDER_EXTERNAL, video_folder_path)
+
     cfg = ComPredictModel(
-        META_cwd=video_folder_path,
+        META_cwd=video_folder_path_external,
         META_config_path=config_path,
         META_log_path=log_path,
         META_prediction_path=prediction_path,
@@ -235,8 +237,10 @@ def config_dannce_predict(conn: sqlite3.Connection, data: PredictJobSubmitDannce
         settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path.name
     )
 
+    video_folder_path_external = Path(settings.VIDEO_FOLDERS_FOLDER_EXTERNAL, video_folder_path)
+
     cfg = DanncePredictModel(
-        META_cwd=video_folder_path,
+        META_cwd=video_folder_path_external,
         META_config_path=config_path,
         META_log_path=log_path,
         dannce_predict_dir=prediction_path_external,
