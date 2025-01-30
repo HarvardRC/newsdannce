@@ -170,7 +170,7 @@ def predict_job_submit_dannce(conn: SessionDep, user_data: PredictJobSubmitDannc
 
         predict_job_id = curr.lastrowid
 
-        # save config file to intance file system
+        # save config file to instance file system
         config_path_internal = Path(settings.CONFIGS_FOLDER, config_path)
         with open(config_path_internal, "wt") as f:
             yaml_config = config_model.to_yaml_string()
@@ -312,14 +312,7 @@ FROM {TABLE_PREDICT_JOB} t1
         ON t1.runtime = t6.id
 """).fetchall()
     rows = [dict(x) for x in rows]
-    for row in rows:
-        if row["stdout_file"] is not None:
-            row["stdout_file"] = row["stdout_file"].replace(
-                "%j", str(row["slurm_job_id"])
-            )
-        row["status"] = (
-            row["slurm_status"] if row["job_type"] == "SLURM" else row["local_status"]
-        )
+
     return rows
 
 
@@ -388,7 +381,8 @@ WHERE
         "slurm_job_id": row["slurm_job_id"],
         "slurm_job_status": row["slurm_job_status"],
         "local_job_status": row["local_job_status"],
-        "stdout_file": row["log_path"],
+        "log_path": row["log_path"],
+        "log_path_external": Path(settings.JOB_LOGS_FOLDER_EXTERNAL, row["log_path"]),
         "prediction_id": row["prediction_id"],
         "prediction_path": row["prediction_path"],
         "video_folder_id": row["video_folder_id"],
