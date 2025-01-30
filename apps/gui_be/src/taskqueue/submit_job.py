@@ -82,7 +82,7 @@ def submit_train_job(
 @celery_app.task
 def submit_predict_job(
     mode: Literal["COM", "DANNCE"],
-    train_job_id: int,
+    predict_job_id: int,
     runtime_id: int,
     job_name: str,
     log_path: str,
@@ -134,7 +134,7 @@ def submit_predict_job(
         # update jobs row to reflect job has been submitted
         curr.execute(
             f"UPDATE {TABLE_GPU_JOB} SET slurm_job_id = ?, slurm_status = 'PENDING' WHERE id = ?",
-            (slurm_job_id, train_job_id),
+            (slurm_job_id, predict_job_id),
         )
 
         conn.execute("COMMIT")
