@@ -122,28 +122,31 @@ const VideoFolderDetailsPage: React.FC = () => {
           </CollapsibleContent>
         </Collapsible>
       </div>
-      <div className="my-8">
-        {showPreview ? (
-          <>
-            <h2 className="text-xl">Video Preview</h2>
-            <video autoPlay controls className="max-w-xl">
-              <source
-                src={make_url(
-                  BASE_API_URL,
-                  `video_folder/${id}/stream?camera_name=Camera1`
-                )}
-                type="video/mp4"
-              ></source>
-            </video>
-          </>
-        ) : (
-          <div>
-            <Button onClick={() => setShowPreview(true)}>
-              Show Video Preview
-            </Button>
-          </div>
-        )}
-      </div>
+      {/* Only show view preview if import is successful */}
+      {data.status == 'COMPLETED' && (
+        <div className="my-8">
+          {showPreview ? (
+            <>
+              <h2 className="text-xl">Video Preview</h2>
+              <video autoPlay controls className="max-w-xl">
+                <source
+                  src={make_url(
+                    BASE_API_URL,
+                    `video_folder/${id}/stream?camera_name=Camera1`
+                  )}
+                  type="video/mp4"
+                ></source>
+              </video>
+            </>
+          ) : (
+            <div>
+              <Button onClick={() => setShowPreview(true)}>
+                Show Video Preview
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

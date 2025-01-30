@@ -328,7 +328,7 @@ FROM (
     FROM {db.TABLE_PREDICT_JOB}
     ) t1
 LEFT JOIN {db.TABLE_GPU_JOB} t2 ON t1.gpu_job_id = t2.id
-LEFT JOIN {db.TABLE_RUNTIME} t3.id ON t1.runtime_id
+LEFT JOIN {db.TABLE_RUNTIME} t3 ON t1.runtime_id = t3.id
 WHERE t2.slurm_status IN ({nonfinal_statuses})
     AND t3.runtime_type='SLURM'
 """
