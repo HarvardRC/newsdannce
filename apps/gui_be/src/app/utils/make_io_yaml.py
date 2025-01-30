@@ -198,7 +198,7 @@ def config_com_predict(conn: sqlite3.Connection, data: PredictJobSubmitComModel)
     blank_io_yaml_file = Path(settings.SLURM_TRAIN_FOLDER_EXTERNAL, "io.yaml")
 
     prediction_path_external = Path(
-        settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path.name
+        settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path
     )
 
     cfg = ComPredictModel(
