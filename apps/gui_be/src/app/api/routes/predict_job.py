@@ -353,7 +353,7 @@ FROM
     LEFT JOIN {TABLE_RUNTIME} t3
         ON t1.runtime = t3.id
     LEFT JOIN {TABLE_GPU_JOB} t4
-        ON t1.gpu_job_id = t4.id
+        ON t1.gpu_job = t4.id
     LEFT JOIN {TABLE_PREDICTION} t5
         ON t1.prediction = t5.id
     LEFT JOIN {TABLE_VIDEO_FOLDER} t6
