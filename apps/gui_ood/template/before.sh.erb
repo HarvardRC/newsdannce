@@ -1,0 +1,76 @@
+#!/user/bin/bash
+# This script (`before.sh.erb`) is sourced directly into the main Bash script
+# that is run when the batch job starts up. It is called before the `script.sh`
+# is forked off into a separate process.
+#
+# There are some helpful Bash functions that are made available to this script
+# that encapsulate commonly used routines when initializing a web server:
+#
+#   - find_port
+#       Find available port in range [$1..$2]
+#       Default: 2000 65535
+#
+#   - create_passwd
+#       Generate random alphanumeric password with $1 characters
+#       Default: 32
+#
+
+# Export the module function if it exists
+[[ $(type -t module) == "function" ]] && export -f module
+
+BASE_PROXY_HOST="https://rcood.rc.fas.harvard.edu/rnode/${SLURM_NODELIST}.rc.fas.harvard.edu"
+
+export port=$(find_port localhost 7000 11000 )
+export FASTAPI_PORT=${port}
+
+export FLOWER_PORT=$(find_port localhost 7000 11000)
+export RABBITMQ_PORT=$(find_port)
+
+export FLOWER_BASE_URL="${BASE_PROXY_HOST}/${FLOWER_PORT}"
+export SERVER_BASE_URL="${BASE_PROXY_HOST}/${FASTAPI_PORT}"
+export API_BASE_URL="${SERVER_BASE_URL}/v1"
+export REACT_APP_BASE_URL="${SERVER_BASE_URL}/app/index.html"
+export SDANNCE_SINGULARITY_IMG_PATH=<%= context.sdannce_singularity_img_path %>
+export DANNCE_GUI_SINGULARITY_IMG_PATH=<%= context.dannce_gui_singularity_img_path %>
+
+export ENV_FILE=${PWD}/ood.env
+export BASE_MOUNT=<%= context.instance_dir %>
+echo "Base Mount (instance_dir): $BASE_MOUNT (making if does not exist)"
+
+mkdir -p $BASE_MOUNT
+
+echo "FLOWER PORT IS ${FLOWER_PORT}"
+echo "FLOWER URL IS: ${FLOWER_BASE_URL}"
+
+# write an env file used to launch singularity
+cat <<EOT >> $ENV_FILE
+BASE_MOUNT=${BASE_MOUNT}
+FASTAPI_PORT=${FASTAPI_PORT}
+RABBITMQ_PORT=${RABBITMQ_PORT}
+FLOWER_PORT=${FLOWER_PORT}
+SERVER_BASE_URL=${SERVER_BASE_URL}
+FLOWER_BASE_URL=${FLOWER_BASE_URL}
+API_BASE_URL="${API_BASE_URL}"
+REACT_APP_BASE_URL="${REACT_APP_BASE_URL}"
+SDANNCE_SINGULARITY_IMG_PATH="${SDANNCE_SINGULARITY_IMG_PATH}"
+MAX_CONCURRENT_LOCAL_JOBS=0
+EOT
+
+export JOBROOT=$PWD
+
+echo "Cat'ing env file"
+cat $ENV_FILE
+echo "Eching env varibales..."
+echo "RABBITMQ_PORT=${RABBITMQ_PORT}"
+echo "FASTAPI_PORT=${FASTAPI_PORT}"
+echo "FLOWER_PORT=${FLOWER_PORT}"
+echo "SERVER_BASE_URL=${SERVER_BASE_URL}"
+echo "API_BASE_URL=${API_BASE_URL}"
+echo "REACT_APP_BASE_URL=${REACT_APP_BASE_URL}"
+echo "ENV_FILE=${ENV_FILE}"
+echo "JOBROOT=${JOBROOT}"
+echo "SDANNCE_SINGULARITY_IMG_PATH=${SDANNCE_SINGULARITY_IMG_PATH}"
+echo "DANNCE_GUI_SINGULARITY_IMG_PATH=${DANNCE_GUI_SINGULARITY_IMG_PATH}"
+echo "HOSTNAME:"
+hostname -I
+echo "DONE WITH BEFORE SCRIPT"

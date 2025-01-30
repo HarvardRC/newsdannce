@@ -1,0 +1,45 @@
+---
+name: DANNCE GUI
+cluster: "odyssey3"
+cacheable: true
+
+form:
+  - bc_account # slurm_account
+  - bc_queue # queue = partition
+  - bc_num_hours # max runtime in hours
+  - mem_gb # memory in GB to request in SBATCH job
+  - instance_dir # directory where DANNCE_GUI data is stored (default provided if empty)
+  - num_cores # number of cores to request in SBATCH job
+  - dannce_gui_singularity_img_path # path to dannce_gui .sif file
+  - sdannce_singularity_img_path # path to sdannce .sif file
+
+attributes:
+  num_cores:
+    widget: "number_field"
+    label: "Number of cores"
+    value: 12
+    min: 1
+    max: 112
+    step: 1
+  mem_gb:
+    widget: "number_field"
+    label: "Memory (GB)"
+    value: 12
+    min: 4
+    max: 2000
+    step: 1
+  instance_dir:
+    widget: "text_field"
+    label: "Instance Directory"
+    help: |
+      Folder containing DANNCE_GUI instance data
+  dannce_gui_singularity_img_path:
+    widget: "text_field"
+    label: "DANNCE GUI Container Path"
+    help: |
+      Path to the singularity image for dannce gui (with extension .sif)
+  sdannce_singularity_img_path:
+    widget: "text_field"
+    label: "SDANNCE Container Path"
+    help: |
+      Path to the singularity image for sdannce (with extension .sif)

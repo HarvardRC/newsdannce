@@ -1,0 +1,7 @@
+---
+batch_connect:
+  template: "basic"
+script:
+  native:
+    - "--mem=<%= mem_gb %>G"
+    - "--cpus-per-task=<%= num_cores.to_i %>"

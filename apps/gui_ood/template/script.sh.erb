@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+
+# Benchmark info
+echo "TIMING - STARTING main script at: $(date)"
+echo "SLURM JOB ID IS: $SLURM_JOB_ID"
+echo "NODE NAME IS: $SLURM_NODELIST"
+
+echo "TIMING - Staring setup at: $(date)"
+
+echo ">>> TRYING TO RUN"
+
+SING_BINDS=\
+'-B /etc/nsswitch.conf '\
+'-B /etc/slurm '\
+'-B /lib64/libnss_sss.so.2:/lib/libnss_sss.so.2 '\
+'-B /run/munge '\
+'-B /slurm '\
+'-B /usr/bin/sacct '\
+'-B /usr/bin/salloc '\
+'-B /usr/bin/sbatch '\
+'-B /usr/bin/scancel '\
+'-B /usr/bin/scontrol '\
+'-B /usr/bin/scrontab '\
+'-B /usr/bin/seff '\
+'-B /usr/bin/sinfo '\
+'-B /usr/bin/squeue '\
+'-B /usr/bin/srun '\
+'-B /usr/bin/sshare '\
+'-B /usr/bin/sstat '\
+'-B /usr/bin/strace '\
+'-B /usr/lib64/libmunge.so.2 '\
+'-B /usr/lib64/slurm '\
+'-B /var/lib/sss'
+
+singularity run \
+    $SING_BINDS \
+    --bind ${BASE_MOUNT}:/mnt-data \
+    --bind ${BASE_MOUNT}:/${BASE_MOUNT} \
+    --env-file ${ENV_FILE} \
+    ${DANNCE_GUI_SINGULARITY_IMG_PATH}
+
+echo "TIMING - FINISHED main script at: $(date)"
