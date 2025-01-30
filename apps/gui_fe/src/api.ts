@@ -6,7 +6,11 @@ export function make_url(...segments: string[]) {
   return segments.join('/');
 }
 
-export async function post(route: string, data: object = {}) {
+export async function post(
+  route: string,
+  data: object = {},
+  onError?: Function
+) {
   const full_url: string = make_url(BASE_API_URL, route);
   const response = await fetch(full_url, {
     method: 'POST',
@@ -17,6 +21,9 @@ export async function post(route: string, data: object = {}) {
   });
   if (response.status >= 200 && response.status < 300) {
     return await response.json();
+  }
+  if (onError) {
+    onError(response);
   }
   throw Error(`Invalid status: ${response.status}`);
 }
@@ -114,6 +121,7 @@ type ListVideoFolder = {
   com_labels_file?: string;
   dannce_labels_file?: string;
   current_com_prediction?: number;
+  status: string;
 }[];
 
 export async function listVideoFolders(): Promise<ListVideoFolder> {
@@ -123,6 +131,8 @@ export async function listVideoFolders(): Promise<ListVideoFolder> {
 type VideoFolderDetails = {
   id: number;
   name: string;
+  status: string;
+  src_path: string;
   path: string;
   created_at: number;
   com_labels_file?: string;
@@ -307,7 +317,7 @@ export async function submitDanncePredictJob(
 }
 
 export async function refreshJobs(): Promise<void> {
-  return post('/jobs_common/update-live-jobs', {});
+  return post('/jobs_common/update_live_jobs', {});
 }
 
 type PredictJobDetailsType = {
@@ -415,6 +425,7 @@ export async function importVideoFolders(
   if (data.paths.length == 0) {
     throw Error('importVideoFolders:: paths[] must not be empty');
   }
+
   return post('/video_folder/import_from_paths', data);
 }
 

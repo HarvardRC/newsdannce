@@ -244,6 +244,9 @@ export function useImportVideoFoldersMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['listVideoFolders'] });
     },
+    onError: (err) => {
+      console.log('ERROR RESPONSE IS ', err);
+    },
   });
 }
 

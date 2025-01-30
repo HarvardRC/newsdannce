@@ -1,16 +1,19 @@
+"""
+/predict_job
+"""
+
 from pathlib import Path
 import sqlite3
 from typing import Any
-import uuid
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 
 from app.api.deps import SessionDep
 from app.core.config import settings
 from app.core.db import (
+    TABLE_GPU_JOB,
     TABLE_PREDICT_JOB,
     TABLE_PREDICTION,
     TABLE_RUNTIME,
-    TABLE_SLURM_JOB,
     TABLE_VIDEO_FOLDER,
     TABLE_WEIGHTS,
 )
@@ -22,28 +25,28 @@ from app.utils.job import bg_submit_com_predict_job, bg_submit_dannce_predict_jo
 from app.utils.make_io_yaml import config_com_predict, config_dannce_predict
 
 from app.base_logger import logger
+from app.utils.helpers import make_resource_name
 
 router = APIRouter()
 
 
 @router.post("/submit_com")
 def predict_job_submit_com(
-    session: SessionDep,
+    conn: SessionDep,
     data: PredictJobSubmitComModel,
     background_tasks: BackgroundTasks,
 ):
-    # return {"message": "Thank u"}
-    m = config_com_predict(session, data)
+    """Submit a predict job"""
+    m = config_com_predict(conn, data)
 
-    # return {"config_com_pred": m}
     cfg_json = m.to_json_string()
 
     config_file = Path(
-        settings.CONFIGS_FOLDER_EXTERNAL, f"predict_com_config_{uuid.uuid4().hex}.yaml"
+        settings.CONFIGS_FOLDER_EXTERNAL,
+        make_resource_name("predict_com_config_", ".yaml"),
     )
 
-    """Submit a predict job"""
-    curr = session.cursor()
+    curr = conn.cursor()
     curr.execute("BEGIN")
     try:
         prediction_path = str(m.com_predict_dir)
@@ -102,22 +105,23 @@ def predict_job_submit_com(
 
 @router.post("/submit_dannce")
 def predict_job_submit_dannce(
-    session: SessionDep,
+    conn: SessionDep,
     data: PredictJobSubmitDannceModel,
     background_tasks: BackgroundTasks,
 ):
-    # return {"message": "Thank u"}
-    m = config_dannce_predict(session, data)
+    """Submit a predict job"""
 
-    # return {"config_com_pred": m}
+    return []
+    m = config_dannce_predict(conn, data)
+
     cfg_json = m.to_json_string()
 
     config_file = Path(
-        settings.CONFIGS_FOLDER_EXTERNAL, f"predict_dannce_config_{uuid.uuid4().hex}.yaml"
+        settings.CONFIGS_FOLDER_EXTERNAL,
+        make_resource_name("predict_dannce_config_", ".yaml"),
     )
 
-    """Submit a predict job"""
-    curr = session.cursor()
+    curr = conn.cursor()
     curr.execute("BEGIN")
     try:
         prediction_path = str(m.dannce_predict_dir)
@@ -175,32 +179,34 @@ def predict_job_submit_dannce(
 
 
 @router.get("/list")
-def list_all_predict_jobs(session: SessionDep):
-    rows = session.execute(f"""
+def list_all_predict_jobs(conn: SessionDep):
+    return []
+    rows = conn.execute(f"""
 SELECT
-    t1.id as predict_job_id,
-    t1.name as predict_job_name,
-    t1.created_at as created_at,
-    t1.weights as weights_id,
-    t1.slurm_job as slurm_job_id,
-    t1.prediction as prediction_id,
-    t1.video_folder as video_folder_id,
-    t1.runtime as runtime_id,
-    t2.name as weights_name,
-    t2.mode as mode,
-    t3.status as status,
-    t3.stdout_file as stdout_file,
-    t4.name as video_folder_name,
-    t5.name as prediction_name
+    t1.id AS predict_job_id,
+    t1.name AS predict_job_name,
+    t1.created_at AS created_at,
+    t1.weights AS weights_id,
+    t1.gpu_job AS gpu_job_id,
+    t1.prediction AS prediction_id,
+    t1.video_folder AS video_folder_id,
+    t1.runtime AS runtime_id,
+    t2.name AS weights_name,
+    t2.mode AS mode,
+    t3.local_status AS local_status,
+    t3.slurm_status AS slurm_status,
+    t3.log_path AS log_path,
+    t4.name AS video_folder_name,
+    t5.name AS prediction_name
 FROM {TABLE_PREDICT_JOB} t1
     LEFT JOIN {TABLE_WEIGHTS} t2
-        ON t1.weights=t2.id
-    LEFT JOIN {TABLE_SLURM_JOB} t3
-        ON t1.slurm_job=t3.slurm_job_id
+        ON t1.weights = t2.id
+    LEFT JOIN {TABLE_GPU_JOB} t3
+        ON t1.gpu_job = t3.id
     LEFT JOIN {TABLE_VIDEO_FOLDER} t4
-        ON t1.video_folder=t4.id
+        ON t1.video_folder = t4.id
     LEFT JOIN {TABLE_PREDICTION} t5
-        ON t1.prediction=t5.id
+        ON t1.prediction = t5.id
 """).fetchall()
     rows = [dict(x) for x in rows]
     for row in rows:
@@ -208,61 +214,62 @@ FROM {TABLE_PREDICT_JOB} t1
             row["stdout_file"] = row["stdout_file"].replace(
                 "%j", str(row["slurm_job_id"])
             )
+        row["status"] = (
+            row["slurm_status"] if row["job_type"] == "SLURM" else row["local_status"]
+        )
     return rows
 
 
 @router.get("/{id}")
-def get_predict_job(id: int, session: SessionDep) -> Any:
-    # row = None
-    # if not row:
-    #     raise HTTPException(status_code=404)
-
-    row = session.execute(
+def get_predict_job(
+    conn: SessionDep,
+    id: int,
+) -> Any:
+    row = conn.execute(
         f"""
 SELECT
     t1.name,
     t1.config,
-    t1.runtime as runtime_id,
-    t1.weights as weights_id,
-    t1.slurm_job as slurm_job_id,
-    t1.prediction as prediction_id,
-    t1.video_folder as video_folder_id,
+    t1.runtime AS runtime_id,
+    t1.weights AS weights_id,
+    t1.id AS gpu_job_id,
+    t1.prediction AS prediction_id,
+    t1.video_folder AS video_folder_id,
     t2.mode,
-    t2.path as weights_path,
-    t2.name as weights_name,
-    t2.status as weights_status,
-    t3.name as runtime_name,
-    t4.status as slurm_job_status,
-    t4.stdout_file as stdout_file,
-    t5.status as prediction_status,
-    t5.path as prediction_path,
-    t6.name as video_folder_name,
-    t6.path as video_folder_path
+    t2.path AS weights_path,
+    t2.name AS weights_name,
+    t2.status AS weights_status,
+    t3.name AS runtime_name,
+    t4.slurm_status AS slurm_status,
+    t4.local_status AS local_status,
+    t4.slurm_job_id AS slurm_job_id,
+    t4.local_process_id AS local_process_id,
+    t4.log_path AS log_path,
+    t5.status AS prediction_status,
+    t5.path AS prediction_path,
+    t6.name AS video_folder_name,
+    t6.path AS video_folder_path
 FROM
     {TABLE_PREDICT_JOB} t1
     LEFT JOIN {TABLE_WEIGHTS} t2
-        ON t1.weights=t2.id
+        ON t1.weights = t2.id
     LEFT JOIN {TABLE_RUNTIME} t3
-        ON t1.runtime=t3.id
-    LEFT JOIN {TABLE_SLURM_JOB} t4
-        ON t1.slurm_job=t4.slurm_job_id
+        ON t1.runtime = t3.id
+    LEFT JOIN {TABLE_GPU_JOB} t4
+        ON t1.gpu_job_id = t4.id
     LEFT JOIN {TABLE_PREDICTION} t5
         ON t1.prediction = t5.id
     LEFT JOIN {TABLE_VIDEO_FOLDER} t6
         ON t1.video_folder = t6.id
 WHERE
-    t1.id=?""",
+    t1.id = ?
+""",
         (id,),
     ).fetchone()
     if not row:
         raise HTTPException(status_code=404)
 
     row = dict(row)
-
-    if row["stdout_file"]:
-        stdout_file = row["stdout_file"].replace("%j", str(row["slurm_job_id"]))
-    else:
-        stdout_file = None
 
     data = {
         "name": row["name"],
@@ -275,7 +282,8 @@ WHERE
         "runtime_name": row["runtime_name"],
         "slurm_job_id": row["slurm_job_id"],
         "slurm_job_status": row["slurm_job_status"],
-        "stdout_file": stdout_file,
+        "local_job_status": row["local_job_status"],
+        "stdout_file": row["log_path"],
         "prediction_id": row["prediction_id"],
         "prediction_path": row["prediction_path"],
         "video_folder_id": row["video_folder_id"],

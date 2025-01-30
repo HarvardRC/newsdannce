@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 # from enum import Enum
-from typing import Any
+from typing import Any, Literal
 import typing
 
 from pydantic import BaseModel, Field, Json
@@ -55,6 +55,7 @@ class RuntimeData:
     memory_gb: int
     time_hrs: int
     n_cpus: int
+    runtime_type: Literal["SLURM", "LOCAL"]
 
 
 class CreateTrainingFolderModel(BaseModel):

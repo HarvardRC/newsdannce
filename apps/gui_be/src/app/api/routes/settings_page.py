@@ -1,3 +1,6 @@
+"""
+/settings_page
+"""
 from fastapi import APIRouter, HTTPException,UploadFile
 from pathlib import PurePath
 
@@ -10,24 +13,24 @@ import scipy.io
 router = APIRouter()
 
 @router.get("/skeleton")
-def get_skeleton_route(session: SessionDep):
-  row = session.execute(f"SELECT skeleton_path from {TABLE_GLOBAL_STATE} WHERE id=0").fetchone()
+def get_skeleton_route(conn: SessionDep):
+  row = conn.execute(f"SELECT skeleton_file FROM {TABLE_GLOBAL_STATE} WHERE id=0").fetchone()
   row = dict(row)
-  if row['skeleton_path']:
-    return {'data' : row['skeleton_path']}
+  if row['skeleton_file']:
+    return {'data' : row['skeleton_file']}
   else:
     return {"data" : None}
 
 @router.delete("/skeleton")
-def delete_skeleton_route(session: SessionDep):
+def delete_skeleton_route(conn: SessionDep):
 
-  session.execute(f"UPDATE {TABLE_GLOBAL_STATE} SET skeleton_path=NULL WHERE id=0")
-  session.execute("COMMIT")
+  conn.execute(f"UPDATE {TABLE_GLOBAL_STATE} SET skeleton_file=NULL WHERE id=0")
+  conn.execute("COMMIT")
 
   settings.SKELETON_FILE.unlink()
 
 @router.post('/skeleton')
-def upload_skeleton_route(session: SessionDep, file: UploadFile):
+def upload_skeleton_route(conn: SessionDep, file: UploadFile):
   # validate skeleton file
 
   orig_path = PurePath(file.filename)
@@ -47,10 +50,10 @@ def upload_skeleton_route(session: SessionDep, file: UploadFile):
     f.write(file.file.read())
 
   logger.warning(f"Setting skeleton path to: {filename}")
-  session.execute(
-    f"""UPDATE {TABLE_GLOBAL_STATE} SET skeleton_path=? WHERE id=0""", (filename,)
+  conn.execute(
+    f"""UPDATE {TABLE_GLOBAL_STATE} SET skeleton_file=? WHERE id=0""", (filename,)
   )
-  session.execute('commit')
+  conn.execute('commit')
 
 
 

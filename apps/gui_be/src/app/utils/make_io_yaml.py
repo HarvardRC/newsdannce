@@ -1,7 +1,6 @@
 import json
 import sqlite3
 from typing import Any
-import uuid
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field, ConfigDict
 from ruamel.yaml import YAML
@@ -27,6 +26,7 @@ from app.utils.video_folders import (
 )
 from app.core.config import settings
 from app.utils.weights import get_weights_path_from_id
+from app.utils.helpers import make_resource_name
 
 
 class ConfigModel(BaseModel):
@@ -77,6 +77,9 @@ class ConfigModel(BaseModel):
 
 class ComTrainModel(ConfigModel):
     META_command: JobCommand = JobCommand.TRAIN_COM
+    META_weights_path: str = None
+    META_config_path: str = None
+    META_log_path: str = None
     n_channels_out: int = Field(default=1)
     crop_height: tuple[int, int] = Field(default=(0, 1152))
     crop_width: tuple[int, int] = Field(default=(0, 1920))
@@ -116,16 +119,29 @@ class DanncePredictModel(ConfigModel):
 
 
 def config_com_train(conn: sqlite3.Connection, data: TrainJobSubmitComModel):
+    """Make resource names for"""
     video_folder_ids = data.video_folder_ids
-    com_train_dir = Path(settings.WEIGHTS_FOLDER_EXTERNAL, f"COM_{uuid.uuid4().hex}")
+    com_train_weights_path = make_resource_name("TRAIN_COM_")
+    config_path = make_resource_name("TRAIN_COM_")
+    log_path = make_resource_name("TRAIN_COM_")
+
+    # External directory for weights
+    com_train_dir_external = Path(
+        settings.WEIGHTS_FOLDER_EXTERNAL, com_train_weights_path
+    )
 
     com_exps = get_video_folders_for_com(conn, video_folder_ids)
+
     data.config["epochs"] = data.epochs
     data.config["vol_size"] = data.vol_size
+
     cfg = ComTrainModel(
         com_exp=com_exps,
-        com_train_dir=com_train_dir,
+        com_train_dir=com_train_dir_external,
         META_cwd=settings.SLURM_TRAIN_FOLDER,
+        META_weights_path=com_train_weights_path,
+        META_config_path=config_path,
+        META_log_path=log_path,
         **data.config,
     )
     return cfg
@@ -133,10 +149,14 @@ def config_com_train(conn: sqlite3.Connection, data: TrainJobSubmitComModel):
 
 def config_dannce_train(conn: sqlite3.Connection, data: TrainJobSubmitDannceModel):
     video_folder_ids = data.video_folder_ids
-    dannce_train_dir = Path(settings.WEIGHTS_FOLDER_EXTERNAL, f"DANNCE_{uuid.uuid4().hex}")
+    dannce_train_dir = Path(
+        settings.WEIGHTS_FOLDER_EXTERNAL, make_resource_name("DANNCE_")
+    )
 
     dannce_exps = get_video_folders_for_dannce(conn, video_folder_ids)
+
     data.config["epochs"] = data.epochs
+
     cfg = DannceTrainModel(
         exp=dannce_exps,
         dannce_train_dir=dannce_train_dir,
@@ -150,12 +170,15 @@ def config_com_predict(conn: sqlite3.Connection, data: PredictJobSubmitComModel)
     video_folder_path = get_video_folder_path(conn, data.video_folder_id)
     weights_path = get_weights_path_from_id(conn, data.weights_id)
     prediction_path = Path(
-        settings.PREDICTIONS_FOLDER_EXTERNAL, f"COM_{uuid.uuid4().hex}"
+        settings.PREDICTIONS_FOLDER_EXTERNAL, make_resource_name("COM_")
     )
+
     prediction_path.mkdir(exist_ok=False, mode=0o777)
     blank_io_yaml_file = Path(settings.SLURM_TRAIN_FOLDER, "io.yaml")
 
-    prediction_path_external = Path(settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path.name)
+    prediction_path_external = Path(
+        settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path.name
+    )
 
     cfg = ComPredictModel(
         META_cwd=video_folder_path,
@@ -173,13 +196,16 @@ def config_dannce_predict(conn: sqlite3.Connection, data: PredictJobSubmitDannce
     weights_path = get_weights_path_from_id(conn, data.weights_id)
     com_file_path = get_com_file_path(conn, data.video_folder_id)
     prediction_path = Path(
-        settings.PREDICTIONS_FOLDER, f"DANNCE_{uuid.uuid4().hex}"
+        settings.PREDICTIONS_FOLDER_EXTERNAL, make_resource_name("DANNCE_")
     )
+
     blank_io_yaml_file = Path(settings.SLURM_TRAIN_FOLDER, "io.yaml")
 
     prediction_path.mkdir(exist_ok=False, mode=0o777)
 
-    prediction_path_external = Path(settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path.name)
+    prediction_path_external = Path(
+        settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path.name
+    )
 
     cfg = DanncePredictModel(
         META_cwd=video_folder_path,

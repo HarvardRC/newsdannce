@@ -30,7 +30,7 @@ def update_local_runtime():
         curr = session.cursor()
         curr.execute(
             f"""
-INSERT OR REPLACE INTO {TABLE_RUNTIME}(id, destination, name, memory_gb, time_hrs, n_cpus, n_gpus, partition_list) VALUES (1,'LOCAL','local',?,?,?,?,?)
+INSERT OR REPLACE INTO {TABLE_RUNTIME}(id, runtime_type, name, memory_gb, time_hrs, n_cpus, n_gpus, partition_list) VALUES (1,'LOCAL','local',?,?,?,?,?)
                      """,
             (
                 local_resources.memory_gb,

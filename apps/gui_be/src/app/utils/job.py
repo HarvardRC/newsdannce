@@ -26,9 +26,11 @@ from app.utils.predictions import update_prediction_status_by_job_id
 from app.utils.runtimes import get_runtime_data_id
 from app.utils.time import now_timestamp
 from app.utils.weights import update_weights_status_by_job_id
+from app.utils.helpers import make_resource_name
 
 # wait at most this many seconds before killing the slurm subprocess
-SLURM_TIMEOUT_SECONDS = 10
+SLURM_TIMEOUT_SECONDS = 15
+
 
 def bg_submit_com_predict_job(
     cfg: ComPredictModel,
@@ -43,6 +45,7 @@ def bg_submit_com_predict_job(
         yaml_string = cfg.to_yaml_string()
         f.write(yaml_string)
 
+    log_file = make_resource_name("SLURM_PREDICT_COM_", ".out")
     with db.SessionContext() as conn:
         runtime_data = get_runtime_data_id(runtime_id, conn)
 
@@ -54,6 +57,7 @@ def bg_submit_com_predict_job(
             runtime_data=runtime_data,
             job_name="predict_com",
             cwd_folder=cfg.META_cwd,
+            log_file=log_file,
         )
 
         # TODO: REMOVE - tmp debug by writing out slurm string
@@ -73,7 +77,9 @@ def bg_submit_com_predict_job(
         logger.warning("Done submitting")
 
         # Save sbatch submission script for debugging
-        with open(settings.LOGS_FOLDER.joinpath(f"sbatch_com_pred_{slurm_job_id}"), "wt") as f:
+        with open(
+            settings.LOGS_FOLDER.joinpath(f"sbatch_com_pred_{slurm_job_id}"), "wt"
+        ) as f:
             f.write(sbatch_str)
 
         # slurm_job_id = 1234567
@@ -88,6 +94,7 @@ def bg_submit_com_train_job(
     weights_id: int,
     config_file: Path,
 ):
+    log_file = make_resource_name("SLURM_TRAIN_COM_", ".out")
     with open(config_file, "wt") as f:
         logger.info(f"Writing config file to {config_file}")
         yaml_string = cfg.to_yaml_string()
@@ -105,9 +112,8 @@ def bg_submit_com_train_job(
             runtime_data=runtime_data,
             job_name="train_com",
             cwd_folder=cfg.META_cwd,
+            log_file=log_file,
         )
-
-
 
         # submit sbatch string to slurm
         slurm_job_id = submit_sbatch_to_slurm(
@@ -117,8 +123,10 @@ def bg_submit_com_train_job(
             current_dir=settings.SLURM_TRAIN_FOLDER,
         )
 
-        with open(settings.LOGS_FOLDER.joinpath(f"sbatch_com_train_{slurm_job_id}"), "wt") as f:
-                    f.write(sbatch_str)
+        with open(
+            settings.LOGS_FOLDER.joinpath(f"sbatch_com_train_{slurm_job_id}"), "wt"
+        ) as f:
+            f.write(sbatch_str)
 
         insert_slurm_job_row(conn, slurm_job_id, train_job_id, db.TABLE_TRAIN_JOB)
 
@@ -136,6 +144,8 @@ def bg_submit_dannce_predict_job(
         yaml_string = cfg.to_yaml_string()
         f.write(yaml_string)
 
+    log_file = make_resource_name("SLURM_PREDICT_DANNCE_", ".out")
+
     with db.SessionContext() as conn:
         runtime_data = get_runtime_data_id(runtime_id, conn)
 
@@ -148,6 +158,7 @@ def bg_submit_dannce_predict_job(
             runtime_data=runtime_data,
             job_name="predict_dannce",
             cwd_folder=cfg.META_cwd,
+            log_file=log_file,
         )
 
         with open(
@@ -168,9 +179,10 @@ def bg_submit_dannce_predict_job(
             current_dir=settings.SLURM_TRAIN_FOLDER,
         )
         # slurm_job_id = 1234567
-        with open(settings.LOGS_FOLDER.joinpath(f"sbatch_dannce_pred_{slurm_job_id}"), "wt") as f:
+        with open(
+            settings.LOGS_FOLDER.joinpath(f"sbatch_dannce_pred_{slurm_job_id}"), "wt"
+        ) as f:
             f.write(sbatch_str)
-
 
         insert_slurm_job_row(conn, slurm_job_id, predict_job_id, db.TABLE_PREDICT_JOB)
 
@@ -187,6 +199,8 @@ def bg_submit_dannce_train_job(
         yaml_string = cfg.to_yaml_string()
         f.write(yaml_string)
 
+    log_file = make_resource_name("SLURM_TRAIN_DANNCE_", ".out")
+
     with db.SessionContext() as conn:
         runtime_data = get_runtime_data_id(runtime_id, conn)
 
@@ -199,6 +213,7 @@ def bg_submit_dannce_train_job(
             runtime_data=runtime_data,
             job_name="train_dannce",
             cwd_folder=cfg.META_cwd,
+            log_file=log_file,
         )
 
         with open(
@@ -215,7 +230,9 @@ def bg_submit_dannce_train_job(
             current_dir=settings.SLURM_TRAIN_FOLDER,
         )
 
-        with open(settings.LOGS_FOLDER.joinpath(f"sbatch_dannce_train_{slurm_job_id}"), "wt") as f:
+        with open(
+            settings.LOGS_FOLDER.joinpath(f"sbatch_dannce_train_{slurm_job_id}"), "wt"
+        ) as f:
             f.write(sbatch_str)
 
         insert_slurm_job_row(conn, slurm_job_id, train_job_id, db.TABLE_TRAIN_JOB)
@@ -258,7 +275,7 @@ def insert_slurm_job_row(
     try:
         # add slurm job to slurm_job table
         curr.execute(
-            f"INSERT INTO {db.TABLE_SLURM_JOB} (slurm_job_id, status) VALUES (?, 'PENDING')",
+            f"INSERT INTO {db.TABLE_GPU_JOB} (job_type, slurm_job_id, slurm_status) VALUES ('SLURM', ?, 'PENDING')",
             (slurm_job_id,),
         )
         # update ID of job table to slurm_job_id
@@ -272,21 +289,17 @@ def insert_slurm_job_row(
     conn.commit()
     logger.info("Successfully inserted slurm job and updated ?jobs_table.slurm_job")
 
-
-
 @dataclass
 class RefreshJobListResult:
     live_jobs: list[JobStatusDataObject]
     jobs_updated: list[JobStatusDataObject]
 
+
 def refresh_job_list(conn) -> RefreshJobListResult:
     live_jobs = get_nonfinal_job_ids(conn)
     jobs_updated = update_jobs_by_ids(conn=conn, job_list=live_jobs)
 
-    return RefreshJobListResult(
-        live_jobs=live_jobs,
-        jobs_updated=jobs_updated
-    )
+    return RefreshJobListResult(live_jobs=live_jobs, jobs_updated=jobs_updated)
 
 
 def get_nonfinal_job_ids(conn: Connection) -> list[JobStatusDataObject]:
@@ -294,11 +307,29 @@ def get_nonfinal_job_ids(conn: Connection) -> list[JobStatusDataObject]:
     nonfinal_statuses = db.JobStatus.nonfinal_statuses(as_escaped_str=True)
     rows = conn.execute(
         f"""
-SELECT id, slurm_job_id, train_or_predict, status, created_at FROM (
-    SELECT id, slurm_job as slurm_job_id, 'TRAIN' as train_or_predict from {db.TABLE_TRAIN_JOB}
-    UNION ALL
-    select id, slurm_job as slurm_job_id, 'PREDICT' as train_or_predict from {db.TABLE_PREDICT_JOB}
-), {db.TABLE_SLURM_JOB} USING (slurm_job_id) WHERE status IN ({nonfinal_statuses})
+SELECT
+    id,
+    gpu_job_id,
+    train_or_predict,
+    status,
+    created_at
+FROM (
+    SELECT
+        id,
+        slurm_job AS slurm_job_id,
+        'TRAIN' AS train_or_predict
+    FROM {db.TABLE_TRAIN_JOB}
+
+    UNION ALL SELECT
+        id,
+        slurm_job AS slurm_job_id,
+        'PREDICT' AS train_or_predict
+    FROM {db.TABLE_PREDICT_JOB}
+    )
+, {db.TABLE_GPU_JOB}
+USING (id)
+WHERE slurm_status IN ({nonfinal_statuses})
+AND job_type='SLURM'
 """
     ).fetchall()
 
@@ -316,7 +347,9 @@ SELECT id, slurm_job_id, train_or_predict, status, created_at FROM (
     return results
 
 
-def update_jobs_by_ids(conn: Connection, job_list: list[JobStatusDataObject]) -> list[JobStatusDataObject]:
+def update_jobs_by_ids(
+    conn: Connection, job_list: list[JobStatusDataObject]
+) -> list[JobStatusDataObject]:
     """Given a list of job id integers, update each job id using sacct. Returns any jobIds which have been updated"""
     if len(job_list) == 0:
         return []

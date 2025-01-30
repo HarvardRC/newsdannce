@@ -1,4 +1,6 @@
-"""Routes common to all job types (inc. train/predict)"""
+"""Routes common to all job types (inc. train/predict)
+/jobs_common
+"""
 
 # from typing import Any
 from pathlib import Path
@@ -6,15 +8,14 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 
 from app.api.deps import SessionDep
-from app.core.db import TABLE_SLURM_JOB
+from app.core.db import TABLE_GPU_JOB
 from app.utils.job import refresh_job_list
-from app.utils.metadata import get_last_jobs_refresh
-
+from app.core.config import settings
 
 router = APIRouter()
 
 
-@router.post("/update-live-jobs")
+@router.post("/update_live_jobs")
 def update_live_jobs(conn: SessionDep):
     data = refresh_job_list(conn)
 
@@ -24,31 +25,23 @@ def update_live_jobs(conn: SessionDep):
     return {"live": live_jobs, "jobs_updated": jobs_updated}
 
 
-@router.get("/refresh-timestamp")
-def get_last_jobs_refresh_route(conn: SessionDep):
-    """Update all jobs which are not in a final state (e.g. FAILED, COMPLETED, etc.)"""
-    last_update_timestamp = get_last_jobs_refresh(conn)
-    return last_update_timestamp
-
-
-@router.get("/get_log/{slurm_job_id}")
-def get_job_log(slurm_job_id: int, conn: SessionDep):
-    # slurm_job_id_int = int(slurm_job_id)
+@router.get("/get_log/{gpu_job_id}")
+def get_job_log(conn: SessionDep, gpu_job_id: int, ):
     row = conn.execute(
-        f"SELECT stdout_file FROM {TABLE_SLURM_JOB} WHERE slurm_job_id=?",
-        (slurm_job_id,),
+        f"SELECT log_file FROM {TABLE_GPU_JOB} WHERE id = ?",
+        (gpu_job_id,),
     ).fetchone()
 
     if not row:
         raise HTTPException(status_code=404)
 
-    stdout_file = row["stdout_file"]
-    if not stdout_file:
-        return None
-    stdout_file = stdout_file.replace("%j", str(slurm_job_id))
-    p = Path(stdout_file)
+    row = dict(row)
+    log_file = row['log_file']
+    p = Path(settings.JOB_LOGS_FOLDER, log_file)
+
     if not p.exists():
         raise HTTPException(
-            status_code=400, detail=f"Stdout file is {stdout_file} but unable to access"
+            status_code=400, detail=f"Log file is {p}, but file does not exist"
         )
+
     return FileResponse(p)

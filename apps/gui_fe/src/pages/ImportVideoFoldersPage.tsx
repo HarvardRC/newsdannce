@@ -61,7 +61,7 @@ export default function ImportVideoFoldersPage() {
       form.setError('paths', {
         type: 'string',
         message:
-          'Unable to import video folders.  Perhaps a path is invalid or one of the folders has already been imported!',
+          'Unable to import video folders. Perhaps folder does not exist or src folder has already been imported? Check logs for more details.',
       });
     }
   };

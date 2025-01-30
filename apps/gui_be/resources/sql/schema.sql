@@ -3,18 +3,18 @@ DROP TABLE IF EXISTS video_folder;
 DROP TABLE IF EXISTS train_job;
 DROP TABLE IF EXISTS prediction;
 DROP TABLE IF EXISTS predict_job;
-DROP TABLE IF EXISTS slurm_job;
-DROP TABLE IF EXISTS local_job;
+DROP TABLE IF EXISTS gpu_job;
 DROP TABLE IF EXISTS weights;
 -- many:many relationship table
 DROP TABLE IF EXISTS train_job_video_folder;
+-- single row table for global settings
 DROP TABLE IF EXISTS global_state;
 
 CREATE TABLE runtime (
     id INTEGER PRIMARY KEY NOT NULL,
-    destination TEXT NOT NULL CHECK (destination IN ('LOCAL', 'SLURM')) DEFAULT 'SLURM',
     name TEXT,
     partition_list TEXT,
+    runtime_type TEXT NOT NULL CHECK (runtime_type IN ('LOCAL', 'SLURM')) DEFAULT 'SLURM',
     memory_gb INTEGER,
     time_hrs INTEGER,
     n_cpus INTEGER,
@@ -26,7 +26,7 @@ CREATE TABLE runtime (
 CREATE TABLE prediction (
     id INTEGER PRIMARY KEY NOT NULL,
     name TEXT NOT NULL, --human readible name
-    path TEXT NOT NULL, --path to the prediction folder (may not be inside video folder)
+    path TEXT NOT NULL UNIQUE, --path to the prediction folder (may not be inside video folder)
     src_path TEXT, --path where the video was imported from (if relevant)
     status TEXT DEFAULT 'PENDING'
         CHECK(status IN (
@@ -41,6 +41,7 @@ CREATE TABLE weights (
     id INTEGER PRIMARY KEY NOT NULL,
     name TEXT NOT NULL, --human readible name of weights (ie "output-model-name")
     path TEXT NOT NULL UNIQUE, -- path to the folder containing a checkpoint-final.pth
+    src_path TEXT, --path where the video was imported from (if relevant)
     status TEXT DEFAULT 'PENDING'
         CHECK(status IN (
             'PENDING', 'COMPLETED','FAILED')),
@@ -52,8 +53,9 @@ CREATE TABLE weights (
 CREATE TABLE video_folder (
 id INTEGER PRIMARY KEY NOT NULL,
     name TEXT,
+    status TEXT DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED')),
     path TEXT UNIQUE, --path to folder containing videos directory
-    src_path TEXT UNIQUE, --path where the video was imported from
+    src_path TEXT, --path where the video was imported from
     com_labels_file TEXT, --path to dannce.mat file with COM labels
     dannce_labels_file TEXT, -- path to dannce.mat file with DANNCE labels
     current_com_prediction REFERENCES prediction(id),
@@ -72,8 +74,8 @@ id INTEGER PRIMARY KEY NOT NULL,
 CREATE TABLE train_job (
     id INTEGER PRIMARY KEY NOT NULL,
     name TEXT,
-    weights INTEGER REFERENCES weights(id),
-    slurm_job INTEGER REFERENCES slurm_job(slurm_job_id),
+    weights INTEGER REFERENCES weights(id), -- output weights resource
+    gpu_job INTEGER REFERENCES gpu_job(id),
     runtime INTEGER REFERENCES runtime(id),
     config JSON,
     created_at INTEGER DEFAULT (STRFTIME('%s', 'now'))
@@ -83,55 +85,46 @@ CREATE TABLE predict_job (
     id INTEGER PRIMARY KEY NOT NULL,
     name TEXT,
     -- prediction INTEGER REFERENCES prediction()
-    weights INTEGER REFERENCES weights(id),
-    prediction INTEGER REFERENCES prediction(id),
+    weights INTEGER REFERENCES weights(id), -- input weights resource used for predictions
+    prediction INTEGER REFERENCES prediction(id), -- ouptut prediction resource
     video_folder INTEGER REFERENCES video_folder(id),
-    slurm_job INTEGER REFERENCES slurm_job(slurm_job_id),
+    gpu_job INTEGER REFERENCES gpu_job(id),
     runtime INTEGER REFERENCES runtime(id),
     config JSON,
     created_at INTEGER DEFAULT (STRFTIME('%s', 'now'))
 );
 
 -- store details of a single running job
-CREATE TABLE slurm_job (
-    slurm_job_id INTEGER PRIMARY KEY NOT NULL,
-    status TEXT
-        CHECK(status IS NULL OR status IN (
-            'CANCELLED','COMPLETED','COMPLETING','FAILED','NODE_FAIL',
-            'OUT_OF_MEMORY','PENDING','PREEMPTED','RUNNING',
-            'SUSPENDED','STOPPED','TIMEOUT',
-            'LOST_TO_SLURM' --custom status meaning the job could not be fetched from slurm
-            )),
-    stdout_file TEXT,
-    created_at INTEGER DEFAULT (STRFTIME('%s', 'now'))
-);
-
--- WIP: track local jon -- todo merge with slurm job for a polymorphic job table
-CREATE TABLE local_job (
+CREATE TABLE gpu_job (
     id INTEGER PRIMARY KEY NOT NULL,
-    process ID,
-    status TEXT
-        CHECK(status IS NULL OR status IN (
+    log_path TEXT,
+    -- job_type TEXT NOT NULL CHECK (job_type IN ('LOCAL', 'SLURM')) DEFAULT 'SLURM',
+    created_at INTEGER DEFAULT (STRFTIME('%s', 'now')),
+    -- SLURM JOB FIELDS
+    slurm_job_id INTEGER,
+    slurm_status TEXT
+        CHECK(slurm_status IS NULL OR slurm_status IN (
             'CANCELLED','COMPLETED','COMPLETING','FAILED','NODE_FAIL',
             'OUT_OF_MEMORY','PENDING','PREEMPTED','RUNNING',
             'SUSPENDED','STOPPED','TIMEOUT',
-            'LOST_TO_SLURM' --custom status meaning the job could not be fetched from slurm
+            'LOST_TO_SLURM' -- custom status meaning the job could not be fetched from slurm
             )),
-    stdout_file TEXT,
-    created_at INTEGER DEFAULT (STRFTIME('%s', 'now'))
+    -- LOCAL JOB FIELDS
+    local_status TEXT CHECK (local_status IS NULL OR local_status IN ('QUEUEUD','RUNNING','FAILED',"COMPLETED")),
+    local_process_id INTEGER
 );
 
 CREATE TABLE train_job_video_folder (
     train_job INTEGER NOT NULL REFERENCES train_job(id) ON DELETE CASCADE,
     video_folder INTEGER NOT NULL REFERENCES video_folder(id) ON DELETE CASCADE,
-    PRIMARY KEY(train_job,video_folder)
+    PRIMARY KEY(train_job, video_folder)
 );
 
 -- table continaing database metadata
 CREATE TABLE global_state (
     id INTEGER PRIMARY KEY CHECK (id=0),
     last_update_jobs INTEGER DEFAULT 0,
-    skeleton_path TEXT DEFAULT null
+    skeleton_file TEXT DEFAULT null
 );
 
 -- Create singleton row entry in global_state for storing settings

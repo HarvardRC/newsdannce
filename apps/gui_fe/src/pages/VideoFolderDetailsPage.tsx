@@ -47,10 +47,16 @@ const VideoFolderDetailsPage: React.FC = () => {
           <span className="font-bold">Name:</span> {data.name}
         </li>
         <li>
+          <span className="font-bold">Import Status:</span> {data.status}
+        </li>
+        <li>
           <span className="font-bold">Path:</span> {data.path}
         </li>
         <li>
           <span className="font-bold">External Path:</span> {data.path_external}
+        </li>
+        <li>
+          <span className="font-bold">Source Path:</span> {data.src_path}
         </li>
         <li>
           <span className="font-bold">Created on:</span>{' '}

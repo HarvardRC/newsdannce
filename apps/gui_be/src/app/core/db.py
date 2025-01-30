@@ -90,8 +90,7 @@ TABLE_PREDICTION = "prediction"
 TABLE_WEIGHTS = "weights"
 TABLE_TRAIN_JOB_VIDEO_FOLDER = "train_job_video_folder"
 TABLE_RUNTIME = "runtime"
-TABLE_SLURM_JOB = "slurm_job"
-TABLE_MQ = "mq"
+TABLE_GPU_JOB = "gpu_job"
 
 
 # table for global settings

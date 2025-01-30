@@ -1,10 +1,13 @@
 from dataclasses import dataclass
+from sqlite3 import Connection
 import subprocess
 from pathlib import Path
 import re
 import json
 import math
 import shutil
+
+from app.core.db import TABLE_VIDEO_FOLDER
 
 
 def process_video_folder_faststart(video_folder_path, camera_names, backup_video=True):
@@ -107,3 +110,26 @@ def get_video_metadata(video_folder: str | Path):
         camera_names=camera_folder_names,
     )
     # ffprobe -v error -select_streams v -of json -show_entries stream=r_frame_rate,width,height,duration 0.mp4
+
+
+def check_video_folder_already_imported(conn: Connection, video_folder_path_src: Path):
+        row = conn.execute(
+            f"""
+SELECT id FROM {TABLE_VIDEO_FOLDER}
+WHERE src_path=? AND status != 'FAILED'
+""",
+    (
+        str(video_folder_path_src),
+    )).fetchone()
+        if row:
+            return True
+        else:
+            return False
+
+def check_video_folder_source_not_exists(video_folder_path_src: Path):
+    if not video_folder_path_src.is_dir():
+        return True
+
+    # TODO: check if video folder contains the "/videos/CameraX" directories
+
+    return False

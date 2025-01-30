@@ -1,3 +1,6 @@
+"""
+/runtime
+"""
 from typing import Any
 from fastapi import APIRouter, HTTPException
 
@@ -9,10 +12,10 @@ router = APIRouter()
 
 
 @router.post("/")
-def create_runtime(data: CreateRuntimeModel, session: SessionDep) -> Any:
-    curr = session.cursor()
+def create_runtime(conn: SessionDep, data: CreateRuntimeModel, ) -> Any:
+    curr = conn.cursor()
     curr.execute(
-        f"INSERT INTO {TABLE_RUNTIME} (name, destination, partition_list, memory_gb, time_hrs, n_cpus, n_gpus) VALUES (?,?,?,?,?,?,?)",
+        f"INSERT INTO {TABLE_RUNTIME} (name, runtime_type, partition_list, memory_gb, time_hrs, n_cpus, n_gpus) VALUES (?,?,?,?,?,?,?)",
         (
             data.name,
             "SLURM",
@@ -24,20 +27,20 @@ def create_runtime(data: CreateRuntimeModel, session: SessionDep) -> Any:
         ),
     )
     insert_id = curr.lastrowid
-    session.commit()
+    conn.commit()
     return {"id": insert_id}
 
 
 @router.get("/list")
-def list_all_runtime(session: SessionDep):
-    rows = session.execute(f"select * from {TABLE_RUNTIME}").fetchall()
+def list_all_runtime(conn: SessionDep):
+    rows = conn.execute(f"SELECT * FROM {TABLE_RUNTIME}").fetchall()
     rows = [dict(x) for x in rows]
     return rows
 
 
 @router.get("/{id}")
-def get_runtime(id: int, session: SessionDep) -> Any:
-    row = session.execute(f"select * from {TABLE_RUNTIME} where id=?", (id,)).fetchone()
+def get_runtime(id: int, conn: SessionDep) -> Any:
+    row = conn.execute(f"SELECT * FROM {TABLE_RUNTIME} WHERE ID=?", (id,)).fetchone()
     if not row:
         raise HTTPException(status_code=404)
     return dict(row)

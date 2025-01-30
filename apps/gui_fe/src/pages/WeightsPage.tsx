@@ -8,17 +8,6 @@ import {
 } from '@/components/ui/table';
 
 export default function WeightsPage() {
-  //   const {
-  //     data: rawPredictions,
-  //     isLoading,
-  //     isError,
-  //   } = useListPredictionsQuery();
-  //   if (isLoading) {
-  //     return <div>loading</div>;
-  //   }
-
-  //   const data = rawPredictions || [];
-
   return (
     <div>
       <h1 className="text-2xl font-semibold mb-4">Model Weights</h1>

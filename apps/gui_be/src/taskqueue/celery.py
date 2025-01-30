@@ -17,7 +17,8 @@ celery_app = Celery(
     MAIN_QUEUE_NAME, broker=BROKER_URL, backend=BACKEND_URL, 
     include=[
         "taskqueue.tasks",
-        "taskqueue.video"
+        "taskqueue.video",
+        "taskqueue.submit_job"
     ]
 )
 # include more apps if we want to
@@ -30,7 +31,7 @@ celery_app.conf.update(beat_schedule_filename=settings.CELERY_BEAT_FILES)
 def add_periodic(**kwargs):
     from taskqueue.tasks import task_refresh_job_list
     logger.info("Refreshing job status every 10 minutes")
-    celery_app.add_periodic_task(600, task_refresh_job_list.s(), name='Refresh jobs list')
+    # celery_app.add_periodic_task(600, task_refresh_job_list.s(), name='Refresh jobs list')
 
 if __name__ == "__main__":
     celery_app.start()

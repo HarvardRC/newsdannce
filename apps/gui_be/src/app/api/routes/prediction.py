@@ -1,3 +1,6 @@
+"""
+/prediction
+"""
 from fastapi import APIRouter, HTTPException
 from pathlib import Path
 
@@ -20,12 +23,12 @@ router = APIRouter()
 
 @router.post("/{id_str}/make_preview")
 def make_preview_route(
-    session: SessionDep, data: MakePredictionPreviewModel, id_str: str
+    conn: SessionDep, data: MakePredictionPreviewModel, id_str: str
 ):
     if len(data.frames) > 10 or len(data.frames) < 1:
         raise HTTPException(400, "Can fetch between 1-10 frames for preview")
     id = int(id_str)
-    row = session.execute(
+    row = conn.execute(
         f"""
 SELECT
     t1.path AS prediction_path,
@@ -119,15 +122,15 @@ WHERE t1.id=?
 
 
 @router.get("/list")
-def list_all_predictions_route(session: SessionDep):
-    rows = session.execute(
+def list_all_predictions_route(conn: SessionDep):
+    rows = conn.execute(
         f"""
 SELECT
-    id as prediction_id,
-    name as prediction_name,
-    path as prediction_path,
+    id AS prediction_id,
+    name AS prediction_name,
+    path AS prediction_path,
     status,
-    video_folder as video_folder_id,
+    video_folder AS video_folder_id,
     mode,
     created_at
 FROM {TABLE_PREDICTION}"""
@@ -137,20 +140,20 @@ FROM {TABLE_PREDICTION}"""
 
 
 @router.get("/{id_str}/com_preview")
-def get_com_preview_route(id_str: str, session: SessionDep, samples:int ):
+def get_com_preview_route(conn: SessionDep,id_str: str,  samples:int ):
     id_int = int(id_str)
-    return get_com_prediction_file(session, id_int, samples)
+    return get_com_prediction_file(conn, id_int, samples)
 
 @router.get("/{id_str}/com_histogram")
-def get_com_histogram_route(id_str: str, session: SessionDep ):
+def get_com_histogram_route(conn: SessionDep, id_str: str,  ):
     id_int = int(id_str)
-    return get_com_deltas(session, id_int)
+    return get_com_deltas(conn, id_int)
 
 
 @router.get("/{id}")
-def get_prediction_details_route(id: str, session: SessionDep):
+def get_prediction_details_route(conn: SessionDep, id: str):
     id_int = int(id)
-    row = session.execute(
+    row = conn.execute(
         f"""
 SELECT
     name AS prediction_name,

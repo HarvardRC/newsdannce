@@ -8,35 +8,19 @@ from app.models import RuntimeData
 from app.core.config import settings
 
 
-def make_sbatch_str(
-    command_enum: db.JobCommand,
-    config_path: str,
-    job_name: str,
-    runtime_data: RuntimeData,
-    cwd_folder: str,
-):
-    script_str = _build_sbatch_script(
-        sdannce_command=command_enum,
-        config_path=config_path,
-        runtime_data=runtime_data,
-        cwd_folder=cwd_folder,
-        job_name=job_name,
-    )
-    return script_str
-
-
 # internal call - you usually want to use the version which includes defaults
-def _build_sbatch_script(
-    config_path,
+def make_sbatch_str(
+    config_path_external,
     sdannce_command: db.JobCommand,
-    cwd_folder,
+    cwd_folder_external,
     job_name,
     runtime_data: RuntimeData,
+    log_file_external: str
 ):
     # make sure Path objects are strings
-    config_path_str = str(config_path)
-    cwd_folder_str = str(cwd_folder)
-    log_file_str = str(Path(settings.SLURM_LOGS_FOLDER_EXTERNAL, "%j.out").resolve())
+    config_path_str = str(config_path_external)
+    cwd_folder_str = str(cwd_folder_external)
+    log_file_str = str(log_file_external)
     sdannce_img_path_str = str(settings.SDANNCE_IMAGE_PATH)
 
     sdannce_command_safe = sdannce_command.get_full_command()

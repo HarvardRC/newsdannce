@@ -37,6 +37,7 @@ const VideoFoldersPage: React.FC = () => {
             <TableRow>
               <TableHead className="w-[20px]">ID</TableHead>
               <TableHead>Name</TableHead>
+              <TableHead>Import Status</TableHead>
               <TableHead>Folder Path</TableHead>
               <TableHead>COM Labels</TableHead>
               <TableHead>DANNCE Labels</TableHead>
@@ -59,6 +60,8 @@ const VideoFoldersPage: React.FC = () => {
                       {x.name}
                     </Link>
                   </TableCell>
+                  <TableCell className="font-medium">{x.status}</TableCell>
+
                   <TableCell>
                     <Tooltip>
                       <TooltipTrigger>
