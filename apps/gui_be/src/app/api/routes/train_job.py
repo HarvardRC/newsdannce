@@ -93,6 +93,7 @@ def train_job_submit_com(conn: SessionDep, user_data: TrainJobSubmitComModel):
 
     taskqueue.submit_job.submit_train_job.delay(
         mode="COM",
+        gpu_job_id=gpu_job_id,
         train_job_id=train_job_id,
         job_name=user_data.name,
         log_path=log_path,
@@ -172,6 +173,7 @@ def train_job_submit_dannce(conn: SessionDep, user_data: TrainJobSubmitDannceMod
 
     taskqueue.submit_job.submit_train_job.delay(
         mode="DANNCE",
+        gpu_job_id=gpu_job_id,
         train_job_id=train_job_id,
         job_name=user_data.name,
         log_path=log_path,

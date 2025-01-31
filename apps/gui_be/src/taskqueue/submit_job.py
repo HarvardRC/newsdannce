@@ -20,6 +20,7 @@ logger.basicConfig(level=logger.INFO)
 @celery_app.task
 def submit_train_job(
     mode: Literal["COM", "DANNCE"],
+    gpu_job_id: int,
     train_job_id: int,
     runtime_id: int,
     job_name: str,
@@ -69,10 +70,11 @@ def submit_train_job(
             sbatch_str, settings.SLURM_TRAIN_FOLDER_EXTERNAL
         )
 
+        logger.info(f"SUBMITTED COM TRAIN JOB TO CLUSTER. SLURM_JOB_ID={slurm_job_id}")
         # update jobs row to reflect job has been submitted
         curr.execute(
             f"UPDATE {TABLE_GPU_JOB} SET slurm_job_id = ?, slurm_status = 'PENDING' WHERE id = ?",
-            (slurm_job_id, train_job_id),
+            (slurm_job_id, gpu_job_id),
         )
         conn.execute("COMMIT")
 
@@ -82,6 +84,7 @@ def submit_train_job(
 @celery_app.task
 def submit_predict_job(
     mode: Literal["COM", "DANNCE"],
+    gpu_job_id: int,
     predict_job_id: int,
     runtime_id: int,
     job_name: str,
@@ -131,12 +134,15 @@ def submit_predict_job(
         slurm_job_id = _submit_sbatch_to_slurm(
             sbatch_str, settings.SLURM_TRAIN_FOLDER_EXTERNAL
         )
+        logger.info(f"SUBMITTED COM PREDICT JOB TO CLUSTER. SLURM_JOB_ID={slurm_job_id}")
 
         # update jobs row to reflect job has been submitted
         curr.execute(
             f"UPDATE {TABLE_GPU_JOB} SET slurm_job_id = ?, slurm_status = 'PENDING' WHERE id = ?",
-            (slurm_job_id, predict_job_id),
+            (slurm_job_id, gpu_job_id),
         )
+
+        logger.info(f"SHOUDL HAVE UPDATED TABLE GPU JOB to set slurm_job_id={slurm_job_id} WHERE gpu_job_id={gpu_job_id}")
 
         conn.execute("COMMIT")
 

@@ -47,6 +47,13 @@ class PredictJobSubmitDannceModel(BaseModel):
     config: Json[Any] = Field(default="{}", validate_default=True)
 
 
+class CancelJobModel(BaseModel):
+    train_or_predict:Literal["TRAIN","PREDICT"]= Field()
+    train_or_predict_job_id: int
+
+class DeleteJobModel(BaseModel):
+    job_id: int
+
 @dataclass
 class RuntimeData:
     id: int

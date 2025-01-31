@@ -174,7 +174,7 @@ export default function MonitorJobs() {
         >
           Refresh All Jobs
         </Button>
-        Note: Automatically refetches every 60 seconds
+        Note: Automatically refetches every 5 minutes
       </TooltipProvider>
     </>
   );

@@ -5,7 +5,8 @@
 from pathlib import Path
 import sqlite3
 from typing import Any
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, HTTPException
+import json
 
 from app.api.deps import SessionDep
 from app.core.config import settings
@@ -24,7 +25,6 @@ from app.models import (
 from app.utils.make_io_yaml import config_com_predict, config_dannce_predict
 
 from app.base_logger import logger
-from app.utils.helpers import make_resource_name
 
 import taskqueue.submit_job
 
@@ -34,7 +34,7 @@ router = APIRouter()
 
 @router.post("/submit_com")
 def predict_job_submit_com(conn: SessionDep, user_data: PredictJobSubmitComModel):
-    """Submit a predict job"""
+    """Submit a com predict job"""
 
     config_model = config_com_predict(conn, user_data)
 
@@ -46,14 +46,12 @@ def predict_job_submit_com(conn: SessionDep, user_data: PredictJobSubmitComModel
     curr.execute("BEGIN")
     try:
         # create prediction table entry
-        prediction_path = prediction_path
-
-        # weights_name = data.output_model_name
         curr.execute(
             f"INSERT INTO {TABLE_PREDICTION} (path, name, video_folder, status, mode) VALUES (?, ?, ?, 'PENDING', 'COM')",
             (prediction_path, user_data.prediction_name, user_data.video_folder_id),
         )
         prediction_id = curr.lastrowid
+
 
         # create gpu_job table entry
         curr.execute(f"INSERT INTO {TABLE_GPU_JOB} (log_path) VALUES (?)", (log_path,))
@@ -84,6 +82,8 @@ def predict_job_submit_com(conn: SessionDep, user_data: PredictJobSubmitComModel
 
         predict_job_id = curr.lastrowid
 
+        logger.info(f"FOR SUBMIT PRED COM JOB: {predict_job_id}, using META_cwd [external?] {config_model.META_cwd}")
+
         # save config file to intance file system
         config_path_internal = Path(settings.CONFIGS_FOLDER, config_path)
         with open(config_path_internal, "wt") as f:
@@ -102,6 +102,7 @@ def predict_job_submit_com(conn: SessionDep, user_data: PredictJobSubmitComModel
 
     taskqueue.submit_job.submit_predict_job.delay(
         mode="COM",
+        gpu_job_id=gpu_job_id,
         predict_job_id=predict_job_id,
         job_name=user_data.name,
         log_path=log_path,
@@ -118,11 +119,11 @@ def predict_job_submit_com(conn: SessionDep, user_data: PredictJobSubmitComModel
     }
 
 
-@router.post("/submit_com")
+@router.post("/submit_dannce")
 def predict_job_submit_dannce(conn: SessionDep, user_data: PredictJobSubmitDannceModel):
-    """Submit a predict job"""
+    """Submit a dannce predict job"""
 
-    config_model = config_com_predict(conn, user_data)
+    config_model = config_dannce_predict(conn, user_data)
 
     config_path = config_model.META_config_path
     log_path = config_model.META_log_path
@@ -132,9 +133,6 @@ def predict_job_submit_dannce(conn: SessionDep, user_data: PredictJobSubmitDannc
     curr.execute("BEGIN")
     try:
         # create prediction table entry
-        prediction_path = prediction_path
-
-        # weights_name = data.output_model_name
         curr.execute(
             f"INSERT INTO {TABLE_PREDICTION} (path, name, video_folder, status, mode) VALUES (?, ?, ?, 'PENDING', 'DANNCE')",
             (prediction_path, user_data.prediction_name, user_data.video_folder_id),
@@ -188,6 +186,7 @@ def predict_job_submit_dannce(conn: SessionDep, user_data: PredictJobSubmitDannc
 
     taskqueue.submit_job.submit_predict_job.delay(
         mode="DANNCE",
+        gpu_job_id=gpu_job_id,
         predict_job_id=predict_job_id,
         job_name=user_data.name,
         log_path=log_path,
@@ -202,80 +201,6 @@ def predict_job_submit_dannce(conn: SessionDep, user_data: PredictJobSubmitDannc
         "config_file_path": config_path,
         "message": "submitting predict DANNCE job to slurm in background",
     }
-
-
-# @router.post("/submit_dannce")
-# def predict_job_submit_dannce(
-#     conn: SessionDep,
-#     data: PredictJobSubmitDannceModel,
-#     background_tasks: BackgroundTasks,
-# ):
-#     """Submit a predict job"""
-
-#     m = config_dannce_predict(conn, data)
-
-#     cfg_json = m.to_json_string()
-
-#     config_file = Path(
-#         settings.CONFIGS_FOLDER_EXTERNAL,
-#         make_resource_name("predict_dannce_config_", ".yaml"),
-#     )
-
-#     curr = conn.cursor()
-#     curr.execute("BEGIN")
-#     try:
-#         prediction_path = str(m.dannce_predict_dir)
-#         video_folder_id = data.video_folder_id
-#         prediction_name = data.prediction_name
-#         predict_job_name = data.name
-#         weights_id = data.weights_id
-#         runtime_id = data.runtime_id
-#         # weights_name = data.output_model_name
-#         curr.execute(
-#             f"INSERT INTO {TABLE_PREDICTION} (path, name, video_folder, status, mode) VALUES (?,?,?,?,?)",
-#             (prediction_path, prediction_name, video_folder_id, "PENDING", "DANNCE"),
-#         )
-#         prediction_id = curr.lastrowid
-#         # first insert the train job
-#         curr.execute(
-#             f"INSERT INTO {TABLE_PREDICT_JOB} (name, weights, prediction, video_folder, runtime, config) VALUES (?,?,?,?,?,?)",
-#             (
-#                 predict_job_name,
-#                 weights_id,
-#                 prediction_id,
-#                 video_folder_id,
-#                 runtime_id,
-#                 cfg_json,
-#             ),
-#         )
-
-#         predict_job_id = curr.lastrowid
-#         curr.execute("COMMIT")
-
-#     except sqlite3.Error as e:
-#         logger.info(f"ERROR: {e}")
-#         curr.execute("ROLLBACK")
-#         raise HTTPException(
-#             status_code=400,
-#             detail="SQLITE3 Error. Transaction rolled back. Perhaps there is already a model with modelname?",
-#         )
-
-#     background_tasks.add_task(
-#         bg_submit_dannce_predict_job,
-#         m,
-#         runtime_id,
-#         predict_job_id,
-#         weights_id,
-#         prediction_id,
-#         config_file,
-#     )
-
-#     return {
-#         "predict_job_id": predict_job_id,
-#         "prediction_id": prediction_id,
-#         "config_file_path": config_file,
-#         "message": "submitting predict COM job to slurm in background",
-#     }
 
 
 @router.get("/list")
@@ -324,11 +249,12 @@ def get_predict_job(
     row = conn.execute(
         f"""
 SELECT
+    t1.id AS predict_job_id,
     t1.name,
     t1.config,
+    t1.gpu_job AS gpu_job_id,
     t1.runtime AS runtime_id,
     t1.weights AS weights_id,
-    t1.id AS gpu_job_id,
     t1.prediction AS prediction_id,
     t1.video_folder AS video_folder_id,
     t2.mode,
@@ -374,7 +300,7 @@ WHERE
         "weights_path": row["weights_path"],
         "weights_status": row["weights_status"],
         "gpu_job_id": row["gpu_job_id"],
-        "config": row["config"],
+        "config": json.loads(row["config"]),
         "mode": row["mode"],
         "runtime_id": row["runtime_id"],
         "runtime_name": row["runtime_name"],

@@ -11,6 +11,7 @@ from app.api.deps import SessionDep
 from app.core.db import TABLE_GPU_JOB
 from app.utils.job import refresh_job_list
 from app.core.config import settings
+from app.models import CancelJobModel, DeleteJobModel
 
 router = APIRouter()
 
@@ -23,6 +24,21 @@ def update_live_jobs(conn: SessionDep):
     jobs_updated = data.jobs_updated
 
     return {"live": live_jobs, "jobs_updated": jobs_updated}
+
+
+@router.post("/cancel_job")
+def update_live_jobs(conn: SessionDep, data: CancelJobModel):
+    job_id = data.job_id
+
+    curr = conn.cursor()
+    
+
+@router.post("/delete_job")
+def update_live_jobs(conn: SessionDep, data: DeleteJobModel):
+    job_id = data.job_id
+
+    curr = conn.cursor()
+    conn.execute(f"DELTE FROM {TABLE_GPU_JOB} WHERE")
 
 
 @router.get("/get_log/{gpu_job_id}")

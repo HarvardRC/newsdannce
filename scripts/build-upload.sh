@@ -1,11 +1,14 @@
 #!/bin/bash
 
 # custom script for Chris building containers and uploading to the cluster
-# TODO: remove from repo
+echo "TIMESTAMP IS: $(date)" 
 
 set -e 
 
-./scripts/build-all-docker.sh 
+# make sure the latest version of the repo is being used
+git pull
+
+./scripts/build-docker.sh 
 ./scripts/build-singularity.sh
 
 SOURCE_EP=2cfae25e-cd1a-11ef-a529-1beea83a8f52

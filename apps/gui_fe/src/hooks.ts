@@ -55,7 +55,7 @@ export function useListPredictJobsQuery() {
   return useQuery({
     queryKey: ['listPredictJobs'],
     queryFn: listPredictJobs,
-    refetchInterval: 60_000, // refetch every 60 seconds
+    refetchInterval: 300_000, // refetch every 60 seconds
   });
 }
 
@@ -71,7 +71,7 @@ export function useListTrainJobsQuery() {
   return useQuery({
     queryKey: ['listTrainJobs'],
     queryFn: listTrainJobs,
-    refetchInterval: 60_000, // refetch every 60 seconds
+    refetchInterval: 300_000, // refetch every 60 seconds
   });
 }
 
