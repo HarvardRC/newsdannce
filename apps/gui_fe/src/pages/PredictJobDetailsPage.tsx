@@ -18,12 +18,19 @@ const PredictJobDetailsPage: React.FC = () => {
     return <div>Error</div>;
   }
 
+  const { config: predictJobDataConfig, ...predictJobDataNoConfig } =
+    predictJobData;
+
   return (
     <div>
       <h1 className="text-2xl mb-4">Predict Job Details</h1>
       <h2 className="text-xl mb-2">Full Job Details</h2>
       <pre className="p-4 bg-gray-50 border rounded-md mb-4">
-        {JSON.stringify(predictJobData, null, 2)}
+        {JSON.stringify(predictJobDataNoConfig, null, 2)}
+      </pre>
+      <h2 className="text-xl mb-2">Job Config</h2>
+      <pre className="p-4 bg-gray-50 border rounded-md mb-4 text-wrap">
+        {JSON.stringify(predictJobDataConfig, null, 2)}
       </pre>
       <h2 className="text-xl">Log File</h2>
       <LogStream gpuJobId={predictJobData.gpu_job_id} />
