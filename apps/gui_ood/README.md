@@ -23,7 +23,7 @@ NEWSDANNCE_FOLDER_PATH=/Users/caxon/olveczky/newsdannce
 
 5. Run the following command to upload the OOD code to the clustser:
 
-`rsync -avhP $NEWSDANNCE_FOLDER_PATH $RC_USERNAME@login.rc.fas.harvard.edu:~/.fasrcood/dev/gui_ood/ --delete`
+`rsync -avhP $NEWSDANNCE_FOLDER_PATH/apps/gui_ood/ $RC_USERNAME@login.rc.fas.harvard.edu:~/.fasrcood/dev/gui_ood/ --delete`
 
 6. Connect to the FASRC vpn [instructions here](https://docs.rc.fas.harvard.edu/kb/vpn-setup/)
 
@@ -33,6 +33,7 @@ NEWSDANNCE_FOLDER_PATH=/Users/caxon/olveczky/newsdannce
 10. You should see a form with the header DANNCE GUI (see image) ![dannce gui form](resources/dannce_gui_form.png)
 
 Fill out this form with the following entries:
+
 a. **Account**: use your fasrc billing account. If you are in a lab this is likely your lab account name; e.g. `olveczkylab` or `univ_rc`. If you are unsure, you can connect to the cluster through a terminal over ssh (e.g. ssh $RC_USERNAME@login.rc.fas.harvard.edu) and run:
 
 ```
