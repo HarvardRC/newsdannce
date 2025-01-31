@@ -13,12 +13,6 @@ export default defineConfig({
       },
     },
 
-    // rollupOptions:
-    // {
-    //   output:{
-    //     assetFileNames:'assets/config.js'
-    //   }
-    // }
   },
   plugins: [react()],
   resolve: {
