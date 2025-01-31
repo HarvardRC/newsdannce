@@ -126,6 +126,7 @@ def submit_predict_job(
 
         with open(Path(settings.LOGS_FOLDER, f"{config_path}.sbatch"), "wt") as f:
             f.write(sbatch_str)
+            logger.info(f"FOR PREDICT JOB ID: {predict_job_id}, sbatch is written to: {Path(settings.LOGS_FOLDER_EXTERNAL, f'{config_path}.sbatch')}")
 
         slurm_job_id = _submit_sbatch_to_slurm(
             sbatch_str, settings.SLURM_TRAIN_FOLDER_EXTERNAL

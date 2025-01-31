@@ -86,11 +86,13 @@ const ComPredictPage = () => {
     return <div>Data still loading...</div>;
   }
 
-  const videoFolderOptions = videoFolderData!.map((x) => ({
-    id: x.id,
-    name: x.name,
-    path: x.path,
-  }));
+  const videoFolderOptions = videoFolderData!
+    .filter((x) => x.status == 'COMPLETED')
+    .map((x) => ({
+      id: x.id,
+      name: x.name,
+      path: x.path,
+    }));
 
   const weightsOptions = weightsData!
     .filter((x) => x.mode == 'COM')

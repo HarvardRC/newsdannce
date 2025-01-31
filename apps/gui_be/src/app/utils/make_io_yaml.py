@@ -127,7 +127,6 @@ class DanncePredictModel(ConfigModel):
 
 
 def config_com_train(conn: sqlite3.Connection, data: TrainJobSubmitComModel):
-    """Make resource names for"""
     video_folder_ids = data.video_folder_ids
     com_train_weights_path = make_resource_name("TRAIN_COM_")
     config_path = make_resource_name("TRAIN_COM_", ".yaml")
@@ -161,7 +160,6 @@ def config_dannce_train(conn: sqlite3.Connection, data: TrainJobSubmitDannceMode
     config_path = make_resource_name("TRAIN_DANNCE_", ".yaml")
     log_path = make_resource_name("TRAIN_DANNCE_", ".out")
 
-
     dannce_train_dir = Path(
         settings.WEIGHTS_FOLDER_EXTERNAL, dannce_train_weights_path
     )
@@ -191,8 +189,8 @@ def config_com_predict(conn: sqlite3.Connection, data: PredictJobSubmitComModel)
     weights_file_external = Path(settings.WEIGHTS_FOLDER_EXTERNAL, weights_path, weights_latest_filename)
 
     prediction_path = make_resource_name("PREDICT_COM_")
-    config_path = make_resource_name("TRAIN_DANNCE_", ".yaml")
-    log_path = make_resource_name("TRAIN_DANNCE_", ".out")
+    config_path = make_resource_name("PREDICT_COM_", ".yaml")
+    log_path = make_resource_name("PREDICT_COM_", ".out")
 
     prediction_path_internal = Path(settings.PREDICTIONS_FOLDER, prediction_path )
     prediction_path_external = Path(settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path)
@@ -232,18 +230,14 @@ def config_dannce_predict(conn: sqlite3.Connection, data: PredictJobSubmitDannce
 
     config_path = make_resource_name("PREDICT_DANNCE_", ".yaml")
     log_path = make_resource_name("PREDICT_DANNCE_", ".out")
+    prediction_path = Path( make_resource_name("PREDICT_DANNCE_"))
 
-    prediction_path = Path(
-        settings.PREDICTIONS_FOLDER_EXTERNAL, make_resource_name("DANNCE_")
-    )
 
     blank_io_yaml_file = Path(settings.SLURM_TRAIN_FOLDER, "io.yaml")
 
-    prediction_path.mkdir(exist_ok=False, mode=0o777)
-
-    prediction_path_external = Path(
-        settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path.name
-    )
+    prediction_path_internal = Path(settings.PREDICTIONS_FOLDER, prediction_path )
+    prediction_path_external = Path(settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path)
+    prediction_path_internal.mkdir(exist_ok=False, mode=0o777)
 
     video_folder_path_external = Path(settings.VIDEO_FOLDERS_FOLDER_EXTERNAL, video_folder_path)
 

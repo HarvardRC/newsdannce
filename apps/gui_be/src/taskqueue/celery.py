@@ -30,8 +30,8 @@ celery_app.conf.update(beat_schedule_filename=settings.CELERY_BEAT_FILES)
 @celery_app.on_after_configure.connect
 def add_periodic(**kwargs):
     from taskqueue.tasks import task_refresh_job_list
-    logger.info("Refreshing job status every 10 minutes")
-    # celery_app.add_periodic_task(600, task_refresh_job_list.s(), name='Refresh jobs list')
+    logger.info("Refreshing job status every 5 minutes")
+    celery_app.add_periodic_task(300, task_refresh_job_list.s(), name='Refresh jobs list')
 
 if __name__ == "__main__":
     celery_app.start()

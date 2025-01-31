@@ -54,6 +54,12 @@ const PredictionDetailsPage: React.FC<CustomProps> = () => {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     console.log('VALUES ARE ', values);
     let frames = values.frames.split(',').map((x) => parseInt(x.trim()));
+    frames.forEach((x) => {
+      if (x < 0 || x >= data!.n_frames)
+        throw Error(
+          'frame numbers must be between 0 (inclusive) and n_frames (exclusive)'
+        );
+    });
     setFrames(frames);
   };
 

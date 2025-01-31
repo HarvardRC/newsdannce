@@ -3,6 +3,7 @@
 """
 
 from functools import reduce
+import json
 from pathlib import Path
 import sqlite3
 import traceback
@@ -314,7 +315,7 @@ WHERE t1.id=?;
         "weights_path": row["weights_path"],
         "weights_status": row["weights_status"],
         "gpu_job_id": row["gpu_job_id"],
-        "config": row["config"],
+        "config": json.loads(row["config"]),
         "mode": row["mode"],
         "video_folders": video_folders,
         "runtime_id": row["runtime_id"],

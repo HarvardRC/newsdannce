@@ -87,12 +87,6 @@ class JobStatusDataObject(BaseModel):
     slurm_job_id: int
     created_at: int
 
-    # slurm_job_id: int
-    # job_status: JobStatus
-    # train_or_predict: typing.Literal["TRAIN", "PREDICT"]
-    # job_id: int
-    # created_at: int
-
 
 class WeightsDataObject(BaseModel):
     weights_id: int

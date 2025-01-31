@@ -132,7 +132,7 @@ def get_prediction_metadata(status, mode: Literal["COM","DANNCE","SDANNCE"], pre
     elif mode == "DANNCE":
         path = get_prediction_file_path(mode, prediction_path)
         m = loadmat(path)
-        n_frames = m['pred'].shape[1]
+        n_frames = m['pred'].shape[0]
         n_joints = m['pred'].shape[3]
     else:
         raise HTTPException(500, f"Unsupported prediciton mode:{mode}" )

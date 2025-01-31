@@ -139,6 +139,14 @@ type VideoFolderDetails = {
   dannce_labels_file?: string;
   current_com_prediction?: string;
   current_com_prediction_name?: string;
+
+  n_cameras: number;
+  n_animals: number;
+  n_frames: number;
+  duration_s: number;
+  video_width: number;
+  video_height: number;
+  fps: number;
   label_files: {
     n_cameras: number;
     n_frames: number;
@@ -454,6 +462,11 @@ export type PredictionDetailsType = {
   prediction_status: 'PENDING' | 'COMPLETED' | 'FAILED';
   video_folder_id: number;
   mode: 'DANNCE' | 'SDANNCE' | 'COM';
+  n_frames: number;
+  n_joints: number;
+  created_at: number;
+  path_internal: string;
+  path_external: string;
 };
 export async function getPredictionDetails(
   predictionId: number
