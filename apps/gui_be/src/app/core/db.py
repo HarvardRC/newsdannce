@@ -151,10 +151,12 @@ class JobStatus(Enum):
 
     def is_failure(self):
         statuses_converted = [JobStatus(x[0]) for x in self._failure_statuses]
+        logger.info(f"TESTING IS FALURE: {self}; statuses_converted: {statuses_converted}")
         return self in statuses_converted
 
     def is_success(self):
         statuses_converted = [JobStatus(x[0]) for x in self._success_statuses]
+        logger.info(f"TESTING IS SUCCESS: {self}; statuses_converted: {statuses_converted}")
         return self in statuses_converted
 
     def __new__(cls, str_value, code):
