@@ -461,10 +461,12 @@ def update_jobs_by_ids(
                 )
         elif j.train_or_predict == "PREDICT":
             if j.job_status.is_failure():
+                logger.info(f"GPU PREDICT JOB FAILED: {j.gpu_job_id}")
                 update_prediction_status_by_job_id(
                     conn, j.gpu_job_id, db.PredictionStatus.FAILED
                 )
             elif j.job_status.is_success():
+                logger.info(f"GPU PREDICT JOB SUCCEEDED: {j.gpu_job_id}")
                 update_prediction_status_by_job_id(
                     conn, j.gpu_job_id, db.PredictionStatus.COMPLETED
                 )

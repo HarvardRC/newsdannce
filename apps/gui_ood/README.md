@@ -48,7 +48,9 @@ d. **Number of Cores**: Number of cores to allocate for the DANNCE GUI process. 
 
 e. **Instance Directory***: Where your dannce gui data will be stored. This includes video files, prediction files, slurm sbatch logs, etc. This should not be part of your home directory, as it will be very slow to access. This should likely be a new directory on luster or isilon. If the folder does not exist it will be created. E.g. `/n/holylabs/LABS/olveczky_lab/Users/caxon/dannce-gui-instance`
 
-f. **Sdannce Container Path**: Path to a apptainer/singularity container for sdannce. See the instructions for building this in the newsdannce/core/singularity folder. This container will be launched to run sdannce training and inference. E.g. /n/holylabs/LABS/olveczky_lab/Lab/singularity2/sdannce/sdannce-20241210.sif
+f. **DANNCE GUI Container Path**: Path to a apptainer/singularity container for the DANNCE GUI. E.g. `/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/containers/dannce-gui.sif`
+
+g. **Sdannce Container Path**: Path to a apptainer/singularity container for sdannce. See the instructions for building this in the newsdannce/core/singularity folder. This container will be launched to run sdannce training and inference. E.g. `/n/holylabs/LABS/olveczky_lab/Lab/singularity2/sdannce/sdannce-20241210.sif`
 
 
 Once all the fields are filled out, click: "Launch". This may take a few minutes (or porentially hours), depending on long the cluster queue is. It will likely take under 60 seconds if the partition you're using is not too busy.
