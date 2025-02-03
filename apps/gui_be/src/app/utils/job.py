@@ -218,7 +218,7 @@ def update_jobs_by_ids(
             new_job_object = old_job_object.model_copy(
                 update={"job_status": new_status_enum}
             )
-            logger.info("NEW JOB OBJECT", new_job_object)
+            logger.info(f"NEW JOB OBJECT: {new_job_object}")
             updated_job_list.append(new_job_object)
 
     for lost_job_id in ids_lost_to_slurm:
