@@ -404,7 +404,8 @@ def update_jobs_by_ids(
 
     ids_queried_set = {x.slurm_job_id for x in job_list}
     ids_recieved_set = {x.job_id for x in jobs_with_status}
-    # list of ids which were asked for but not returned by slurm (subtraction op does set difference)
+
+    # list of ids which were asked for but not returned by slurm (subtraction does set difference)
     ids_lost_to_slurm = list(ids_queried_set - ids_recieved_set)
     if len(ids_lost_to_slurm) > 0:
         logger.warning(
@@ -430,7 +431,7 @@ def update_jobs_by_ids(
             new_job_object = old_job_object.model_copy(
                 update={"job_status": new_status_enum}
             )
-
+            logger.info("NEW JOB OBJECT", new_job_object)
             updated_job_list.append(new_job_object)
 
     for lost_job_id in ids_lost_to_slurm:
