@@ -4,6 +4,7 @@ from pathlib import Path, PurePath
 import sqlite3
 from typing import Literal
 
+from app.base_logger import logger
 from fastapi import HTTPException
 import numpy as np
 
@@ -19,6 +20,7 @@ from scipy.io import loadmat
 def update_prediction_status_by_job_id(
     conn: sqlite3.Connection, predict_job_id: int, status: PredictionStatus
 ):
+    logger.info(f"UPDATE PRED. STAT BY JOB ID: {predict_job_id}; Status value: {status.value}, status: {status}")
     conn.execute(
         f"""
 UPDATE {TABLE_PREDICTION}
