@@ -5,6 +5,8 @@ If you are targetting a slurm cluster, since most build steps require root permi
 
 You also should not need to rebuild the container unless it does not work on your machine. If you have a working `dannce-gui.sif` file or docker container, you can use that.
 
+
+
 # Build the frontend
 1. Install [node v20 or greater](https://nodejs.org/en/download) or [nvm](https://github.com/nvm-sh/nvm)
 2. Go to the frontend directory (`cd ./apps/gui_fe`). **All the following commands must be run from the gui_fe folder.**

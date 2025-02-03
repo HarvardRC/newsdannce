@@ -1,5 +1,10 @@
 # NewsDANNCE: DANNCE and Utilities
 
+## Introduction
+This repository contains code to facilite running DANNCE.
+
+There is documentation for buildling a dannce recording rig, for chosing 
+
 ## Calibration
 
 GUI to generate camera parameters for use in Label3D and DANNCE.
