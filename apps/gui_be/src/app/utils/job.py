@@ -452,6 +452,7 @@ def update_jobs_by_ids(
                 updated_job_list.append(new_job_object)
 
     for j in updated_job_list:
+        logger.info(f"JOB DATA: {j}")
         if j.train_or_predict == "TRAIN":
             if j.job_status.is_failure():
                 update_weights_status_by_job_id(conn, j.gpu_job_id, db.WeightsStatus.FAILED)

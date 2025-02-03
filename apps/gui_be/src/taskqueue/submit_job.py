@@ -142,7 +142,7 @@ def submit_predict_job(
             (slurm_job_id, gpu_job_id),
         )
 
-        logger.info(f"SHOUDL HAVE UPDATED TABLE GPU JOB to set slurm_job_id={slurm_job_id} WHERE gpu_job_id={gpu_job_id}")
+        logger.info(f"SHOULD HAVE UPDATED TABLE GPU JOB to set slurm_job_id={slurm_job_id} WHERE gpu_job_id={gpu_job_id}")
 
         conn.execute("COMMIT")
 
