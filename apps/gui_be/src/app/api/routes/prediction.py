@@ -162,6 +162,7 @@ SELECT
     path AS prediction_path,
     status AS status,
     video_folder AS video_folder_id,
+    filepath AS filepath,
     mode AS mode,
     created_at
 FROM {TABLE_PREDICTION}
@@ -192,6 +193,7 @@ WHERE id=?
         'mode': mode,
         'created_at': created_at,
         'n_joints': metadata.n_joints,
-        'n_frames': metadata.n_frames
+        'n_frames': metadata.n_frames,
+        'filepath': row['filepath'],
     }
 
