@@ -3,11 +3,10 @@ import sqlite3
 from app.core.db import TABLE_PREDICTION, TABLE_WEIGHTS
 from app.migrations.migration_util import Migration
 from app.core.config import settings
-from pathlib import Path
 
 from app.utils.predictions import get_prediction_filename
 from app.utils.weights import get_latest_checkpoint_filename
-
+from app.base_logger import logger
 
 def up(curr: sqlite3.Cursor):
     curr.execute(
@@ -27,8 +26,10 @@ ADD COLUMN filename TEXT;""")
     for pred_row in rows:
         id = pred_row['id']
         try:
+            logger.info("Trying to find pred filename:")
             filename = get_prediction_filename(pred_row['mode'], pred_row['path'])
         except Exception:
+            logger.info("EXCEPTION CAUGHT")
             filename = None
         pred_filename_pairs.append((filename,id))
 
