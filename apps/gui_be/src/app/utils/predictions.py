@@ -9,6 +9,7 @@ from fastapi import HTTPException
 import numpy as np
 
 from app.core.db import (
+    TABLE_GPU_JOB,
     TABLE_PREDICT_JOB,
     TABLE_PREDICTION,
     PredictionStatus,
@@ -18,28 +19,33 @@ from scipy.io import loadmat
 
 
 def update_prediction_status_by_job_id(
-    conn: sqlite3.Connection, predict_job_id: int, status: PredictionStatus
+    conn: sqlite3.Connection, gpu_job_id: int, status: PredictionStatus
 ):
-    logger.info(f"UPDATE PRED. STAT BY JOB ID: {predict_job_id}; Status value: {status.value}, status: {status}")
+    logger.info(f"UPDATE PRED. STAT BY JOB ID: {gpu_job_id}; Status value: {status.value}, status: {status}")
     conn.execute(
         f"""
 UPDATE {TABLE_PREDICTION}
 SET status=?
 FROM (
-    SELECT t1.id AS pid,
-            t2.id as jid
-    FROM {TABLE_PREDICTION} t1
-        LEFT JOIN {TABLE_PREDICT_JOB} t2
-        ON t2.prediction = t1.id
-    WHERE jid=?
+    SELECT
+        t_pred.id AS prediction_id,
+        t_pred_j.id AS predict_job_id,
+        t_gpu_j.id AS gpu_job_id
+    FROM
+        {TABLE_PREDICTION} t_pred
+    LEFT JOIN {TABLE_PREDICT_JOB} t_pred_j
+        ON t_pred.id = t_pred_j.prediction
+    LEFT JOIN {TABLE_GPU_JOB} t_gpu_j
+        ON t_gpu_j.id = t_pred_j.gpu_job
 ) AS tmp
-WHERE tmp.pid = {TABLE_PREDICTION}.id;
+WHERE tmp.gpu_job_id = ?
                  """,
         (
             status.value,
-            predict_job_id,
+            gpu_job_id,
         ),
     )
+    conn.execute("COMMIT")
 
 def get_com_prediction_file(conn: sqlite3.Connection, predict_job_id: int, samples: int, to_list= True):
     """
