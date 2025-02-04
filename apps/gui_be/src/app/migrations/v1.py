@@ -26,7 +26,10 @@ ADD COLUMN filename TEXT;""")
     pred_filename_pairs = []
     for pred_row in rows:
         id = pred_row['id']
-        filename = get_prediction_filename(pred_row['mode'], pred_row['path'])
+        try:
+            filename = get_prediction_filename(pred_row['mode'], pred_row['path'])
+        except Exception:
+            filename = None
         pred_filename_pairs.append((filename,id))
 
     curr.executemany(

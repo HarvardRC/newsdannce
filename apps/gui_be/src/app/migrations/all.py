@@ -47,7 +47,7 @@ def run_migration(migration_number: int, migration_list: list[Migration]):
             curr.execute("COMMIT")
             logger.warning(f"Finished migration #{migration_number}")
 
-        except BaseException:
+        except Exception:
             curr.execute("ROLLBACK")
             raise Exception(f"Unable to complete migration #{migration_number} with name: {migration.name}")
 
