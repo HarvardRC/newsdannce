@@ -100,10 +100,20 @@ WHERE t1.id=?
         return com_data
 
 def get_prediction_file_path(mode: Literal['COM','DANNCE','SDANNCE'], prediction_path:str, is_external:bool=False):
-    base_folder = settings.PREDICTIONS_FOLDER_EXTERNAL if is_external else settings.PREDICTIONS_FOLDER
+    base_folder_internal = settings.PREDICTIONS_FOLDER
+    base_folder_external = settings.PREDICTIONS_FOLDER_EXTERNAL
+
+    base_folder = base_folder_external if is_external else base_folder_internal
 
     if mode == "COM":
-        return PurePath(base_folder, prediction_path, "com3d.mat")
+        p = base_folder_internal.joinpath(prediction_path, "com3d.mat")
+        if p.exists():
+            return PurePath(base_folder, prediction_path, "com3d.mat")
+        else:
+            p = base_folder_internal.joinpath(prediction_path, "com3d0.mat")
+            if p.exists():
+                return PurePath(base_folder, prediction_path, "com3d0.mat")
+        raise HTTPException(400, "Unable to find COM predictions file at expected locations")
     elif mode == "DANNCE":
         return PurePath(base_folder, prediction_path, "save_data_AVG0.mat")
     else:
