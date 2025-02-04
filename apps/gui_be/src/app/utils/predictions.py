@@ -18,7 +18,7 @@ from scipy.io import loadmat
 
 
 def update_prediction_status_by_job_id(
-    conn: sqlite3.Connection, gpu_job_id: int, status: PredictionStatus, mode: Literal['COM','DANNCE']
+    conn: sqlite3.Connection, gpu_job_id: int, status: PredictionStatus
 ):
     logger.info(f"UPDATE PRED. STAT BY JOB ID: {gpu_job_id}; Status value: {status.value}, status: {status}")
 
