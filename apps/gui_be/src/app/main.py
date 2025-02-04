@@ -5,6 +5,7 @@ from fastapi import Request
 from app.core.setup_db import update_local_runtime
 from app.core.setup_instancedata import setup_instancedata
 from app.core.config import settings
+from app.migrations.all import do_migrations_prestart
 
 from starlette.middleware.cors import CORSMiddleware
 
@@ -28,6 +29,7 @@ app.add_middleware(
 def initialize_state():
     logger.info("INIT'ING STATE")
     setup_instancedata()
+    do_migrations_prestart()
     update_local_runtime()
 
 

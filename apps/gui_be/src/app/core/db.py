@@ -47,7 +47,7 @@ def get_db_context():
     E.g.:
     with get_db_context() as db:
         do_something
-    # auto-closed when context ends
+    ## auto-closed when context ends
     """
     conn = sqlite3.connect(settings.DB_FILE, check_same_thread=False)
     conn.row_factory= sqlite3.Row

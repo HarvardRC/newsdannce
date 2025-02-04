@@ -16,6 +16,7 @@ from pathlib import Path
 from app.utils.dannce_mat_processing import process_label_mat_file
 from caldannce.calibration_data import CameraParams
 
+from app.utils.predictions import get_prediction_filename
 from app.utils.video_processing import (
     get_video_metadata,
 )
@@ -77,11 +78,10 @@ def get_video_folders_for_dannce(
 SELECT
     t1.path,
     t1.dannce_labels_file,
-    t2.path as com_pred_path
+    t2.path AS com_pred_path
 FROM video_folder t1
 LEFT JOIN prediction t2
-ON
-    t2.id = t1.current_com_prediction
+    ON t2.id = t1.current_com_prediction
 WHERE
     t1.id IN ({question_string})
 """,
@@ -121,7 +121,7 @@ def get_video_folder_path(conn: sqlite3.Connection, video_folder_id: int) -> lis
 # use latest COM generation for this purpose
 def get_com_file_path(conn: sqlite3.Connection, video_folder_id: int) -> Path:
     row = conn.execute(
-        f"SELECT t2.path as path FROM {TABLE_VIDEO_FOLDER} t1 LEFT JOIN {TABLE_PREDICTION} t2 ON t1.current_com_prediction = t2.id  WHERE t1.id=?",
+        f"SELECT t2.path AS path FROM {TABLE_VIDEO_FOLDER} t1 LEFT JOIN {TABLE_PREDICTION} t2 ON t1.current_com_prediction = t2.id  WHERE t1.id = ?",
         (video_folder_id,),
     ).fetchone()
     if not row:
@@ -285,14 +285,16 @@ VALUES
                 pred_mode = pred[0]
                 pred_path = str(Path(base_path, pred[0], pred[1]))
                 pred_time = pred[2]
+                filename = get_prediction_filename(pred_mode, pred_path)
                 curr.execute(
-                    f"INSERT INTO {TABLE_PREDICTION} (mode, path, name, status, video_folder, created_at) VALUES (?,?,?,?,?,?)",
+                    f"INSERT INTO {TABLE_PREDICTION} (mode, path, name, status, video_folder, filename, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
                     (
                         pred_mode,
                         pred_path,
                         pred_name,
                         "COMPLETED",
                         video_folder_id,
+                        filename,
                         pred_time,
                     ),
                 )
@@ -309,7 +311,7 @@ VALUES
 
 
                 curr.execute(
-                    f"UPDATE {TABLE_VIDEO_FOLDER} SET current_com_prediction=? WHERE id=?",
+                    f"UPDATE {TABLE_VIDEO_FOLDER} SET current_com_prediction = ? WHERE id = ?",
                     (
                         latest_com_pred[1],
                         video_folder_id,

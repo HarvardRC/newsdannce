@@ -41,8 +41,8 @@ def setup_instancedata(force_recreate=False):
     """
     Make required folders to store instance data and run DANNCE.
     Also create the sqlite3 database (db.sqlite3) if it does not exist.
-
     """
+
     if force_recreate is True or not settings.DATA_FOLDER.exists() or not os.listdir(settings.DATA_FOLDER):
         logger.info("CREATING INSTANCE FOLDER")
         # make instance_data folders

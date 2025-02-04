@@ -26,8 +26,9 @@ CREATE TABLE runtime (
 CREATE TABLE prediction (
     id INTEGER PRIMARY KEY NOT NULL,
     name TEXT NOT NULL, --human readible name
-    path TEXT NOT NULL UNIQUE, --path to the prediction folder
-    src_path TEXT, --path where the video was imported from (if relevant)
+    path TEXT NOT NULL UNIQUE, --path to the prediction folder (uuid)
+    filename TEXT, -- filename of the latest prediction file
+    src_path TEXT, --path where the prediction was imported from (if relevant)
     status TEXT DEFAULT 'PENDING'
         CHECK(status IN (
             'PENDING', 'COMPLETED','FAILED')),
@@ -41,6 +42,7 @@ CREATE TABLE weights (
     id INTEGER PRIMARY KEY NOT NULL,
     name TEXT NOT NULL, --human readible name of weights (ie "output-model-name")
     path TEXT NOT NULL UNIQUE, -- path to the folder containing a checkpoint-final.pth
+    filename TEXT, -- text filename e.g. "save_data_AVG0.mat"
     src_path TEXT, --path where the video was imported from (if relevant)
     status TEXT DEFAULT 'PENDING'
         CHECK(status IN (
@@ -124,7 +126,8 @@ CREATE TABLE train_job_video_folder (
 CREATE TABLE global_state (
     id INTEGER PRIMARY KEY CHECK (id=0),
     last_update_jobs INTEGER DEFAULT 0,
-    skeleton_file TEXT DEFAULT null
+    skeleton_file TEXT DEFAULT null,
+    migration_version INTEGER DEFAULT 1
 );
 
 -- Create singleton row entry in global_state for storing settings

@@ -2,7 +2,7 @@
 /prediction
 """
 from fastapi import APIRouter, HTTPException
-from pathlib import Path
+from pathlib import Path, PurePath
 
 from app.api.deps import SessionDep
 from app.core.db import TABLE_PREDICTION, TABLE_VIDEO_FOLDER
@@ -15,7 +15,7 @@ from app.utils.video import get_one_frame
 from app.core.config import settings
 from caldannce.calibration_data import CameraParams
 from app.base_logger import logger
-from app.utils.predictions import get_com_deltas, get_com_prediction_file, get_prediction_file_path, get_prediction_metadata
+from app.utils.predictions import get_com_deltas, get_com_prediction_file, get_prediction_filename, get_prediction_metadata
 import scipy.io
 
 router = APIRouter()
@@ -37,8 +37,8 @@ SELECT
     t2.path AS video_folder_path,
     t2.calibration_params AS calibration_params
 FROM {TABLE_PREDICTION} t1
-    LEFT JOIN {TABLE_VIDEO_FOLDER} t2
-        ON t1.video_folder = t2.id
+LEFT JOIN {TABLE_VIDEO_FOLDER} t2
+    ON t1.video_folder = t2.id
 WHERE t1.id=?
 """,
         (id,),
@@ -52,7 +52,7 @@ WHERE t1.id=?
     cam1_params = calibration_params[0]
     cam2_params = calibration_params[1]
 
-    prediction_path = Path(settings.PREDICTIONS_FOLDER, row['prediction_path'])
+    prediction_path = row['prediction_path']
     video_folder_id = row["video_folder_id"]
     video_folder_path = Path(settings.VIDEO_FOLDERS_FOLDER, row["video_folder_path"])
     logger.info(f"PREDICTION PATH {prediction_path}")
@@ -60,10 +60,12 @@ WHERE t1.id=?
     frame_info = []
 
     if mode == "COM":
-        com3d_file = Path(prediction_path, "com3d.mat")
+        com3d_filename = get_prediction_filename('COM', prediction_path)
+        com3d_file = Path(settings.PREDICTIONS_FOLDER, prediction_path, com3d_filename)
         pred_3d = get_com_pred_data_3d(com3d_file, data.frames)
     elif mode == "DANNCE":
-        dannce3d_file = Path(prediction_path, "save_data_AVG0.mat")
+        dannce3d_filename = get_prediction_filename('DANNCE', prediction_path)
+        dannce3d_file = Path(settings.PREDICTIONS_FOLDER, prediction_path, dannce3d_filename)
         pred_3d = get_dannce_pred_data_3d(dannce3d_file, data.frames)
     else:
         raise Exception("Prediction is unsupported")
@@ -182,8 +184,8 @@ WHERE id=?
 
     return {
         'prediction_path': row['prediction_path'],
-        'path_external': get_prediction_file_path(mode, prediction_path, True),
-        'path_internal': get_prediction_file_path(mode, prediction_path, False),
+        'path_external': PurePath(settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path, get_prediction_filename(mode, prediction_path)),
+        'path_internal': PurePath(settings.PREDICTIONS_FOLDER, prediction_path, get_prediction_filename(mode, prediction_path)),
         'prediction_name': prediction_name,
         'status': status,
         'video_folder_id': video_folder_id,

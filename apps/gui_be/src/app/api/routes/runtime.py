@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException
 from app.api.deps import SessionDep
 from app.core.db import TABLE_RUNTIME
 from app.models import CreateRuntimeModel
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -33,7 +34,10 @@ def create_runtime(conn: SessionDep, data: CreateRuntimeModel, ) -> Any:
 
 @router.get("/list")
 def list_all_runtime(conn: SessionDep):
-    rows = conn.execute(f"SELECT * FROM {TABLE_RUNTIME}").fetchall()
+    if settings.MAX_CONCURRENT_LOCAL_JOBS == 0:
+        rows = conn.execute(f"SELECT * FROM {TABLE_RUNTIME} WHERE runtime_type != 'LOCAL'").fetchall()
+    else:
+        rows = conn.execute(f"SELECT * FROM {TABLE_RUNTIME}").fetchall()
     rows = [dict(x) for x in rows]
     return rows
 

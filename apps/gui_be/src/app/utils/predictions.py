@@ -1,6 +1,5 @@
-from calendar import c
 from dataclasses import dataclass
-from pathlib import Path, PurePath
+from pathlib import Path
 import sqlite3
 from typing import Literal
 
@@ -19,30 +18,41 @@ from scipy.io import loadmat
 
 
 def update_prediction_status_by_job_id(
-    conn: sqlite3.Connection, gpu_job_id: int, status: PredictionStatus
+    conn: sqlite3.Connection, gpu_job_id: int, status: PredictionStatus, mode: Literal['COM','DANNCE']
 ):
     logger.info(f"UPDATE PRED. STAT BY JOB ID: {gpu_job_id}; Status value: {status.value}, status: {status}")
+
+    #  get mode and path given GPU job id:
+    row = conn.execute(
+        f"""
+SELECT
+    t_pred.id AS prediction_id, t_pred.mode, t_pred.path
+FROM
+    {TABLE_PREDICTION} t_pred
+LEFT JOIN {TABLE_PREDICT_JOB} t_pred_j
+    ON t_pred_j.prediction = t_pred.id
+LEFT JOIN {TABLE_GPU_JOB} t_gpu_j
+    ON t_gpu_j.id = t_pred_j.gpu_job WHERE t_gpu_j.id = ?
+""", (gpu_job_id,)).fetchone()
+    row = dict(row)
+    prediction_id = row['prediction_id']
+    mode = row['mode']
+    path = row['path']
+
+    filename = get_prediction_filename(mode, path)
+
     conn.execute(
         f"""
 UPDATE {TABLE_PREDICTION}
-SET status=?
-FROM (
-    SELECT
-        t_pred.id AS prediction_id,
-        t_pred_j.id AS predict_job_id,
-        t_gpu_j.id AS gpu_job_id
-    FROM
-        {TABLE_PREDICTION} t_pred
-    LEFT JOIN {TABLE_PREDICT_JOB} t_pred_j
-        ON t_pred.id = t_pred_j.prediction
-    LEFT JOIN {TABLE_GPU_JOB} t_gpu_j
-        ON t_gpu_j.id = t_pred_j.gpu_job
-) AS tmp
-WHERE tmp.gpu_job_id = ?
+SET
+    status = ?,
+    filename = ?
+WHERE id = ?
                  """,
         (
             status.value,
-            gpu_job_id,
+            filename,
+            prediction_id,
         ),
     )
     conn.execute("COMMIT")
@@ -77,7 +87,7 @@ WHERE t1.id=?
     if status != 'COMPLETED':
         raise HTTPException(400, "Prediction must be completed. Not pending or failed.")
 
-    pred_data_file= Path(settings.PREDICTIONS_FOLDER, path, 'com3d.mat')
+    pred_data_file= Path(settings.PREDICTIONS_FOLDER, path, get_prediction_filename('COM', path))
 
     m = loadmat(pred_data_file)
 
@@ -99,25 +109,27 @@ WHERE t1.id=?
     else:
         return com_data
 
-def get_prediction_file_path(mode: Literal['COM','DANNCE','SDANNCE'], prediction_path:str, is_external:bool=False):
-    base_folder_internal = settings.PREDICTIONS_FOLDER
-    base_folder_external = settings.PREDICTIONS_FOLDER_EXTERNAL
-
-    base_folder = base_folder_external if is_external else base_folder_internal
+def get_prediction_filename(mode: Literal['COM','DANNCE','SDANNCE'], prediction_path:str):
+    base_path = Path(settings.PREDICTIONS_FOLDER, prediction_path)
 
     if mode == "COM":
-        p = base_folder_internal.joinpath(prediction_path, "com3d.mat")
-        if p.exists():
-            return PurePath(base_folder, prediction_path, "com3d.mat")
+        filenames = [x.name for x in base_path.glob("com3d*.mat") ]
+        if 'com3d.mat' in filenames:
+            return 'com3d.mat'
+        elif len(filenames) > 0:
+            return filenames[0]
         else:
-            p = base_folder_internal.joinpath(prediction_path, "com3d0.mat")
-            if p.exists():
-                return PurePath(base_folder, prediction_path, "com3d0.mat")
-        raise HTTPException(400, "Unable to find COM predictions file at expected locations")
-    elif mode == "DANNCE":
-        return PurePath(base_folder, prediction_path, "save_data_AVG0.mat")
+            raise Exception(f"[COM] PREDICTION FILENAME NOT FOUND FOR path {prediction_path}")
+    elif mode =='DANNCE':
+        filenames = [x.name for x in base_path.glob("save_data_AVG*.mat") ]
+        if 'save_data_AVG0.mat' in filenames:
+            return "save_data_AVG0.mat"
+        elif len(filenames) > 0:
+            return filenames[0]
+        else:
+            raise Exception(f"[DANNCE] PREDICTION FILENAME NOT FOUND FOR path {prediction_path}")
     else:
-        raise HTTPException("Invalid prediction path")
+        raise Exception(f"PREDICITON MODE {mode} NOT SUPPORTED FOR MIGRATION")
 
 
 @dataclass
@@ -143,12 +155,12 @@ def get_prediction_metadata(status, mode: Literal["COM","DANNCE","SDANNCE"], pre
         n_joints= -1
         n_frames= -1
     elif mode == "COM":
-        path = get_prediction_file_path(mode, prediction_path)
+        path = Path(settings.PREDICTIONS_FOLDER, prediction_path, get_prediction_filename('COM', prediction_path))
         m = loadmat(path)
         n_frames = m['com'].shape[0]
         n_joints = 1
     elif mode == "DANNCE":
-        path = get_prediction_file_path(mode, prediction_path)
+        path = Path(settings.PREDICTIONS_FOLDER, prediction_path, get_prediction_filename('DANNCE', prediction_path))
         m = loadmat(path)
         n_frames = m['pred'].shape[0]
         n_joints = m['pred'].shape[3]

@@ -5,7 +5,7 @@ import sqlite3
 import re
 import string
 
-from app.core.db import TABLE_TRAIN_JOB, TABLE_WEIGHTS, WeightsStatus
+from app.core.db import TABLE_GPU_JOB, TABLE_TRAIN_JOB, TABLE_WEIGHTS, WeightsStatus
 from app.core.config import settings
 from app.base_logger import logger
 
@@ -78,27 +78,43 @@ WHERE id=?
 
 
 def update_weights_status_by_job_id(
-    conn: sqlite3.Connection, train_job_id: int, status: WeightsStatus
+    conn: sqlite3.Connection, gpu_job_id: int, status: WeightsStatus
 ):
     """Update weights status to a give status value (e.g. COMPLETED) given the id of the corresponding train job
     NOTE: does not commit transaction! expected to commit by containing function.
     """
+
+        #  get mode and path given GPU job id:
+    row = conn.execute(
+        f"""
+SELECT
+    t_wts.id AS weights_id, t_wts.mode, t_wts.path
+FROM
+    {TABLE_WEIGHTS} t_wts
+LEFT JOIN {TABLE_TRAIN_JOB} t_train_j
+    ON t_train_j.weights = t_train_j.id
+LEFT JOIN {TABLE_GPU_JOB} t_gpu_j
+    ON t_gpu_j.id = t_train_j.gpu_job WHERE t_gpu_j.id = ?
+""", (gpu_job_id,)).fetchone()
+    row = dict(row)
+    weights_id = row['weights_id']
+    mode = row['mode']
+    path = row['path']
+
+    filename = get_latest_checkpoint_filename(path)
+
     conn.execute(
         f"""
 UPDATE {TABLE_WEIGHTS}
-SET status=?
-FROM (
-    SELECT t1.id AS wid,
-            t2.id as tid
-    FROM {TABLE_WEIGHTS} t1
-        LEFT JOIN {TABLE_TRAIN_JOB} t2
-        ON t2.weights = t1.id
-    WHERE tid=?
-) AS tmp
-WHERE tmp.wid = {TABLE_WEIGHTS}.id;
+SET
+    status = ?,
+    filename = ?
+WHERE id = ?;
                  """,
         (
             status.value,
-            train_job_id,
+            filename,
+            weights_id,
         ),
     )
+
