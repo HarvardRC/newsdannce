@@ -29,7 +29,9 @@ app.add_middleware(
 def initialize_state():
     logger.info("INIT'ING STATE")
     setup_instancedata()
+    logger.info("RUNNING MIGRATIONS")
     do_migrations_prestart()
+    logger.info("UPDATING LOCAL RUNTIME")
     update_local_runtime()
 
 
