@@ -72,7 +72,7 @@ SET
 WHERE
     id = ?
 """, (prediction_id, video_folder_id))
-
+        logger.info(f"Updated current com prediciton to id: {prediction_id} for video folder {video_folder_id}")
     # status=failed
     else:
         conn.execute(

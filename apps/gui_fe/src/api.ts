@@ -137,7 +137,7 @@ type VideoFolderDetails = {
   created_at: number;
   com_labels_file?: string;
   dannce_labels_file?: string;
-  current_com_prediction?: string;
+  current_com_prediction_id?: string;
   current_com_prediction_name?: string;
 
   n_cameras: number;

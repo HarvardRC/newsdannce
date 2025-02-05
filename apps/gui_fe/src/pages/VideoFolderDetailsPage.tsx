@@ -72,15 +72,15 @@ const VideoFolderDetailsPage: React.FC = () => {
         </li>
         <li>
           <span className="font-bold">Current COM Predictions:</span>{' '}
-          {data.current_com_prediction ? (
+          {data.current_com_prediction_name ? (
             <Link
               to={appPages.predictionDetailsPage.path.replace(
                 ':id',
-                data.current_com_prediction
+                data.current_com_prediction_id!
               )}
             >
               {data.current_com_prediction_name} [ID=
-              {data.current_com_prediction}]
+              {data.current_com_prediction_id}]
             </Link>
           ) : (
             '[NONE]'
