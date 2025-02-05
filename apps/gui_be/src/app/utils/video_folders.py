@@ -98,7 +98,7 @@ WHERE
     rows = [
         DannceExpEntry(
             label3d_file=Path(settings.VIDEO_FOLDERS_FOLDER_EXTERNAL, row["path"], row["dannce_labels_file"]),
-            com_file=Path(settings.PREDICTIONS_FOLDER_EXTERNAL, row["com_pred_path"], get_prediction_filename('DANNCE', row["com_pred_path"])),
+            com_file=Path(settings.PREDICTIONS_FOLDER_EXTERNAL, row["com_pred_path"], get_prediction_filename('COM', row["com_pred_path"])),
         )
         for row in rows
     ]
