@@ -79,8 +79,8 @@ SELECT
     t1.path,
     t1.dannce_labels_file,
     t2.path AS com_pred_path
-FROM video_folder t1
-LEFT JOIN prediction t2
+FROM {TABLE_VIDEO_FOLDER} t1
+LEFT JOIN {TABLE_PREDICTION} t2
     ON t2.id = t1.current_com_prediction
 WHERE
     t1.id IN ({question_string})
@@ -98,9 +98,8 @@ WHERE
     rows = [
         DannceExpEntry(
             label3d_file=Path(settings.VIDEO_FOLDERS_FOLDER_EXTERNAL, row["path"], row["dannce_labels_file"]),
-            com_file=Path(settings.PREDICTIONS_FOLDER_EXTERNAL, row["path"], row["com_pred_path"], "com3d.mat"),
+            com_file=Path(settings.PREDICTIONS_FOLDER_EXTERNAL, row["com_pred_path"], get_prediction_filename('DANNCE', row["com_pred_path"])),
         )
-        # DannceExpEntry(label3d_file=Path(row["path"], row["com_labels_file"]))
         for row in rows
     ]
 
