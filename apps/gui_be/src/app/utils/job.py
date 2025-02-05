@@ -259,6 +259,5 @@ def update_jobs_by_ids(
                 update_prediction_status_by_job_id(
                     conn, j.gpu_job_id, db.PredictionStatus.COMPLETED
                 )
-    conn.execute("COMMIT")
 
     return updated_job_list
