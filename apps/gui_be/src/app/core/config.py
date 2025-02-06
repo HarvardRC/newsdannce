@@ -61,10 +61,10 @@ class _Settings(BaseSettings):
     PREDICTIONS_FOLDER_EXTERNAL: PurePath = PurePosixPath(DATA_FOLDER_EXTERNAL, "predictions")
     VIDEO_FOLDERS_FOLDER_EXTERNAL: PurePath = PurePosixPath(DATA_FOLDER_EXTERNAL, "video_folders")
     CONFIGS_FOLDER_EXTERNAL: PurePath = PurePosixPath(DATA_FOLDER_EXTERNAL, "configs")
-    JOB_LOGS_FOLDER_EXTERNAL: Path = Path(DATA_FOLDER_EXTERNAL, "job_logs")
-    LOGS_FOLDER_EXTERNAL: Path = Path(DATA_FOLDER_EXTERNAL, "logs")
+    JOB_LOGS_FOLDER_EXTERNAL: Path = PurePosixPath(DATA_FOLDER_EXTERNAL, "job_logs")
+    LOGS_FOLDER_EXTERNAL: Path = PurePosixPath(DATA_FOLDER_EXTERNAL, "logs")
 
-    SLURM_TRAIN_FOLDER_EXTERNAL: Path = Path(DATA_FOLDER_EXTERNAL, "slurm-cwd")
+    SLURM_TRAIN_FOLDER_EXTERNAL: Path = PurePosixPath(DATA_FOLDER_EXTERNAL, "slurm-cwd")
 
     # required to use celery task scheduler
     CELERY_BEAT_FILES: Path = Path(ENV_CELERY_BEAT_FILES)

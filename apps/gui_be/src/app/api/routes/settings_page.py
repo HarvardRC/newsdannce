@@ -2,7 +2,7 @@
 /settings_page
 """
 from fastapi import APIRouter, HTTPException,UploadFile
-from pathlib import PurePath
+from pathlib import Path
 
 from app.api.deps import SessionDep
 from app.core.db import TABLE_GLOBAL_STATE
@@ -33,7 +33,7 @@ def delete_skeleton_route(conn: SessionDep):
 def upload_skeleton_route(conn: SessionDep, file: UploadFile):
   # validate skeleton file
 
-  orig_path = PurePath(file.filename)
+  orig_path = Path(file.filename)
   filename = file.filename
   suffix = orig_path.suffix
   if suffix != ".mat":

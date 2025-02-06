@@ -11,7 +11,7 @@ from app.models import (
     ImportVideoFoldersModel,
 )
 from app.core.db import TABLE_PREDICTION, TABLE_VIDEO_FOLDER
-from pathlib import Path, PurePath
+from pathlib import Path
 
 from app.utils.dannce_mat_processing import process_label_mat_file
 from caldannce.calibration_data import CameraParams
@@ -134,9 +134,7 @@ WHERE t1.id = ?
 
     filename = get_prediction_filename('COM', row['path'])
 
-    # path = PurePath(row["path"])
-    # path = path.joinpath("com3d.mat")
-    return PurePath(settings.PREDICTIONS_FOLDER_EXTERNAL, row['path'], filename)
+    return Path(settings.PREDICTIONS_FOLDER_EXTERNAL, row['path'], filename)
 
 
 def import_video_folders_from_paths(

@@ -2,7 +2,7 @@
 /prediction
 """
 from fastapi import APIRouter, HTTPException
-from pathlib import Path, PurePath
+from pathlib import Path
 
 from app.api.deps import SessionDep
 from app.core.db import TABLE_PREDICTION, TABLE_VIDEO_FOLDER
@@ -185,8 +185,8 @@ WHERE id=?
 
     return {
         'prediction_path': row['prediction_path'],
-        'path_external': PurePath(settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path, get_prediction_filename(mode, prediction_path)),
-        'path_internal': PurePath(settings.PREDICTIONS_FOLDER, prediction_path, get_prediction_filename(mode, prediction_path)),
+        'path_external': Path(settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path, get_prediction_filename(mode, prediction_path)),
+        'path_internal': Path(settings.PREDICTIONS_FOLDER, prediction_path, get_prediction_filename(mode, prediction_path)),
         'prediction_name': prediction_name,
         'status': status,
         'video_folder_id': video_folder_id,
