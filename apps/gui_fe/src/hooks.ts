@@ -16,6 +16,7 @@ import {
   listPredictions,
   importVideoFolders,
   getPredictionDetails,
+  getWeightsDetails,
   previewPrediction,
   submitDannceTrainJob,
   submitDanncePredictJob,
@@ -63,6 +64,14 @@ export function usePredictionDetailsQuery(predictionId: number) {
   return useQuery({
     queryKey: ['predictionDetails', predictionId],
     queryFn: () => getPredictionDetails(predictionId),
+    // enabled: false,
+  });
+}
+
+export function useWeightsDetailsQuery(weightsId: number) {
+  return useQuery({
+    queryKey: ['weightsDetails', weightsId],
+    queryFn: () => getWeightsDetails(weightsId),
     // enabled: false,
   });
 }

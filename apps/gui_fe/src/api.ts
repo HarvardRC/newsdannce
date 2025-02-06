@@ -477,6 +477,25 @@ export async function getPredictionDetails(
   return get(`/prediction/${predictionId}`);
 }
 
+export type WeightsDetailsType = {
+  weights_id: number;
+  weights_name: string;
+  weights_path: string;
+  weights_status: 'PENDING' | 'COMPLETED' | 'FAILED';
+  mode: 'DANNCE' | 'SDANNCE' | 'COM';
+  created_at: number;
+  path_internal: string;
+  path_external: string;
+};
+export async function getWeightsDetails(
+  predictionId: number
+): Promise<WeightsDetailsType> {
+  if (!predictionId) {
+    throw Error('getWeightsDetails:: weightsId must be defined');
+  }
+  return get(`/weights/${predictionId}`);
+}
+
 export type PreviewPredictionType = {
   frames: {
     frame_idx: number;

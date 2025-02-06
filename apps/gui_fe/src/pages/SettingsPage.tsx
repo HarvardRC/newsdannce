@@ -1,15 +1,16 @@
 // TOOD: finish settings page
 
-import { delete_verb, postFormDataFile } from '@/api';
+import { delete_verb, post, postFormDataFile } from '@/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useSkeletonPath } from '@/hooks';
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { FormEvent, useRef, useState } from 'react';
 
 export default function SettingsPage() {
   const [file, setFile] = useState<File | null>(null);
+  const [sqlResponse, setSqlResponse] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -50,13 +51,28 @@ export default function SettingsPage() {
     queryClient.invalidateQueries({ queryKey: ['skeletonPath'] });
   };
 
+  const handleRunCommand = async (e: any) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const sql = formData.get('sqlCommand');
+    console.log('SQL IS ', formData.get('sqlCommand'));
+    const response = await post('/admin/execute_sql', {
+      sql: sql,
+    });
+
+    setSqlResponse(JSON.stringify(response, null, 2));
+
+    console.log('RESPONSE IS ', response);
+  };
+
   return (
     <>
       <h1 className="text-2xl font-bold mb-4">App Settings</h1>
       <h2 className="text-xl font-semibold mb-1">Dannce Skeleton</h2>
       <p>
         This should be a .mat file containing dannce joints and joint names.
-        E.g. from <pre className="inline">label3d/skeletons</pre> folder.
+        E.g. from <span className="inline font-mono">label3d/skeletons</span>{' '}
+        folder.
       </p>
       <div>
         {' '}
@@ -83,6 +99,22 @@ export default function SettingsPage() {
         >
           Delete Skeleton
         </Button>
+      </div>
+      <h2 className="text-xl font-semibold mb-0 mt-6">
+        Database Commands [Advanced]
+      </h2>
+      <div>Don't use unless you know what you're doing!</div>
+      <form onSubmit={handleRunCommand}>
+        <textarea
+          name="sqlCommand"
+          className="w-full border border-gray-400 rounded-sm p-1 h-40"
+        />
+        <Button type="submit" className="w-80 mt-4">
+          Run Command
+        </Button>
+      </form>
+      <div>
+        <pre> {sqlResponse} </pre>
       </div>
     </>
   );
