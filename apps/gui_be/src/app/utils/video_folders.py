@@ -11,7 +11,7 @@ from app.models import (
     ImportVideoFoldersModel,
 )
 from app.core.db import TABLE_PREDICTION, TABLE_VIDEO_FOLDER
-from pathlib import Path
+from pathlib import Path, PurePath
 
 from app.utils.dannce_mat_processing import process_label_mat_file
 from caldannce.calibration_data import CameraParams
@@ -125,7 +125,7 @@ def get_com_file_path(conn: sqlite3.Connection, video_folder_id: int) -> Path:
     ).fetchone()
     if not row:
         raise HTTPException(400, f"Video folder for id {id} not found")
-    path = Path(row["path"])
+    path = PurePath(row["path"])
     path = path.joinpath("com3d.mat")
     return path
 
