@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useSkeletonPath } from '@/hooks';
 import { useQueryClient } from '@tanstack/react-query';
-import { FormEvent, useRef, useState } from 'react';
+import { useState } from 'react';
 
 export default function SettingsPage() {
   const [file, setFile] = useState<File | null>(null);
