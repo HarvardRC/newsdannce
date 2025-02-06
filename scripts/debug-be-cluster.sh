@@ -9,9 +9,10 @@ export FLOWER_PORT=10791
 export RABBITMQ_PORT=10792
 
 export FLOWER_BASE_URL="${BASE_PROXY_HOST}/${FLOWER_PORT}"
-export SERVER_BASE_URL="${BASE_PROXY_HOST}/${FASTAPI_PORT}"
+export SERVER_BASE_URL="http://localhost:5173"
 export API_BASE_URL="${SERVER_BASE_URL}/v1"
-export REACT_APP_BASE_URL="${SERVER_BASE_URL}/app/index.html"
+# export REACT_APP_BASE_URL="${SERVER_BASE_URL}/app/index.html"
+export REACT_APP_BASE_URL="https://rcood.rc.fas.harvard.edu/rnode/holy8a24108.rc.fas.harvard.edu/10794"
 export SDANNCE_SINGULARITY_IMG_PATH="/n/holylabs/LABS/olveczky_lab/Lab/singularity2/sdannce/sdannce-20241210.sif"
 export DANNCE_GUI_SINGULARITY_IMG_PATH="/n/holylabs/LABS/olveczky_lab/Lab/dannce-dev/containers/dannce-gui.sif"
 
@@ -25,7 +26,7 @@ echo "FLOWER PORT IS ${FLOWER_PORT}"
 echo "FLOWER URL IS: ${FLOWER_BASE_URL}"
 
 # write an env file used to launch singularity
-cat <<EOT >> $ENV_FILE
+cat <<EOT > $ENV_FILE
 BASE_MOUNT=${BASE_MOUNT}
 FASTAPI_PORT=${FASTAPI_PORT}
 RABBITMQ_PORT=${RABBITMQ_PORT}
@@ -42,7 +43,7 @@ export JOBROOT=$PWD
 
 echo "Cat'ing env file"
 cat $ENV_FILE
-echo "Eching env varibales..."
+echo "Eching env variables..."
 echo "RABBITMQ_PORT=${RABBITMQ_PORT}"
 echo "FASTAPI_PORT=${FASTAPI_PORT}"
 echo "FLOWER_PORT=${FLOWER_PORT}"
@@ -85,6 +86,7 @@ singularity run \
     $SING_BINDS \
     --bind ${BASE_MOUNT}:/mnt-data \
     --bind ${BASE_MOUNT}:/${BASE_MOUNT} \
+    --bind ./apps/gui_be/scripts:/app/scripts \
+    --bind ./apps/gui_be/src:/app/src \
     --env-file ${ENV_FILE} \
     ${DANNCE_GUI_SINGULARITY_IMG_PATH}
-

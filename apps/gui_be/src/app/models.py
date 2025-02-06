@@ -8,6 +8,9 @@ from pydantic import BaseModel, Field, Json
 
 from app.core.db import JobMode, JobStatus, PredictionStatus, WeightsStatus
 
+class ExecuteSqlModel(BaseModel):
+    sql : str
+
 
 class TrainJobSubmitComModel(BaseModel):
     name: str = Field(default="[none]")

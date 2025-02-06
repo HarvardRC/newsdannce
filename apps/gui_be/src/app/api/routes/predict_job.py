@@ -52,7 +52,6 @@ def predict_job_submit_com(conn: SessionDep, user_data: PredictJobSubmitComModel
         )
         prediction_id = curr.lastrowid
 
-
         # create gpu_job table entry
         curr.execute(f"INSERT INTO {TABLE_GPU_JOB} (log_path) VALUES (?)", (log_path,))
         gpu_job_id = curr.lastrowid
@@ -82,7 +81,9 @@ def predict_job_submit_com(conn: SessionDep, user_data: PredictJobSubmitComModel
 
         predict_job_id = curr.lastrowid
 
-        logger.info(f"FOR SUBMIT PRED COM JOB: {predict_job_id}, using META_cwd [external?] {config_model.META_cwd}")
+        logger.info(
+            f"FOR SUBMIT PRED COM JOB: {predict_job_id}, using META_cwd [external?] {config_model.META_cwd}"
+        )
 
         # save config file to intance file system
         config_path_internal = Path(settings.CONFIGS_FOLDER, config_path)
@@ -219,6 +220,7 @@ SELECT
     t2.mode AS mode,
     t3.local_status AS local_status,
     t3.slurm_status AS slurm_status,
+    t3.slurm_job_id AS slurm_job_id,
     t3.log_path AS log_path,
     t4.name AS video_folder_name,
     t5.name AS prediction_name,

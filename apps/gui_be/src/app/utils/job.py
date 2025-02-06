@@ -20,6 +20,7 @@ from app.utils.weights import update_weights_status_by_job_id
 # wait at most this many seconds before killing the slurm subprocess
 SLURM_TIMEOUT_SECONDS = 15
 
+
 def submit_sbatch_to_slurm(sbatch_str, current_dir=None):
     """Using subprocess, submit sbatch script to slurm from the specified directory
 
@@ -141,6 +142,7 @@ class JobWithStatusType:
     job_id: int
     job_status: str
 
+
 def update_jobs_by_ids(
     conn: Connection, job_list: list[JobStatusDataObject]
 ) -> list[JobStatusDataObject]:
@@ -184,10 +186,9 @@ def update_jobs_by_ids(
         m = re.match(r"^(\d+),(\w+)", line)
         m_job_id = int(m.group(1))
         m_new_status = m.group(2)
-        jobs_with_status.append(JobWithStatusType(
-            job_id=m_job_id,
-            job_status=m_new_status
-        ))
+        jobs_with_status.append(
+            JobWithStatusType(job_id=m_job_id, job_status=m_new_status)
+        )
 
     ids_queried_set = {x.slurm_job_id for x in job_list}
     ids_recieved_set = {x.job_id for x in jobs_with_status}
@@ -207,10 +208,14 @@ def update_jobs_by_ids(
 
         old_job_object = next(x for x in job_list if x.slurm_job_id == job_id)
 
+        logger.info(
+            f"TRYING TO UPDATE GPU_JOB STATUS: {new_status}, SLURM_JOB_ID={job_id}"
+        )
         conn.execute(
             f"UPDATE {db.TABLE_GPU_JOB} SET slurm_status = ? WHERE slurm_job_id = ?",
             (new_status, job_id),
         )
+        conn.execute("COMMIT")
 
         # if the job status was changed, add it to the list
         new_status_enum = db.JobStatus(new_status)
@@ -231,6 +236,7 @@ def update_jobs_by_ids(
                 f"UPDATE {db.TABLE_GPU_JOB} SET slurm_status = ? WHERE slurm_job_id = ?",
                 (db.JobStatus.LOST_TO_SLURM.value, lost_job_id),
             )
+            conn.execute("COMMIT")
 
             if new_status_enum != old_job_object.job_status:
                 new_job_object = old_job_object.model_copy(
@@ -243,8 +249,12 @@ def update_jobs_by_ids(
         logger.info(f"JOB DATA: {j}")
         if j.train_or_predict == "TRAIN":
             if j.job_status.is_failure():
-                update_weights_status_by_job_id(conn, j.gpu_job_id, db.WeightsStatus.FAILED)
+                logger.info(f"GPU TRAIN JOB FAILED: {j.gpu_job_id}")
+                update_weights_status_by_job_id(
+                    conn, j.gpu_job_id, db.WeightsStatus.FAILED
+                )
             elif j.job_status.is_success():
+                logger.info(f"GPU TRAIN JOB SUCCEEDED: {j.gpu_job_id}")
                 update_weights_status_by_job_id(
                     conn, j.gpu_job_id, db.WeightsStatus.COMPLETED
                 )

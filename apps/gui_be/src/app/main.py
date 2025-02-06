@@ -18,13 +18,6 @@ import os
 
 app = FastAPI(title="DANNCE GUI")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 def initialize_state():
     logger.info("INIT'ING STATE")
@@ -42,8 +35,9 @@ app.include_router(api_router, prefix="/v1")
 app.mount("/static", StaticFiles(directory=settings.STATIC_TMP_FOLDER), name="static")
 
 # Serve frontend unless disabled (e.g. for devleopment)
-if not os.environ.get('NO_SERVE_FE', False):
+if not os.environ.get("NO_SERVE_FE", False):
     logger.info("Mounting frontend")
+
     @app.get("/app/index.html", response_class=HTMLResponse)
     async def get_app_index(request: Request):
         """Template the app index to inject API_BASE_URL"""
@@ -54,7 +48,17 @@ if not os.environ.get('NO_SERVE_FE', False):
         html_str = template.render(API_URL_INJECTED=settings.API_BASE_URL)
         return html_str
 
-
-    app.mount("/app", StaticFiles(directory=settings.REACT_APP_DIST_FOLDER), name="gui_fe")
+    app.mount(
+        "/app", StaticFiles(directory=settings.REACT_APP_DIST_FOLDER), name="gui_fe"
+    )
 else:
     logger.info("NOT MOUTNING FRONTEND")
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)

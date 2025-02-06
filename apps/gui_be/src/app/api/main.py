@@ -8,7 +8,7 @@ from app.api.routes import (
     predict_job,
     jobs_common,
     prediction,
-    weights
+    weights,
 )
 from app.api.routes import settings_page
 
@@ -18,6 +18,7 @@ api_router = APIRouter()
 @api_router.get("/ping")
 def route_ping():
     return {"message": "pong"}
+
 
 api_router.include_router(train_job.router, prefix="/train_job")
 api_router.include_router(predict_job.router, prefix="/predict_job")

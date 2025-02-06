@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import json
 from pathlib import Path
 import sqlite3
 import re
@@ -21,7 +20,7 @@ def get_latest_checkpoint_filename(weights_path: Path) -> Path:
     )
     logger.info(f"Final checkpoint: {checkpoint_final}")
     if checkpoint_final.exists() or checkpoint_final.is_symlink():
-        return 'checkpoint_final.pth'
+        return "checkpoint_final.pth"
 
     checkpoint_files = Path(settings.WEIGHTS_FOLDER, weights_path).glob(
         "checkpoint-epoch*.pth"
@@ -47,7 +46,9 @@ class WeightsPathDataType:
     latest_filename: string
 
 
-def get_weights_path_from_id(conn: sqlite3.Connection, weights_id) -> WeightsPathDataType:
+def get_weights_path_from_id(
+    conn: sqlite3.Connection, weights_id
+) -> WeightsPathDataType:
     row = conn.execute(
         f"""
 SELECT
@@ -72,8 +73,7 @@ WHERE id=?
     latest_checkpoint_filename = get_latest_checkpoint_filename(base_path)
 
     return WeightsPathDataType(
-        weights_path=weights_path,
-        latest_filename=latest_checkpoint_filename
+        weights_path=weights_path, latest_filename=latest_checkpoint_filename
     )
 
 
@@ -84,7 +84,11 @@ def update_weights_status_by_job_id(
     NOTE: does not commit transaction! expected to commit by containing function.
     """
 
-        #  get mode and path given GPU job id:
+    logger.info(
+        f"UPDATE PRED. STAT BY JOB ID: {gpu_job_id}; Status value: {status.value}, status: {status}"
+    )
+
+    #  get mode and path given GPU job id:
     row = conn.execute(
         f"""
 SELECT
@@ -92,29 +96,50 @@ SELECT
 FROM
     {TABLE_WEIGHTS} t_wts
 LEFT JOIN {TABLE_TRAIN_JOB} t_train_j
-    ON t_train_j.weights = t_train_j.id
+    ON t_train_j.weights = t_wts.id
 LEFT JOIN {TABLE_GPU_JOB} t_gpu_j
     ON t_gpu_j.id = t_train_j.gpu_job WHERE t_gpu_j.id = ?
-""", (gpu_job_id,)).fetchone()
+""",
+        (gpu_job_id,),
+    ).fetchone()
     row = dict(row)
-    weights_id = row['weights_id']
-    mode = row['mode']
-    path = row['path']
+    weights_id = row["weights_id"]
+    mode = row["mode"]
+    path = row["path"]
+    logger.info(f"WEIGHT ID: {weights_id}; gpu_job_id: {gpu_job_id}")
 
-    filename = get_latest_checkpoint_filename(path)
+    if status.value == "COMPLETED":
+        filename = get_latest_checkpoint_filename(path)
+        logger.info(f"UPDATING TABLE WEIGHTS BY {weights_id} to {status.value}")
 
-    conn.execute(
-        f"""
-UPDATE {TABLE_WEIGHTS}
-SET
-    status = ?,
-    filename = ?
-WHERE id = ?;
-                 """,
-        (
-            status.value,
-            filename,
-            weights_id,
-        ),
-    )
+        conn.execute(
+            f"""
+    UPDATE {TABLE_WEIGHTS}
+    SET
+        status = ?,
+        filename = ?
+    WHERE id = ?;
+                    """,
+            (
+                status.value,
+                filename,
+                weights_id,
+            ),
+        )
 
+    else:
+        logger.info(f"(fail) UPDATING TABLE WEIGHTS BY {weights_id} to {status.value}")
+        conn.execute(
+            f"""
+    UPDATE {TABLE_WEIGHTS}
+    SET
+        status = ?,
+    WHERE id = ?;
+                    """,
+            (
+                status.value,
+                weights_id,
+            ),
+        )
+
+    conn.execute("COMMIT")
