@@ -118,16 +118,25 @@ def get_video_folder_path(conn: sqlite3.Connection, video_folder_id: int) -> lis
 
 # TODO: FINISH THIS!!! GET COM FILE FOR A DANNCE PREDICTION RUN GIVEN VIDEO FOLDER ID
 # use latest COM generation for this purpose
-def get_com_file_path(conn: sqlite3.Connection, video_folder_id: int) -> Path:
+def get_com_file_path_external(conn: sqlite3.Connection, video_folder_id: int) -> Path:
     row = conn.execute(
-        f"SELECT t2.path AS path FROM {TABLE_VIDEO_FOLDER} t1 LEFT JOIN {TABLE_PREDICTION} t2 ON t1.current_com_prediction = t2.id  WHERE t1.id = ?",
+        f"""
+SELECT
+    t2.path AS path
+FROM {TABLE_VIDEO_FOLDER} t1
+LEFT JOIN {TABLE_PREDICTION} t2 ON t1.current_com_prediction = t2.id
+WHERE t1.id = ?
+        """,
         (video_folder_id,),
     ).fetchone()
     if not row:
         raise HTTPException(400, f"Video folder for id {id} not found")
-    path = PurePath(row["path"])
-    path = path.joinpath("com3d.mat")
-    return path
+
+    filename = get_prediction_filename('COM', row['path'])
+
+    # path = PurePath(row["path"])
+    # path = path.joinpath("com3d.mat")
+    return PurePath(settings.PREDICTIONS_FOLDER_EXTERNAL, row['path'], filename)
 
 
 def import_video_folders_from_paths(
