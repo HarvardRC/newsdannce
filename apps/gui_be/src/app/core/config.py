@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from pathlib import Path, PurePath, PurePosixPath
+from pathlib import Path
 import os
 from app.base_logger import logger
 
@@ -56,15 +56,15 @@ class _Settings(BaseSettings):
     # e.g. full path to the resource on the host system instead of container
     # code in container MAY NOT have access to these files
     # Use these when calling Slurm or displaying a resource path to the user
-    DATA_FOLDER_EXTERNAL: PurePath = PurePosixPath(ENV_BASE_MOUNT, 'instance' )
-    WEIGHTS_FOLDER_EXTERNAL: PurePath = PurePosixPath(DATA_FOLDER_EXTERNAL, "weights")
-    PREDICTIONS_FOLDER_EXTERNAL: PurePath = PurePosixPath(DATA_FOLDER_EXTERNAL, "predictions")
-    VIDEO_FOLDERS_FOLDER_EXTERNAL: PurePath = PurePosixPath(DATA_FOLDER_EXTERNAL, "video_folders")
-    CONFIGS_FOLDER_EXTERNAL: PurePath = PurePosixPath(DATA_FOLDER_EXTERNAL, "configs")
-    JOB_LOGS_FOLDER_EXTERNAL: PurePath = PurePosixPath(DATA_FOLDER_EXTERNAL, "job_logs")
-    LOGS_FOLDER_EXTERNAL: PurePath = PurePosixPath(DATA_FOLDER_EXTERNAL, "logs")
+    DATA_FOLDER_EXTERNAL: Path = Path(ENV_BASE_MOUNT, 'instance' )
+    WEIGHTS_FOLDER_EXTERNAL: Path = Path(DATA_FOLDER_EXTERNAL, "weights")
+    PREDICTIONS_FOLDER_EXTERNAL: Path = Path(DATA_FOLDER_EXTERNAL, "predictions")
+    VIDEO_FOLDERS_FOLDER_EXTERNAL: Path = Path(DATA_FOLDER_EXTERNAL, "video_folders")
+    CONFIGS_FOLDER_EXTERNAL: Path = Path(DATA_FOLDER_EXTERNAL, "configs")
+    JOB_LOGS_FOLDER_EXTERNAL: Path = Path(DATA_FOLDER_EXTERNAL, "job_logs")
+    LOGS_FOLDER_EXTERNAL: Path = Path(DATA_FOLDER_EXTERNAL, "logs")
 
-    SLURM_TRAIN_FOLDER_EXTERNAL: PurePath = PurePosixPath(DATA_FOLDER_EXTERNAL, "slurm-cwd")
+    SLURM_TRAIN_FOLDER_EXTERNAL: Path = Path(DATA_FOLDER_EXTERNAL, "slurm-cwd")
 
     # required to use celery task scheduler
     CELERY_BEAT_FILES: Path = Path(ENV_CELERY_BEAT_FILES)
