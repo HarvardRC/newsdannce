@@ -96,7 +96,7 @@ export default function MonitorJobs() {
                   </TableCell>
                   <TableCell>{timestampString(x.created_at)}</TableCell>
                   <TableCell>
-                    <div className="cursor-pointer">Cancel</div>
+                    {/* <div className="cursor-pointer">Cancel</div> */}
                   </TableCell>
                 </TableRow>
               );
@@ -160,7 +160,7 @@ export default function MonitorJobs() {
                   </TableCell>
                   <TableCell>{timestampString(x.created_at)}</TableCell>
                   <TableCell>
-                    <div className="cursor-pointer">Cancel</div>
+                    {/* <div className="cursor-pointer">Cancel</div> */}
                   </TableCell>
                 </TableRow>
               );

@@ -18,7 +18,7 @@ from app.models import (
 from app.utils.video_folders import (
     ComExpEntry,
     DannceExpEntry,
-    get_com_file_path,
+    get_com_file_path_external,
     get_video_folder_path,
     get_video_folders_for_com,
     get_video_folders_for_dannce,
@@ -226,7 +226,7 @@ def config_dannce_predict(conn: sqlite3.Connection, data: PredictJobSubmitDannce
 
     weights_file_external = Path(settings.WEIGHTS_FOLDER_EXTERNAL, weights_path, weights_latest_filename)
 
-    com_file_path = get_com_file_path(conn, data.video_folder_id)
+    com_path_external = get_com_file_path_external(conn, data.video_folder_id)
 
     config_path = make_resource_name("PREDICT_DANNCE_", ".yaml")
     log_path = make_resource_name("PREDICT_DANNCE_", ".out")
@@ -241,6 +241,7 @@ def config_dannce_predict(conn: sqlite3.Connection, data: PredictJobSubmitDannce
 
     video_folder_path_external = Path(settings.VIDEO_FOLDERS_FOLDER_EXTERNAL, video_folder_path)
 
+
     cfg = DanncePredictModel(
         META_cwd=video_folder_path_external,
         META_config_path=config_path,
@@ -249,7 +250,7 @@ def config_dannce_predict(conn: sqlite3.Connection, data: PredictJobSubmitDannce
         dannce_predict_dir=prediction_path_external,
         dannce_predict_model=weights_file_external,
         io_config=blank_io_yaml_file,
-        com_file=com_file_path,
+        com_file=com_path_external,
         **data.config,
     )
 

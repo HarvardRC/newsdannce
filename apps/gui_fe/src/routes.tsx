@@ -18,6 +18,7 @@ import WeightsPage from './pages/WeightsPage';
 import ImportVideoFoldersPage from './pages/ImportVideoFoldersPage';
 import DanncePredictPage from './pages/DanncePredictPage';
 import SettingsPage from './pages/SettingsPage';
+import WeightsDetailsPage from './pages/WeightsDetailsPage';
 
 type AppPage = {
   path: string;
@@ -61,10 +62,10 @@ export const appPages = {
     element: <VideoFoldersPage />,
     title: 'Video Folders',
   },
-  models: {
+  weights: {
     path: '/weights',
     element: <WeightsPage />,
-    title: 'Trained Weights',
+    title: 'Model Weights',
   },
   videoFolderDetails: {
     path: '/video-folder/:id',
@@ -115,6 +116,11 @@ export const appPages = {
     path: '/predictions/:id',
     element: <PredictionDetailsPage />,
     title: 'Prediction Details',
+  },
+  weightsDetailsPage: {
+    path: '/weights/:id',
+    element: <WeightsDetailsPage />,
+    title: 'Weights Details',
   },
 } as const satisfies Record<string, AppPage>;
 
@@ -168,6 +174,7 @@ export const headerLinks: AppPage[] = [
   appPages.videoFolders,
   appPages.monitorJobs,
   appPages.predictionsPage,
+  appPages.weights,
   appPages.settings,
 ];
 

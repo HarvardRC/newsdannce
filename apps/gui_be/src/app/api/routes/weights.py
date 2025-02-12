@@ -2,7 +2,7 @@
 /weights
 """
 
-from pathlib import PurePath
+from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from app.core.config import settings
 from app.api.deps import SessionDep
@@ -48,8 +48,8 @@ WHERE id=?
 
     if status == 'COMPLETED':
         weights_filename = get_latest_checkpoint_filename(weights_path)
-        path_external = PurePath(settings.WEIGHTS_FOLDER_EXTERNAL, weights_path, weights_filename)
-        path_internal = PurePath(settings.WEIGHTS_FOLDER, weights_path, weights_filename),
+        path_external = Path(settings.WEIGHTS_FOLDER_EXTERNAL, weights_path, weights_filename)
+        path_internal = Path(settings.WEIGHTS_FOLDER, weights_path, weights_filename),
     else:
         weights_filename = None
         path_external = None
@@ -57,7 +57,7 @@ WHERE id=?
 
     return {
         "weights_path": row["weights_path"],
-        "path_external": PurePath(
+        "path_external": Path(
             settings.WEIGHTS_FOLDER_EXTERNAL, weights_path, weights_filename
         ),
         "path_internal": path_internal,
