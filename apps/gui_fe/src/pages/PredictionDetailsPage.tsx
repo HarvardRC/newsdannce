@@ -69,7 +69,7 @@ const PredictionDetailsPage: React.FC<CustomProps> = () => {
       <pre className="p-2 bg-gray-100 rounded-md border overflow-clip text-wrap">
         {JSON.stringify(data, null, 2)}
       </pre>
-      {data?.prediction_status == 'COMPLETED' ? (
+      {data!.status == 'COMPLETED' ? (
         <>
           <div className="my-4">
             <div>

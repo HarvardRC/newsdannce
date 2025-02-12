@@ -459,7 +459,7 @@ export type PredictionDetailsType = {
   prediction_id: number;
   prediction_name: string;
   prediction_path: string;
-  prediction_status: 'PENDING' | 'COMPLETED' | 'FAILED';
+  status: 'PENDING' | 'COMPLETED' | 'FAILED';
   video_folder_id: number;
   mode: 'DANNCE' | 'SDANNCE' | 'COM';
   n_frames: number;
