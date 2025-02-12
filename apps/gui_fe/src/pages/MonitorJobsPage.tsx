@@ -72,7 +72,11 @@ export default function MonitorJobs() {
                         `${x.train_job_id}`
                       )}
                     >
-                      {x.train_job_name}
+                      {x.train_job_name.length > 0 ? (
+                        x.train_job_name
+                      ) : (
+                        <i>UNNAMED</i>
+                      )}
                     </Link>
                   </TableCell>
                   <TableCell>{x.mode}</TableCell>
@@ -135,7 +139,11 @@ export default function MonitorJobs() {
                         `${x.predict_job_id}`
                       )}
                     >
-                      {x.predict_job_name}
+                      {x.predict_job_name.length > 0 ? (
+                        x.predict_job_name
+                      ) : (
+                        <i>UNNAMED</i>
+                      )}
                     </Link>
                   </TableCell>
                   <TableCell>{x.mode}</TableCell>

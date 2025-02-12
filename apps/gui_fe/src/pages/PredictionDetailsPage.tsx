@@ -69,86 +69,98 @@ const PredictionDetailsPage: React.FC<CustomProps> = () => {
       <pre className="p-2 bg-gray-100 rounded-md border overflow-clip text-wrap">
         {JSON.stringify(data, null, 2)}
       </pre>
-      <div className="my-4">
+      {data?.prediction_status == 'COMPLETED' ? (
+        <>
+          <div className="my-4">
+            <div>
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-8"
+                >
+                  <FormField
+                    control={form.control}
+                    name="frames"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Frames to Preview</FormLabel>
+                        <FormControl>
+                          <Input
+                            className="max-w-[400px]"
+                            {...field}
+                            placeholder="E.g. 1,1000,2000"
+                          />
+                        </FormControl>
+                        <FormDescription></FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="my-4">
+                    Preview Prediction
+                  </Button>
+                </form>
+              </Form>
+            </div>
+          </div>
+          {frames && (
+            <PreviewContainer
+              predictionId={id}
+              frames={frames}
+              camera1="Camera1"
+              camera2="Camera2"
+              predictionDetails={data!}
+            />
+          )}
+          <hr />
+          {data!.mode == 'COM' && (
+            <div className="mt-5 flex flex-col gap-5">
+              <div>
+                <Button
+                  type="button"
+                  onClick={() => setShowPositionGraph((x) => !x)}
+                >
+                  {showPositionGraph ? 'Hide' : 'Show'} Position Graph
+                </Button>
+              </div>
+              {showPositionGraph && (
+                <div>
+                  <ComPreviewChart prediction_id={id} />{' '}
+                </div>
+              )}
+              <div>
+                <Button
+                  type="button"
+                  onClick={() => setShowPositionTrace((x) => !x)}
+                >
+                  {showPositionTrace ? 'Hide' : 'Show'} Position Trace
+                </Button>
+              </div>
+              {showPositionTrace && (
+                <div>
+                  <ComTraceChart prediction_id={id} />{' '}
+                </div>
+              )}
+              <div>
+                <Button
+                  type="button"
+                  onClick={() => setShowComHistogram((x) => !x)}
+                >
+                  {showComHistogram ? 'Hide' : 'Show'} COM Histogram
+                </Button>
+              </div>
+              {showComHistogram && (
+                <div>
+                  <ComHistogramChart prediction_id={id} />{' '}
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      ) : (
         <div>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <FormField
-                control={form.control}
-                name="frames"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Frames to Preview</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="max-w-[400px]"
-                        {...field}
-                        placeholder="E.g. 1,1000,2000"
-                      />
-                    </FormControl>
-                    <FormDescription></FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="my-4">
-                Preview Prediction
-              </Button>
-            </form>
-          </Form>
-        </div>
-      </div>
-      {frames && (
-        <PreviewContainer
-          predictionId={id}
-          frames={frames}
-          camera1="Camera1"
-          camera2="Camera2"
-          predictionDetails={data!}
-        />
-      )}
-      <hr />
-      {data!.mode == 'COM' && (
-        <div className="mt-5 flex flex-col gap-5">
-          <div>
-            <Button
-              type="button"
-              onClick={() => setShowPositionGraph((x) => !x)}
-            >
-              {showPositionGraph ? 'Hide' : 'Show'} Position Graph
-            </Button>
-          </div>
-          {showPositionGraph && (
-            <div>
-              <ComPreviewChart prediction_id={id} />{' '}
-            </div>
-          )}
-          <div>
-            <Button
-              type="button"
-              onClick={() => setShowPositionTrace((x) => !x)}
-            >
-              {showPositionTrace ? 'Hide' : 'Show'} Position Trace
-            </Button>
-          </div>
-          {showPositionTrace && (
-            <div>
-              <ComTraceChart prediction_id={id} />{' '}
-            </div>
-          )}
-          <div>
-            <Button
-              type="button"
-              onClick={() => setShowComHistogram((x) => !x)}
-            >
-              {showComHistogram ? 'Hide' : 'Show'} COM Histogram
-            </Button>
-          </div>
-          {showComHistogram && (
-            <div>
-              <ComHistogramChart prediction_id={id} />{' '}
-            </div>
-          )}
+          Cannot show prediction previews for predictions where status is not
+          COMPLETED
         </div>
       )}
     </div>
