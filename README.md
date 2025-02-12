@@ -36,7 +36,7 @@ Upload the .SIF file to a location accessible from the cluster.
 
 ## Developer
 **What do the dannce parameters mean?** 
-See [Paramter Explination spreadsheet](docs/tutorials/DANNCE%20Parameter%20Cleanup.xlsx)
+See [Parameter Explanation Spreadsheet](docs/tutorials/DANNCE%20Parameter%20Cleanup.xlsx)
 
 **Configure git for the repo**
 
