@@ -57,9 +57,7 @@ WHERE id=?
 
     return {
         "weights_path": row["weights_path"],
-        "path_external": Path(
-            settings.WEIGHTS_FOLDER_EXTERNAL, weights_path, weights_filename
-        ),
+        "path_external": path_external,
         "path_internal": path_internal,
         "weights_name": weights_name,
         "status": status,

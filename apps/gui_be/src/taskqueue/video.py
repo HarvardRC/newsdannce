@@ -392,8 +392,8 @@ SET
 WHERE id=?
         """,
             (
-                str(com_data_file),  # com_labels_data (may be None)
-                str(dannce_data_file),  # dannce_labels_data (may be None)
+                None if com_data_file is None else str(com_data_file),  # com_labels_data (may be None)
+                None if dannce_data_file is None else str(dannce_data_file),  # dannce_labels_data (may be None)
                 json.dumps(params_jsonable),  # calibration_params
                 json.dumps(video_metadata.camera_names),  # camera_names
                 video_metadata.n_cameras,  # n_cameras
