@@ -22,7 +22,7 @@ def execute_sql(conn: SessionDep, data: ExecuteSqlModel):
     try:
         curr=  conn.cursor()
         curr.execute("BEGIN")
-        rows = curr.execute(data.sql).fetchone()
+        rows = curr.execute(data.sql).fetchall()
         curr.execute("COMMIT")
     except Exception as e:
         logger.warning(f"EXCEPTION RUNNING SQL COMMAND: {e}")

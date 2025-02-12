@@ -4,10 +4,13 @@ from sqlite3 import OperationalError
 from app.core.db import TABLE_GLOBAL_STATE, get_db_context
 from app.migrations.migration_util import Migration
 from app.migrations.v1 import v1
+from app.migrations.v2 import v2
+
 from app.base_logger import logger
 
 migration_list: list[Migration] = [
-    v1
+    v1,
+    v2
 ]
 
 code_migration_version = len(migration_list)

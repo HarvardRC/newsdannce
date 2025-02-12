@@ -127,7 +127,7 @@ CREATE TABLE global_state (
     id INTEGER PRIMARY KEY CHECK (id=0),
     last_update_jobs INTEGER DEFAULT 0,
     skeleton_file TEXT DEFAULT null,
-    migration_version INTEGER DEFAULT 1
+    migration_version INTEGER DEFAULT 2
 );
 
 -- Create singleton row entry in global_state for storing settings
