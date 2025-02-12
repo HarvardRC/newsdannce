@@ -1,6 +1,7 @@
 """
 /prediction
 """
+
 from fastapi import APIRouter, HTTPException
 from pathlib import Path
 
@@ -15,16 +16,19 @@ from app.utils.video import get_one_frame
 from app.core.config import settings
 from caldannce.calibration_data import CameraParams
 from app.base_logger import logger
-from app.utils.predictions import get_com_deltas, get_com_prediction_file, get_prediction_filename, get_prediction_metadata
+from app.utils.predictions import (
+    get_com_deltas,
+    get_com_prediction_file,
+    get_prediction_filename,
+    get_prediction_metadata,
+)
 import scipy.io
 
 router = APIRouter()
 
 
 @router.post("/{id_str}/make_preview")
-def make_preview_route(
-    conn: SessionDep, data: MakePredictionPreviewModel, id_str: str
-):
+def make_preview_route(conn: SessionDep, data: MakePredictionPreviewModel, id_str: str):
     if len(data.frames) > 10 or len(data.frames) < 1:
         raise HTTPException(400, "Can fetch between 1-10 frames for preview")
     id = int(id_str)
@@ -52,7 +56,7 @@ WHERE t1.id=?
     cam1_params = calibration_params[0]
     cam2_params = calibration_params[1]
 
-    prediction_path = row['prediction_path']
+    prediction_path = row["prediction_path"]
     video_folder_id = row["video_folder_id"]
     video_folder_path = Path(settings.VIDEO_FOLDERS_FOLDER, row["video_folder_path"])
     logger.info(f"PREDICTION PATH {prediction_path}")
@@ -60,12 +64,14 @@ WHERE t1.id=?
     frame_info = []
 
     if mode == "COM":
-        com3d_filename = get_prediction_filename('COM', prediction_path)
+        com3d_filename = get_prediction_filename("COM", prediction_path)
         com3d_file = Path(settings.PREDICTIONS_FOLDER, prediction_path, com3d_filename)
         pred_3d = get_com_pred_data_3d(com3d_file, data.frames)
     elif mode == "DANNCE":
-        dannce3d_filename = get_prediction_filename('DANNCE', prediction_path)
-        dannce3d_file = Path(settings.PREDICTIONS_FOLDER, prediction_path, dannce3d_filename)
+        dannce3d_filename = get_prediction_filename("DANNCE", prediction_path)
+        dannce3d_file = Path(
+            settings.PREDICTIONS_FOLDER, prediction_path, dannce3d_filename
+        )
         pred_3d = get_dannce_pred_data_3d(dannce3d_file, data.frames)
     else:
         raise Exception("Prediction is unsupported")
@@ -103,15 +109,11 @@ WHERE t1.id=?
         )
 
     skeleton_data = None
-    if (mode != 'COM' and settings.SKELETON_FILE.exists()):
+    if mode != "COM" and settings.SKELETON_FILE.exists():
         m = scipy.io.loadmat(settings.SKELETON_FILE)
-        joint_names = [x[0] for x in m['joint_names'][0]]
-        joints_idx = m['joints_idx'].tolist()
-        skeleton_data = {
-            'joint_names' : joint_names,
-            'joints_idx' : joints_idx
-        }
-
+        joint_names = [x[0] for x in m["joint_names"][0]]
+        joints_idx = m["joints_idx"].tolist()
+        skeleton_data = {"joint_names": joint_names, "joints_idx": joints_idx}
 
     return {
         "frames": frame_info,
@@ -119,7 +121,7 @@ WHERE t1.id=?
         "frame_width": 1920,
         "frame_height": 1200,
         "n_joints": n_joints,
-        "skeleton_data": skeleton_data
+        "skeleton_data": skeleton_data,
     }
 
 
@@ -142,12 +144,16 @@ FROM {TABLE_PREDICTION}"""
 
 
 @router.get("/{id_str}/com_preview")
-def get_com_preview_route(conn: SessionDep,id_str: str,  samples:int ):
+def get_com_preview_route(conn: SessionDep, id_str: str, samples: int):
     id_int = int(id_str)
     return get_com_prediction_file(conn, id_int, samples)
 
+
 @router.get("/{id_str}/com_histogram")
-def get_com_histogram_route(conn: SessionDep, id_str: str,  ):
+def get_com_histogram_route(
+    conn: SessionDep,
+    id_str: str,
+):
     id_int = int(id_str)
     return get_com_deltas(conn, id_int)
 
@@ -174,26 +180,35 @@ WHERE id=?
         raise HTTPException(404)
 
     row = dict(row)
-    prediction_name = row['prediction_name']
-    prediction_path = row['prediction_path']
-    status = row['status']
-    video_folder_id = row['video_folder_id']
-    mode = row['mode']
-    created_at = row ['created_at']
+    prediction_name = row["prediction_name"]
+    prediction_path = row["prediction_path"]
+    status = row["status"]
+    video_folder_id = row["video_folder_id"]
+    mode = row["mode"]
+    created_at = row["created_at"]
 
-    metadata = get_prediction_metadata(status, mode, prediction_path)
+    try:
+        metadata = get_prediction_metadata(status, mode, prediction_path)
+        prediction_filename = get_prediction_filename(mode, prediction_path)
+    except Exception:
+        prediction_filename = None
 
     return {
-        'prediction_path': row['prediction_path'],
-        'path_external': Path(settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path, get_prediction_filename(mode, prediction_path)),
-        'path_internal': Path(settings.PREDICTIONS_FOLDER, prediction_path, get_prediction_filename(mode, prediction_path)),
-        'prediction_name': prediction_name,
-        'status': status,
-        'video_folder_id': video_folder_id,
-        'mode': mode,
-        'created_at': created_at,
-        'n_joints': metadata.n_joints,
-        'n_frames': metadata.n_frames,
-        'filename': row['filename'],
+        "prediction_path": row["prediction_path"],
+        "path_external": None
+        if prediction_filename is None
+        else Path(
+            settings.PREDICTIONS_FOLDER_EXTERNAL, prediction_path, prediction_filename
+        ),
+        "path_internal": None
+        if prediction_filename is None
+        else Path(settings.PREDICTIONS_FOLDER, prediction_path, prediction_filename),
+        "prediction_name": prediction_name,
+        "status": status,
+        "video_folder_id": video_folder_id,
+        "mode": mode,
+        "created_at": created_at,
+        "n_joints": metadata.n_joints,
+        "n_frames": metadata.n_frames,
+        "filename": row["filename"],
     }
-
